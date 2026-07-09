@@ -1,0 +1,87 @@
+---
+import Layout from "../components/Layout.astro";
+import ToolCard from "../components/ToolCard.astro";
+import { categories } from "../lib/categories";
+import { tools } from "../lib/tools";
+import { breadcrumbSchema, site } from "../lib/seo";
+
+const schema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: site.name,
+    url: site.origin,
+    description: site.description,
+    publisher: {
+      "@type": "Organization",
+      name: "VIOX",
+      url: "https://viox.com/",
+      logo: site.logo
+    }
+  },
+  breadcrumbSchema([{ name: "Electrical Tools", url: site.origin }])
+];
+---
+
+<Layout title="VIOX Electrical Tools | Free Electrical Calculators" description={site.description} canonical={`${site.origin}/`} schema={schema}>
+  <main>
+    <section class="hero-shell">
+      <div class="hero-copy">
+        <div class="eyebrow">VIOX engineering tools</div>
+        <h1>Low-voltage calculation tools for practical product selection.</h1>
+        <p>Support panel builders, OEMs, distributors, and electrical engineers with quick reference checks for surge protection, circuit protection, cable sizing, motor control, and EV charging loads.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#tools">Browse tools</a>
+          <a class="button secondary" href="https://viox.com/">Visit VIOX.com</a>
+        </div>
+      </div>
+      <div class="hero-workbench" aria-label="Featured calculator list">
+        <div class="workbench-header">
+          <span>Engineering workflow</span>
+          <strong>Load, protection, and cable check</strong>
+        </div>
+        <ol class="workflow-list">
+          <li><a href="/kw-kva-amp-calculator/">Calculate load current from power</a></li>
+          <li><a href="/circuit-breaker-size-calculator/">Estimate protective device rating</a></li>
+          <li><a href="/cable-size-calculator/">Check reference conductor size</a></li>
+          <li><a href="/voltage-drop-calculator/">Verify voltage drop for the run</a></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section-shell" id="tools">
+      <div class="section-heading">
+        <span class="eyebrow">Calculator library</span>
+        <p>Each tool includes a browser-based calculator, formula notes, assumptions, warnings, related calculators, and links to relevant VIOX product support.</p>
+      </div>
+      <div class="tool-grid">
+        {tools.map((tool) => <ToolCard tool={tool} />)}
+      </div>
+    </section>
+
+    <section class="section-shell">
+      <div class="section-heading compact">
+        <span class="eyebrow">Product-aligned categories</span>
+        <h2>Organized around low-voltage panel and protection work.</h2>
+      </div>
+      <div class="category-grid">
+        {Object.values(categories).map((category) => (
+          <a class="category-card" href={`/category/${category.slug}/`}>
+            <span>{category.deck}</span>
+            <h3>{category.title}</h3>
+            <p>{category.description}</p>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="cta-strip">
+      <div>
+        <span class="eyebrow">Factory selection support</span>
+        <h2>Need a product recommendation after the calculation?</h2>
+        <p>Send the result to VIOX for SPD, MCB, MCCB, RCBO, contactor, cable gland, busbar, and EV charging protection support.</p>
+      </div>
+      <a class="cta-button" href="https://viox.com/contact">Contact</a>
+    </section>
+  </main>
+</Layout>
