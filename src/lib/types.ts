@@ -13,17 +13,15 @@ export type ToolFieldOption = {
 };
 
 export type ToolField = {
-  name: string;
+  id: string;
   label: string;
   type: "number" | "select" | "radio";
   unit?: string;
-  placeholder?: string;
   defaultValue?: string | number;
   min?: number;
   max?: number;
   step?: number;
   options?: ToolFieldOption[];
-  help?: string;
 };
 
 export type ToolLink = {
@@ -40,16 +38,17 @@ export type ToolDefinition = {
   slug: string;
   title: string;
   shortTitle?: string;
-  deck: string;
   category: ToolCategory;
   description: string;
   intent: string;
   fields: ToolField[];
-  formulaNotes: string[];
+  formula: string;
+  assumptions: string[];
   warnings: string[];
   faqs: ToolFaq[];
-  related: string[];
-  productLinks: ToolLink[];
+  relatedTools: string[];
+  relatedProducts: ToolLink[];
+  keywords: string[];
 };
 
 export type CalculationResult = {
