@@ -75,7 +75,17 @@ export const equationsBySlug: Record<string, ToolEquation> = {
     title: "Cable ampacity sizing equation",
     intro: "This calculator estimates the minimum reference ampacity a conductor should have after sizing and installation derating.",
     equations: [
-      { expression: "Ireq = Iload × F / (Kd × Km)" },
+      {
+        expression: "Ireq = Iload × F / (Kd × Km)",
+        mathml: `<math display="block" aria-label="I required equals I load times F over K d times K m">
+          <msub><mi>I</mi><mi>req</mi></msub>
+          <mo>=</mo>
+          <mfrac>
+            <mrow><msub><mi>I</mi><mi>load</mi></msub><mi>F</mi></mrow>
+            <mrow><msub><mi>K</mi><mi>d</mi></msub><msub><mi>K</mi><mi>m</mi></msub></mrow>
+          </mfrac>
+        </math>`
+      },
       { expression: "Select the first conductor where Itable ≥ Ireq" }
     ],
     symbols: [
@@ -92,9 +102,42 @@ export const equationsBySlug: Record<string, ToolEquation> = {
     title: "Conduit fill equation",
     intro: "Conduit fill compares the total cable area against the internal area of the selected raceway.",
     equations: [
-      { label: "Circular area", expression: "A = π × d² / 4" },
-      { label: "Total cable area", expression: "Acables = Σ(n × Acable)" },
-      { label: "Conduit fill", expression: "Fill% = Acables / Aconduit × 100" }
+      {
+        label: "Circular area",
+        expression: "A = π × d² / 4",
+        mathml: `<math display="block" aria-label="A equals pi d squared over four">
+          <mi>A</mi>
+          <mo>=</mo>
+          <mfrac>
+            <mrow><mi>π</mi><msup><mi>d</mi><mn>2</mn></msup></mrow>
+            <mn>4</mn>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "Total cable area",
+        expression: "Acables = Σ(n × Acable)",
+        mathml: `<math display="block" aria-label="A cables equals sum of n times A cable">
+          <msub><mi>A</mi><mi>cables</mi></msub>
+          <mo>=</mo>
+          <mo>Σ</mo>
+          <mrow><mo>(</mo><mi>n</mi><msub><mi>A</mi><mi>cable</mi></msub><mo>)</mo></mrow>
+        </math>`
+      },
+      {
+        label: "Conduit fill",
+        expression: "Fill% = Acables / Aconduit × 100",
+        mathml: `<math display="block" aria-label="Fill percent equals A cables over A conduit times one hundred">
+          <msub><mi>Fill</mi><mo>%</mo></msub>
+          <mo>=</mo>
+          <mfrac>
+            <msub><mi>A</mi><mi>cables</mi></msub>
+            <msub><mi>A</mi><mi>conduit</mi></msub>
+          </mfrac>
+          <mo>×</mo>
+          <mn>100</mn>
+        </math>`
+      }
     ],
     symbols: [
       { symbol: "A", meaning: "Cross-sectional area of a circular cable or conduit", unit: "in2" },
@@ -111,10 +154,48 @@ export const equationsBySlug: Record<string, ToolEquation> = {
     title: "DC voltage drop equation",
     intro: "For two-wire DC circuits, the voltage drop is calculated across both the outgoing and return conductors.",
     equations: [
-      { expression: "Vd = 2 × I × Rft × L" },
-      { expression: "Vload = Vsource - Vd" },
-      { expression: "Vd% = Vd / Vsource × 100" },
-      { label: "Temperature correction", expression: "Rft = R20 × M × (1 + alpha × (T - 20))" }
+      {
+        expression: "Vd = 2 × I × Rft × L",
+        mathml: `<math display="block" aria-label="V d equals two I R ft L">
+          <msub><mi>V</mi><mi>d</mi></msub>
+          <mo>=</mo>
+          <mn>2</mn><mi>I</mi><msub><mi>R</mi><mi>ft</mi></msub><mi>L</mi>
+        </math>`
+      },
+      {
+        expression: "Vload = Vsource - Vd",
+        mathml: `<math display="block" aria-label="V load equals V source minus V d">
+          <msub><mi>V</mi><mi>load</mi></msub>
+          <mo>=</mo>
+          <msub><mi>V</mi><mi>source</mi></msub>
+          <mo>-</mo>
+          <msub><mi>V</mi><mi>d</mi></msub>
+        </math>`
+      },
+      {
+        expression: "Vd% = Vd / Vsource × 100",
+        mathml: `<math display="block" aria-label="V d percent equals V d over V source times one hundred">
+          <msub><mi>V</mi><mrow><mi>d</mi><mo>%</mo></mrow></msub>
+          <mo>=</mo>
+          <mfrac>
+            <msub><mi>V</mi><mi>d</mi></msub>
+            <msub><mi>V</mi><mi>source</mi></msub>
+          </mfrac>
+          <mo>×</mo>
+          <mn>100</mn>
+        </math>`
+      },
+      {
+        label: "Temperature correction",
+        expression: "Rft = R20 × M × (1 + alpha × (T - 20))",
+        mathml: `<math display="block" aria-label="R ft equals R twenty times M times one plus alpha times T minus twenty">
+          <msub><mi>R</mi><mi>ft</mi></msub>
+          <mo>=</mo>
+          <msub><mi>R</mi><mn>20</mn></msub>
+          <mi>M</mi>
+          <mrow><mo>(</mo><mn>1</mn><mo>+</mo><mi>α</mi><mrow><mo>(</mo><mi>T</mi><mo>-</mo><mn>20</mn><mo>)</mo></mrow><mo>)</mo></mrow>
+        </math>`
+      }
     ],
     symbols: [
       { symbol: "Vd", meaning: "DC voltage drop", unit: "V" },
@@ -134,9 +215,36 @@ export const equationsBySlug: Record<string, ToolEquation> = {
     title: "AWG wire size equation",
     intro: "The calculator checks each AWG size from small to large and selects the first conductor that passes both ampacity and voltage-drop limits.",
     equations: [
-      { label: "Required ampacity", expression: "Ireq = Iload × Fc / Kbundle" },
-      { label: "DC or single-phase voltage drop", expression: "Vd = 2 × Iload × Rft × L" },
-      { label: "Three-phase voltage drop", expression: "Vd = √3 × Iload × Rft × L" },
+      {
+        label: "Required ampacity",
+        expression: "Ireq = Iload × Fc / Kbundle",
+        mathml: `<math display="block" aria-label="I required equals I load times F c over K bundle">
+          <msub><mi>I</mi><mi>req</mi></msub>
+          <mo>=</mo>
+          <mfrac>
+            <mrow><msub><mi>I</mi><mi>load</mi></msub><msub><mi>F</mi><mi>c</mi></msub></mrow>
+            <msub><mi>K</mi><mi>bundle</mi></msub>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "DC or single-phase voltage drop",
+        expression: "Vd = 2 × Iload × Rft × L",
+        mathml: `<math display="block" aria-label="V d equals two I load R ft L">
+          <msub><mi>V</mi><mi>d</mi></msub>
+          <mo>=</mo>
+          <mn>2</mn><msub><mi>I</mi><mi>load</mi></msub><msub><mi>R</mi><mi>ft</mi></msub><mi>L</mi>
+        </math>`
+      },
+      {
+        label: "Three-phase voltage drop",
+        expression: "Vd = √3 × Iload × Rft × L",
+        mathml: `<math display="block" aria-label="V d equals square root of three I load R ft L">
+          <msub><mi>V</mi><mi>d</mi></msub>
+          <mo>=</mo>
+          <msqrt><mn>3</mn></msqrt><msub><mi>I</mi><mi>load</mi></msub><msub><mi>R</mi><mi>ft</mi></msub><mi>L</mi>
+        </math>`
+      },
       { label: "Selection rule", expression: "Select first AWG where Iamp ≥ Ireq and Vd% ≤ Vlimit" }
     ],
     symbols: [
@@ -156,10 +264,48 @@ export const equationsBySlug: Record<string, ToolEquation> = {
     title: "Circuit breaker sizing equation",
     intro: "This calculator estimates the load current, applies a sizing factor, and rounds up to the next common breaker rating.",
     equations: [
-      { label: "DC load current", expression: "I = P / V" },
-      { label: "Single-phase AC load current", expression: "I = P / (V × PF)" },
-      { label: "Three-phase AC load current", expression: "I = P / (√3 × V × PF)" },
-      { label: "Minimum breaker rating", expression: "Ib,min = I × F" },
+      {
+        label: "DC load current",
+        expression: "I = P / V",
+        mathml: `<math display="block" aria-label="I equals P over V">
+          <mi>I</mi>
+          <mo>=</mo>
+          <mfrac><mi>P</mi><mi>V</mi></mfrac>
+        </math>`
+      },
+      {
+        label: "Single-phase AC load current",
+        expression: "I = P / (V × PF)",
+        mathml: `<math display="block" aria-label="I equals P over V times power factor">
+          <mi>I</mi>
+          <mo>=</mo>
+          <mfrac>
+            <mi>P</mi>
+            <mrow><mi>V</mi><mi>PF</mi></mrow>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "Three-phase AC load current",
+        expression: "I = P / (√3 × V × PF)",
+        mathml: `<math display="block" aria-label="I equals P over square root of three V times power factor">
+          <mi>I</mi>
+          <mo>=</mo>
+          <mfrac>
+            <mi>P</mi>
+            <mrow><msqrt><mn>3</mn></msqrt><mi>V</mi><mi>PF</mi></mrow>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "Minimum breaker rating",
+        expression: "Ib,min = I × F",
+        mathml: `<math display="block" aria-label="I b min equals I times F">
+          <msub><mi>I</mi><mrow><mi>b</mi><mo>,</mo><mi>min</mi></mrow></msub>
+          <mo>=</mo>
+          <mi>I</mi><mi>F</mi>
+        </math>`
+      },
       { label: "Standard rating selection", expression: "Ib = next standard size ≥ Ib,min" }
     ],
     symbols: [
@@ -177,11 +323,60 @@ export const equationsBySlug: Record<string, ToolEquation> = {
     title: "Transformer kVA sizing equation",
     intro: "Transformer sizing starts by converting the connected load to kVA, then applies demand, growth, loading margin, and ambient derating.",
     equations: [
-      { label: "kW input", expression: "Sconnected = P / PF" },
-      { label: "hp motor input", expression: "Sconnected = hp × 0.746 / (η × PF)" },
-      { label: "Design load", expression: "Sdesign = Sconnected × D × (1 + G)" },
-      { label: "Required transformer rating", expression: "Sreq = Sdesign / (Ltarget × Kambient)" },
-      { label: "Secondary full-load current", expression: "Isec = Sstd × 1000 / (√3 × Vsec)" }
+      {
+        label: "kW input",
+        expression: "Sconnected = P / PF",
+        mathml: `<math display="block" aria-label="S connected equals P over power factor">
+          <msub><mi>S</mi><mi>connected</mi></msub>
+          <mo>=</mo>
+          <mfrac><mi>P</mi><mi>PF</mi></mfrac>
+        </math>`
+      },
+      {
+        label: "hp motor input",
+        expression: "Sconnected = hp × 0.746 / (η × PF)",
+        mathml: `<math display="block" aria-label="S connected equals hp times zero point seven four six over efficiency times power factor">
+          <msub><mi>S</mi><mi>connected</mi></msub>
+          <mo>=</mo>
+          <mfrac>
+            <mrow><mi>hp</mi><mo>×</mo><mn>0.746</mn></mrow>
+            <mrow><mi>η</mi><mi>PF</mi></mrow>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "Design load",
+        expression: "Sdesign = Sconnected × D × (1 + G)",
+        mathml: `<math display="block" aria-label="S design equals S connected times D times one plus G">
+          <msub><mi>S</mi><mi>design</mi></msub>
+          <mo>=</mo>
+          <msub><mi>S</mi><mi>connected</mi></msub><mi>D</mi><mrow><mo>(</mo><mn>1</mn><mo>+</mo><mi>G</mi><mo>)</mo></mrow>
+        </math>`
+      },
+      {
+        label: "Required transformer rating",
+        expression: "Sreq = Sdesign / (Ltarget × Kambient)",
+        mathml: `<math display="block" aria-label="S required equals S design over L target times K ambient">
+          <msub><mi>S</mi><mi>req</mi></msub>
+          <mo>=</mo>
+          <mfrac>
+            <msub><mi>S</mi><mi>design</mi></msub>
+            <mrow><msub><mi>L</mi><mi>target</mi></msub><msub><mi>K</mi><mi>ambient</mi></msub></mrow>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "Secondary full-load current",
+        expression: "Isec = Sstd × 1000 / (√3 × Vsec)",
+        mathml: `<math display="block" aria-label="I secondary equals S standard times one thousand over square root of three V secondary">
+          <msub><mi>I</mi><mi>sec</mi></msub>
+          <mo>=</mo>
+          <mfrac>
+            <mrow><msub><mi>S</mi><mi>std</mi></msub><mo>×</mo><mn>1000</mn></mrow>
+            <mrow><msqrt><mn>3</mn></msqrt><msub><mi>V</mi><mi>sec</mi></msub></mrow>
+          </mfrac>
+        </math>`
+      }
     ],
     symbols: [
       { symbol: "Sconnected", meaning: "Connected apparent load", unit: "kVA" },
@@ -204,11 +399,63 @@ export const equationsBySlug: Record<string, ToolEquation> = {
     title: "Short-circuit current equation",
     intro: "The available transformer secondary fault current is estimated from transformer full-load current and total per-unit source impedance.",
     equations: [
-      { label: "Three-phase full-load current", expression: "IFL = S × 1000 / (√3 × V)" },
-      { label: "Single-phase full-load current", expression: "IFL = S × 1000 / V" },
-      { label: "Optional utility source impedance", expression: "Zsource,pu = S / (MVAutility × 1000)" },
-      { label: "Available fault current", expression: "Isc = IFL / (Ztransformer,pu + Zsource,pu)" },
-      { label: "Fault level", expression: "Isc,kA = Isc / 1000" }
+      {
+        label: "Three-phase full-load current",
+        expression: "IFL = S × 1000 / (√3 × V)",
+        mathml: `<math display="block" aria-label="I full load equals S times one thousand over square root of three V">
+          <msub><mi>I</mi><mi>FL</mi></msub>
+          <mo>=</mo>
+          <mfrac>
+            <mrow><mi>S</mi><mo>×</mo><mn>1000</mn></mrow>
+            <mrow><msqrt><mn>3</mn></msqrt><mi>V</mi></mrow>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "Single-phase full-load current",
+        expression: "IFL = S × 1000 / V",
+        mathml: `<math display="block" aria-label="I full load equals S times one thousand over V">
+          <msub><mi>I</mi><mi>FL</mi></msub>
+          <mo>=</mo>
+          <mfrac>
+            <mrow><mi>S</mi><mo>×</mo><mn>1000</mn></mrow>
+            <mi>V</mi>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "Optional utility source impedance",
+        expression: "Zsource,pu = S / (MVAutility × 1000)",
+        mathml: `<math display="block" aria-label="Z source pu equals S over MVA utility times one thousand">
+          <msub><mi>Z</mi><mrow><mi>source</mi><mo>,</mo><mi>pu</mi></mrow></msub>
+          <mo>=</mo>
+          <mfrac>
+            <mi>S</mi>
+            <mrow><msub><mi>MVA</mi><mi>utility</mi></msub><mo>×</mo><mn>1000</mn></mrow>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "Available fault current",
+        expression: "Isc = IFL / (Ztransformer,pu + Zsource,pu)",
+        mathml: `<math display="block" aria-label="I short circuit equals I full load over transformer impedance plus source impedance">
+          <msub><mi>I</mi><mi>sc</mi></msub>
+          <mo>=</mo>
+          <mfrac>
+            <msub><mi>I</mi><mi>FL</mi></msub>
+            <mrow><msub><mi>Z</mi><mrow><mi>transformer</mi><mo>,</mo><mi>pu</mi></mrow></msub><mo>+</mo><msub><mi>Z</mi><mrow><mi>source</mi><mo>,</mo><mi>pu</mi></mrow></msub></mrow>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "Fault level",
+        expression: "Isc,kA = Isc / 1000",
+        mathml: `<math display="block" aria-label="I short circuit kA equals I short circuit over one thousand">
+          <msub><mi>I</mi><mrow><mi>sc</mi><mo>,</mo><mi>kA</mi></mrow></msub>
+          <mo>=</mo>
+          <mfrac><msub><mi>I</mi><mi>sc</mi></msub><mn>1000</mn></mfrac>
+        </math>`
+      }
     ],
     symbols: [
       { symbol: "IFL", meaning: "Transformer full-load current", unit: "A" },
@@ -226,10 +473,51 @@ export const equationsBySlug: Record<string, ToolEquation> = {
     title: "Power conversion equations",
     intro: "These equations convert real power, apparent power, and current for DC, single-phase AC, and balanced three-phase AC systems.",
     equations: [
-      { label: "DC current", expression: "I = P / (V × η)" },
-      { label: "Single-phase AC current", expression: "I = P / (V × PF × η)" },
-      { label: "Three-phase AC current", expression: "I = P / (√3 × V × PF × η)" },
-      { label: "Apparent power", expression: "S = P / PF" }
+      {
+        label: "DC current",
+        expression: "I = P / (V × η)",
+        mathml: `<math display="block" aria-label="I equals P over V times efficiency">
+          <mi>I</mi>
+          <mo>=</mo>
+          <mfrac>
+            <mi>P</mi>
+            <mrow><mi>V</mi><mi>η</mi></mrow>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "Single-phase AC current",
+        expression: "I = P / (V × PF × η)",
+        mathml: `<math display="block" aria-label="I equals P over V times power factor times efficiency">
+          <mi>I</mi>
+          <mo>=</mo>
+          <mfrac>
+            <mi>P</mi>
+            <mrow><mi>V</mi><mi>PF</mi><mi>η</mi></mrow>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "Three-phase AC current",
+        expression: "I = P / (√3 × V × PF × η)",
+        mathml: `<math display="block" aria-label="I equals P over square root of three V times power factor times efficiency">
+          <mi>I</mi>
+          <mo>=</mo>
+          <mfrac>
+            <mi>P</mi>
+            <mrow><msqrt><mn>3</mn></msqrt><mi>V</mi><mi>PF</mi><mi>η</mi></mrow>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "Apparent power",
+        expression: "S = P / PF",
+        mathml: `<math display="block" aria-label="S equals P over power factor">
+          <mi>S</mi>
+          <mo>=</mo>
+          <mfrac><mi>P</mi><mi>PF</mi></mfrac>
+        </math>`
+      }
     ],
     symbols: [
       { symbol: "I", meaning: "Calculated current", unit: "A" },
@@ -245,8 +533,30 @@ export const equationsBySlug: Record<string, ToolEquation> = {
     title: "Three-phase current equation",
     intro: "For balanced three-phase systems, current can be calculated from either real power in kW or apparent power in kVA.",
     equations: [
-      { label: "From kW", expression: "I = P × 1000 / (√3 × VL-L × PF × η)" },
-      { label: "From kVA", expression: "I = S × 1000 / (√3 × VL-L)" }
+      {
+        label: "From kW",
+        expression: "I = P × 1000 / (√3 × VL-L × PF × η)",
+        mathml: `<math display="block" aria-label="I equals P times one thousand over square root of three line to line voltage power factor efficiency">
+          <mi>I</mi>
+          <mo>=</mo>
+          <mfrac>
+            <mrow><mi>P</mi><mo>×</mo><mn>1000</mn></mrow>
+            <mrow><msqrt><mn>3</mn></msqrt><msub><mi>V</mi><mrow><mi>L</mi><mo>-</mo><mi>L</mi></mrow></msub><mi>PF</mi><mi>η</mi></mrow>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "From kVA",
+        expression: "I = S × 1000 / (√3 × VL-L)",
+        mathml: `<math display="block" aria-label="I equals S times one thousand over square root of three line to line voltage">
+          <mi>I</mi>
+          <mo>=</mo>
+          <mfrac>
+            <mrow><mi>S</mi><mo>×</mo><mn>1000</mn></mrow>
+            <mrow><msqrt><mn>3</mn></msqrt><msub><mi>V</mi><mrow><mi>L</mi><mo>-</mo><mi>L</mi></mrow></msub></mrow>
+          </mfrac>
+        </math>`
+      }
     ],
     symbols: [
       { symbol: "I", meaning: "Balanced three-phase line current", unit: "A" },
@@ -262,9 +572,36 @@ export const equationsBySlug: Record<string, ToolEquation> = {
     title: "Motor current equation",
     intro: "This calculator estimates three-phase motor full-load current from output power, voltage, efficiency, and power factor.",
     equations: [
-      { label: "Horsepower conversion", expression: "Pout = hp × 0.746" },
-      { label: "Three-phase motor current", expression: "IFLC = Pout × 1000 / (√3 × V × PF × η)" },
-      { label: "Overload reference", expression: "IOL = IFLC × Fol" }
+      {
+        label: "Horsepower conversion",
+        expression: "Pout = hp × 0.746",
+        mathml: `<math display="block" aria-label="P out equals hp times zero point seven four six">
+          <msub><mi>P</mi><mi>out</mi></msub>
+          <mo>=</mo>
+          <mi>hp</mi><mo>×</mo><mn>0.746</mn>
+        </math>`
+      },
+      {
+        label: "Three-phase motor current",
+        expression: "IFLC = Pout × 1000 / (√3 × V × PF × η)",
+        mathml: `<math display="block" aria-label="I full load current equals P out times one thousand over square root of three V power factor efficiency">
+          <msub><mi>I</mi><mi>FLC</mi></msub>
+          <mo>=</mo>
+          <mfrac>
+            <mrow><msub><mi>P</mi><mi>out</mi></msub><mo>×</mo><mn>1000</mn></mrow>
+            <mrow><msqrt><mn>3</mn></msqrt><mi>V</mi><mi>PF</mi><mi>η</mi></mrow>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "Overload reference",
+        expression: "IOL = IFLC × Fol",
+        mathml: `<math display="block" aria-label="I overload equals I full load current times F overload">
+          <msub><mi>I</mi><mi>OL</mi></msub>
+          <mo>=</mo>
+          <msub><mi>I</mi><mi>FLC</mi></msub><msub><mi>F</mi><mi>ol</mi></msub>
+        </math>`
+      }
     ],
     symbols: [
       { symbol: "Pout", meaning: "Motor output power", unit: "kW" },
@@ -282,9 +619,39 @@ export const equationsBySlug: Record<string, ToolEquation> = {
     title: "EV charger load equation",
     intro: "This calculator estimates charger current and total planned feeder load after applying charger quantity and simultaneity.",
     equations: [
-      { label: "Single-phase charger current", expression: "Icharger = P × 1000 / (V × PF)" },
-      { label: "Three-phase charger current", expression: "Icharger = P × 1000 / (√3 × V × PF)" },
-      { label: "Planned feeder current", expression: "Iplanned = Icharger × N × Ks" }
+      {
+        label: "Single-phase charger current",
+        expression: "Icharger = P × 1000 / (V × PF)",
+        mathml: `<math display="block" aria-label="I charger equals P times one thousand over V times power factor">
+          <msub><mi>I</mi><mi>charger</mi></msub>
+          <mo>=</mo>
+          <mfrac>
+            <mrow><mi>P</mi><mo>×</mo><mn>1000</mn></mrow>
+            <mrow><mi>V</mi><mi>PF</mi></mrow>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "Three-phase charger current",
+        expression: "Icharger = P × 1000 / (√3 × V × PF)",
+        mathml: `<math display="block" aria-label="I charger equals P times one thousand over square root of three V times power factor">
+          <msub><mi>I</mi><mi>charger</mi></msub>
+          <mo>=</mo>
+          <mfrac>
+            <mrow><mi>P</mi><mo>×</mo><mn>1000</mn></mrow>
+            <mrow><msqrt><mn>3</mn></msqrt><mi>V</mi><mi>PF</mi></mrow>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "Planned feeder current",
+        expression: "Iplanned = Icharger × N × Ks",
+        mathml: `<math display="block" aria-label="I planned equals I charger times N times K s">
+          <msub><mi>I</mi><mi>planned</mi></msub>
+          <mo>=</mo>
+          <msub><mi>I</mi><mi>charger</mi></msub><mi>N</mi><msub><mi>K</mi><mi>s</mi></msub>
+        </math>`
+      }
     ],
     symbols: [
       { symbol: "Icharger", meaning: "Current per charger", unit: "A" },
@@ -301,7 +668,17 @@ export const equationsBySlug: Record<string, ToolEquation> = {
     title: "Cable gland selection rule",
     intro: "Cable gland size is selected by matching the measured cable outside diameter to a product sealing range and then checking the installation environment.",
     equations: [
-      { label: "Diameter fit rule", expression: "ODmin ≤ ODcable ≤ ODmax" },
+      {
+        label: "Diameter fit rule",
+        expression: "ODmin ≤ ODcable ≤ ODmax",
+        mathml: `<math display="block" aria-label="OD minimum less than or equal to OD cable less than or equal to OD maximum">
+          <msub><mi>OD</mi><mi>min</mi></msub>
+          <mo>≤</mo>
+          <msub><mi>OD</mi><mi>cable</mi></msub>
+          <mo>≤</mo>
+          <msub><mi>OD</mi><mi>max</mi></msub>
+        </math>`
+      },
       { label: "Thread selection rule", expression: "Select the first metric thread range that contains ODcable" }
     ],
     symbols: [
@@ -316,8 +693,24 @@ export const equationsBySlug: Record<string, ToolEquation> = {
     title: "Busbar current rating equation",
     intro: "This calculator estimates busbar current from cross-sectional area, current-density reference, material factor, and derating factor.",
     equations: [
-      { label: "Busbar area", expression: "A = W × T" },
-      { label: "Estimated current", expression: "I = A × J × Km × Kd" }
+      {
+        label: "Busbar area",
+        expression: "A = W × T",
+        mathml: `<math display="block" aria-label="A equals W times T">
+          <mi>A</mi>
+          <mo>=</mo>
+          <mi>W</mi><mi>T</mi>
+        </math>`
+      },
+      {
+        label: "Estimated current",
+        expression: "I = A × J × Km × Kd",
+        mathml: `<math display="block" aria-label="I equals A times J times K m times K d">
+          <mi>I</mi>
+          <mo>=</mo>
+          <mi>A</mi><mi>J</mi><msub><mi>K</mi><mi>m</mi></msub><msub><mi>K</mi><mi>d</mi></msub>
+        </math>`
+      }
     ],
     symbols: [
       { symbol: "A", meaning: "Busbar cross-sectional area", unit: "mm2" },
