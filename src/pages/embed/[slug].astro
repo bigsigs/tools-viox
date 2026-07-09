@@ -1,0 +1,51 @@
+---
+import CalculatorIsland from "../../components/CalculatorIsland";
+import "../../styles/global.css";
+import { tools } from "../../lib/tools";
+import { site, toolUrl } from "../../lib/seo";
+
+export function getStaticPaths() {
+  return tools.map((tool) => ({ params: { slug: tool.slug }, props: { tool } }));
+}
+
+const { tool } = Astro.props;
+const embedUrl = `${site.origin}/embed/${tool.slug}/`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{tool.title} Embed | VIOX Electrical Tools</title>
+    <meta name="description" content={`Embeddable ${tool.title} from VIOX Electrical Tools.`} />
+    <meta name="robots" content="noindex, follow" />
+    <link rel="canonical" href={toolUrl(tool)} />
+  </head>
+  <body class="embed-body">
+    <main class="embed-shell" data-viox-embed data-embed-url={embedUrl}>
+      <header class="embed-header">
+        <div>
+          <img class="embed-logo" src={site.logo} alt="VIOX" width="96" height="29" loading="eager" decoding="async" />
+          <h1>{tool.title}</h1>
+        </div>
+        <a href={toolUrl(tool)} target="_blank" rel="noopener">Open full page</a>
+      </header>
+      <CalculatorIsland slug={tool.slug} client:load />
+      <footer class="embed-footer">
+        Preliminary engineering reference only. Verify final selection against local codes, applicable standards, manufacturer data, and site conditions.
+      </footer>
+    </main>
+    <script is:inline>
+      const sendHeight = () => {
+        const root = document.querySelector("[data-viox-embed]");
+        const height = Math.ceil((root?.scrollHeight || document.documentElement.scrollHeight) + 8);
+        window.parent?.postMessage({ type: "viox-tool-height", height }, "*");
+      };
+
+      window.addEventListener("load", sendHeight);
+      window.addEventListener("resize", sendHeight);
+      new ResizeObserver(sendHeight).observe(document.documentElement);
+    </script>
+  </body>
+</html>
