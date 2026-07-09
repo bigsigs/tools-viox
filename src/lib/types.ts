@@ -22,6 +22,7 @@ export type ToolField = {
   max?: number;
   step?: number;
   options?: ToolFieldOption[];
+  help?: string;
 };
 
 export type ToolLink = {
