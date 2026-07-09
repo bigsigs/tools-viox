@@ -9,8 +9,8 @@ type Props = {
 
 export default function CalculatorIsland({ slug }: Props) {
   const tool = toolsBySlug[slug];
-  const defaults = useMemo(() => {
-    return Object.fromEntries(tool.fields.map((field) => [field.id, field.defaultValue]));
+  const defaults = useMemo<Record<string, string | number>>(() => {
+    return Object.fromEntries(tool.fields.map((field) => [field.id, field.defaultValue ?? ""]));
   }, [tool]);
   const [values, setValues] = useState<Record<string, string | number>>(defaults);
   const [copied, setCopied] = useState(false);
