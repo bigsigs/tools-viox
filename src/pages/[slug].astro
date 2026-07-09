@@ -1,0 +1,113 @@
+---
+import CalculatorIsland from "../components/CalculatorIsland";
+import Layout from "../components/Layout.astro";
+import ToolCard from "../components/ToolCard.astro";
+import { categories } from "../lib/categories";
+import { tools, toolsBySlug } from "../lib/tools";
+import { breadcrumbSchema, site, softwareSchema, toolTitle, toolUrl } from "../lib/seo";
+
+export function getStaticPaths() {
+  return tools.map((tool) => ({ params: { slug: tool.slug }, props: { tool } }));
+}
+
+const { tool } = Astro.props;
+const category = categories[tool.category];
+const relatedTools = tool.relatedTools.map((slug) => toolsBySlug[slug]).filter(Boolean);
+const embedUrl = `${site.origin}/embed/${tool.slug}/`;
+const embedCode = `<div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,.1);">
+  <iframe
+    src="${embedUrl}"
+    width="100%"
+    height="760"
+    loading="lazy"
+    frameborder="0"
+    style="display:block;width:100%;border:0;">
+  </iframe>
+</div>`;
+const schema = [
+  softwareSchema(tool),
+  breadcrumbSchema([
+    { name: "Electrical Tools", url: `${site.origin}/` },
+    { name: category.title, url: `${site.origin}/category/${category.slug}/` },
+    { name: tool.title, url: toolUrl(tool) }
+  ])
+];
+---
+
+<Layout title={toolTitle(tool)} description={tool.description} canonical={toolUrl(tool)} schema={schema}>
+  <main>
+    <section class="tool-hero">
+      <div>
+        <a class="back-link" href={`/category/${category.slug}/`}>{category.title}</a>
+        <h1>{tool.title}</h1>
+        <p>{tool.description}</p>
+      </div>
+      <aside class="intent-panel">
+        <span class="eyebrow">Use case</span>
+        <p>{tool.intent}</p>
+      </aside>
+    </section>
+
+    <section class="calculator-shell">
+      <CalculatorIsland slug={tool.slug} client:load />
+    </section>
+
+    <section class="detail-grid">
+      <article class="detail-main">
+        <h2>Formula and Method</h2>
+        <p>{tool.formula}</p>
+
+        <h2>Assumptions</h2>
+        <ul>
+          {tool.assumptions.map((item) => <li>{item}</li>)}
+        </ul>
+
+        <h2>Important Warnings</h2>
+        <ul>
+          {tool.warnings.map((item) => <li>{item}</li>)}
+        </ul>
+
+        <h2>FAQ</h2>
+        <div class="faq-list">
+          {tool.faqs.map((faq) => (
+            <section>
+              <h3>{faq.question}</h3>
+              <p>{faq.answer}</p>
+            </section>
+          ))}
+        </div>
+      </article>
+
+      <aside class="detail-side">
+        <section>
+          <h2>Related VIOX Support</h2>
+          <div class="link-list">
+            {tool.relatedProducts.map((link) => <a href={link.href}>{link.label}</a>)}
+          </div>
+        </section>
+        <section>
+          <h2>Related Tools</h2>
+          <div class="link-list">
+            {relatedTools.map((related) => <a href={`/${related.slug}/`}>{related.title}</a>)}
+          </div>
+        </section>
+        <section>
+          <h2>Embed This Calculator</h2>
+          <p class="embed-note">Use the clean embed URL inside WordPress articles without loading the full tools page layout.</p>
+          <code class="embed-url">{embedUrl}</code>
+          <pre class="embed-code"><code>{embedCode}</code></pre>
+        </section>
+      </aside>
+    </section>
+
+    <section class="section-shell related-section">
+      <div class="section-heading compact">
+        <span class="eyebrow">Next calculators</span>
+        <h2>Continue the selection workflow.</h2>
+      </div>
+      <div class="tool-grid small">
+        {relatedTools.map((related) => <ToolCard tool={related} />)}
+      </div>
+    </section>
+  </main>
+</Layout>
