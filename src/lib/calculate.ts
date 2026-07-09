@@ -23,6 +23,93 @@ const conductorTable = [
   { mm2: 400, amps: 502 }
 ];
 
+const conduitIdsInch: Record<string, Record<string, number>> = {
+  emt: {
+    "1/2": 0.622,
+    "3/4": 0.824,
+    "1": 1.049,
+    "1-1/4": 1.38,
+    "1-1/2": 1.61,
+    "2": 2.067,
+    "2-1/2": 2.731,
+    "3": 3.356,
+    "3-1/2": 3.834,
+    "4": 4.334
+  },
+  rmc: {
+    "1/2": 0.632,
+    "3/4": 0.836,
+    "1": 1.063,
+    "1-1/4": 1.394,
+    "1-1/2": 1.624,
+    "2": 2.083,
+    "2-1/2": 2.489,
+    "3": 3.09,
+    "3-1/2": 3.57,
+    "4": 4.05
+  },
+  pvc40: {
+    "1/2": 0.622,
+    "3/4": 0.824,
+    "1": 1.049,
+    "1-1/4": 1.38,
+    "1-1/2": 1.61,
+    "2": 2.067,
+    "2-1/2": 2.469,
+    "3": 3.068,
+    "3-1/2": 3.548,
+    "4": 4.026
+  },
+  pvc80: {
+    "1/2": 0.546,
+    "3/4": 0.742,
+    "1": 0.957,
+    "1-1/4": 1.278,
+    "1-1/2": 1.5,
+    "2": 1.939,
+    "2-1/2": 2.323,
+    "3": 2.9,
+    "3-1/2": 3.364,
+    "4": 3.826
+  }
+};
+
+const cableOutsideDiametersInch: Record<string, number> = {
+  "thhn-14": 0.111,
+  "thhn-12": 0.13,
+  "thhn-10": 0.164,
+  "thhn-8": 0.216,
+  "thhn-6": 0.254,
+  "thhn-4": 0.324,
+  "cat5e": 0.197,
+  "cat6": 0.236,
+  "cat6a-utp": 0.315,
+  "cat6a-stp": 0.276,
+  "fire-18-2": 0.157,
+  "fire-18-4": 0.177,
+  "control-22-4": 0.138,
+  "coax-rg6": 0.275,
+  "fiber-armored": 0.492
+};
+
+const awgConductors = [
+  { size: "18 AWG", key: "18", copperOhmPer1000Ft: 6.385, copperAmpacity: 5, aluminumAmpacity: 0 },
+  { size: "16 AWG", key: "16", copperOhmPer1000Ft: 4.016, copperAmpacity: 10, aluminumAmpacity: 0 },
+  { size: "14 AWG", key: "14", copperOhmPer1000Ft: 2.525, copperAmpacity: 15, aluminumAmpacity: 0 },
+  { size: "12 AWG", key: "12", copperOhmPer1000Ft: 1.588, copperAmpacity: 20, aluminumAmpacity: 15 },
+  { size: "10 AWG", key: "10", copperOhmPer1000Ft: 0.999, copperAmpacity: 30, aluminumAmpacity: 25 },
+  { size: "8 AWG", key: "8", copperOhmPer1000Ft: 0.6282, copperAmpacity: 40, aluminumAmpacity: 35 },
+  { size: "6 AWG", key: "6", copperOhmPer1000Ft: 0.3951, copperAmpacity: 55, aluminumAmpacity: 40 },
+  { size: "4 AWG", key: "4", copperOhmPer1000Ft: 0.2485, copperAmpacity: 70, aluminumAmpacity: 55 },
+  { size: "3 AWG", key: "3", copperOhmPer1000Ft: 0.197, copperAmpacity: 85, aluminumAmpacity: 65 },
+  { size: "2 AWG", key: "2", copperOhmPer1000Ft: 0.1563, copperAmpacity: 95, aluminumAmpacity: 75 },
+  { size: "1 AWG", key: "1", copperOhmPer1000Ft: 0.1239, copperAmpacity: 110, aluminumAmpacity: 85 },
+  { size: "1/0 AWG", key: "1/0", copperOhmPer1000Ft: 0.0983, copperAmpacity: 125, aluminumAmpacity: 100 },
+  { size: "2/0 AWG", key: "2/0", copperOhmPer1000Ft: 0.0779, copperAmpacity: 145, aluminumAmpacity: 115 },
+  { size: "3/0 AWG", key: "3/0", copperOhmPer1000Ft: 0.0618, copperAmpacity: 165, aluminumAmpacity: 130 },
+  { size: "4/0 AWG", key: "4/0", copperOhmPer1000Ft: 0.049, copperAmpacity: 195, aluminumAmpacity: 150 }
+];
+
 export function calculateTool(slug: string, values: Values): CalculationResult {
   switch (slug) {
     case "spd-calculator":
@@ -31,8 +118,18 @@ export function calculateTool(slug: string, values: Values): CalculationResult {
       return calculateVoltageDrop(values);
     case "cable-size-calculator":
       return calculateCableSize(values);
+    case "conduit-fill-calculator":
+      return calculateConduitFill(values);
+    case "dc-voltage-drop-calculator":
+      return calculateDcVoltageDrop(values);
+    case "awg-wire-size-calculator":
+      return calculateAwgWireSize(values);
     case "circuit-breaker-size-calculator":
       return calculateBreakerSize(values);
+    case "transformer-sizing-calculator":
+      return calculateTransformerSizing(values);
+    case "short-circuit-current-calculator":
+      return calculateShortCircuit(values);
     case "kw-kva-amp-calculator":
       return calculatePowerConversion(values);
     case "three-phase-current-calculator":
@@ -151,6 +248,139 @@ function calculateCableSize(values: Values): CalculationResult {
   };
 }
 
+function calculateConduitFill(values: Values): CalculationResult {
+  const conduitType = str(values.conduitType);
+  const tradeSize = str(values.tradeSize);
+  const runType = str(values.runType);
+  const conduitId = conduitIdsInch[conduitType]?.[tradeSize];
+  if (!conduitId) throw new Error("Select a valid conduit type and trade size.");
+
+  const cableA = str(values.cableA);
+  const cableB = str(values.cableB);
+  const qtyA = Math.floor(positiveNumber(values.qtyA, "Cable A quantity"));
+  const qtyB = cableB === "none" ? 0 : Math.floor(positiveNumber(values.qtyB, "Cable B quantity"));
+  const odA = selectedCableOd(cableA, values.customOdA, "Cable A OD");
+  const odB = cableB === "none" ? 0 : selectedCableOd(cableB, values.customOdB, "Cable B OD");
+  const totalCount = qtyA + qtyB;
+  const conduitArea = circleArea(conduitId);
+  const cableArea = circleArea(odA) * qtyA + (odB > 0 ? circleArea(odB) * qtyB : 0);
+  const fill = cableArea / conduitArea * 100;
+  const limit = runType === "nipple" ? 60 : totalCount === 1 ? 53 : totalCount === 2 ? 31 : 40;
+  const allowedArea = conduitArea * limit / 100;
+  const spareArea = allowedArea - cableArea;
+  const nextTradeSize = findPassingConduit(conduitType, tradeSize, cableArea, limit);
+  const jamRatio = totalCount === 3 && qtyB === 0 ? conduitId / odA : null;
+  const inJamRange = jamRatio !== null && jamRatio >= 2.8 && jamRatio <= 3.2;
+
+  return {
+    primary: fmt(fill),
+    unit: "% fill",
+    severity: fill > limit || inJamRange ? "warning" : fill > limit * 0.85 ? "caution" : "ok",
+    summary: `${fmt(totalCount)} cable(s) occupy ${fmt(fill)}% of ${readable(conduitType)} ${tradeSize}. The applicable fill limit is ${fmt(limit)}%.`,
+    metrics: [
+      { label: "Conduit ID", value: `${fmt(conduitId)} in` },
+      { label: "Conduit area", value: `${fmt(conduitArea)} in2` },
+      { label: "Cable area", value: `${fmt(cableArea)} in2` },
+      { label: "Spare area at limit", value: `${fmt(spareArea)} in2` }
+    ],
+    recommendations: [
+      fill > limit ? `Increase pathway size. ${nextTradeSize ? `${nextTradeSize} is the first passing size in this conduit family.` : "A larger or parallel pathway is required."}` : "Fill is within the selected limit; still check pull length, bends, and future spare capacity.",
+      inJamRange ? `Three equal cables have a conduit-ID/cable-OD ratio of ${fmt(jamRatio)}; this is in the common 2.8-3.2 cable-jam risk zone.` : "For long pulls, staying below the limit improves pulling tension and leaves expansion room."
+    ]
+  };
+}
+
+function calculateDcVoltageDrop(values: Values): CalculationResult {
+  const current = positiveNumber(values.current, "Load current");
+  const voltage = positiveNumber(values.voltage, "Source voltage");
+  const length = positiveNumber(values.length, "One-way length");
+  const maxDrop = positiveNumber(values.maxDrop, "Maximum voltage drop");
+  const material = str(values.material);
+  const conductor = awgConductor(str(values.awg));
+  const tempF = finiteNumber(values.temperature, "Ambient temperature");
+  const tempC = (tempF - 32) * 5 / 9;
+  const resistance = awgResistanceOhmPerFt(conductor, material, tempC);
+  const drop = 2 * current * resistance * length;
+  const percent = drop / voltage * 100;
+  const loadVoltage = voltage - drop;
+  const next = awgConductors.find((item) => {
+    const nextDrop = 2 * current * awgResistanceOhmPerFt(item, material, tempC) * length;
+    return nextDrop / voltage * 100 <= maxDrop && ampacityFor(item, material) >= current;
+  });
+
+  return {
+    primary: fmt(percent),
+    unit: "% drop",
+    severity: percent > maxDrop ? "warning" : percent > maxDrop * 0.85 ? "caution" : "ok",
+    summary: `${fmt(drop)} V drop leaves about ${fmt(loadVoltage)} V at the load from a ${fmt(voltage)} V DC source.`,
+    metrics: [
+      { label: "Voltage drop", value: `${fmt(drop)} V` },
+      { label: "Load voltage", value: `${fmt(loadVoltage)} V` },
+      { label: "Resistance used", value: `${fmt(resistance * 1000)} ohm/1000 ft` },
+      { label: "Threshold", value: `${fmt(maxDrop)}%` }
+    ],
+    recommendations: [
+      percent > maxDrop ? `${next ? `Upsize to at least ${next.size} for the selected threshold.` : "Use a larger conductor, shorter run, higher source voltage, or lower current."}` : "The selected conductor passes the DC voltage-drop threshold.",
+      material === "cca" ? "Copper-clad aluminum is not recommended for critical DC power or high-current battery circuits." : "Confirm terminal ratings, fuse protection, and equipment minimum input voltage."
+    ]
+  };
+}
+
+function calculateAwgWireSize(values: Values): CalculationResult {
+  const circuit = str(values.circuit);
+  const material = str(values.material);
+  const current = positiveNumber(values.current, "Load current");
+  const voltage = positiveNumber(values.voltage, "Voltage");
+  const length = positiveNumber(values.length, "One-way length");
+  const maxDrop = positiveNumber(values.maxDrop, "Maximum voltage drop");
+  const continuousFactor = str(values.continuous) === "yes" ? 1.25 : 1;
+  const conductorCount = Math.floor(positiveNumber(values.currentConductors, "Current-carrying conductors"));
+  const bundlingDerate = conductorDerating(conductorCount);
+  const requiredAmpacity = current * continuousFactor / bundlingDerate;
+
+  const candidates = awgConductors.map((conductor) => {
+    const ampacity = ampacityFor(conductor, material);
+    const resistance = awgResistanceOhmPerFt(conductor, material, 30);
+    const drop = circuit === "three"
+      ? Math.sqrt(3) * current * resistance * length
+      : 2 * current * resistance * length;
+    const percent = drop / voltage * 100;
+    return { conductor, ampacity, drop, percent, passesAmpacity: ampacity >= requiredAmpacity, passesDrop: percent <= maxDrop };
+  }).filter((item) => item.ampacity > 0);
+
+  const match = candidates.find((item) => item.passesAmpacity && item.passesDrop);
+  if (!match) {
+    return {
+      primary: "Larger than 4/0",
+      severity: "warning",
+      summary: "No listed AWG conductor passes both ampacity and voltage-drop checks with the selected inputs.",
+      metrics: [
+        { label: "Required ampacity", value: `${fmt(requiredAmpacity)} A` },
+        { label: "Derating", value: `${fmt(bundlingDerate * 100)}%` },
+        { label: "Voltage-drop limit", value: `${fmt(maxDrop)}%` },
+        { label: "Largest checked", value: "4/0 AWG" }
+      ],
+      recommendations: ["Use parallel conductors, a larger conductor table, shorter route, higher voltage, or lower load current.", "Verify the final conductor against the locally adopted wiring code."]
+    };
+  }
+
+  return {
+    primary: match.conductor.size,
+    severity: match.percent > maxDrop * 0.85 || match.ampacity < requiredAmpacity * 1.1 ? "caution" : "ok",
+    summary: `${match.conductor.size} is the smallest listed conductor that passes ${fmt(requiredAmpacity)} A required ampacity and ${fmt(maxDrop)}% voltage-drop limit.`,
+    metrics: [
+      { label: "Required ampacity", value: `${fmt(requiredAmpacity)} A` },
+      { label: "Selected ampacity", value: `${fmt(match.ampacity)} A` },
+      { label: "Voltage drop", value: `${fmt(match.drop)} V / ${fmt(match.percent)}%` },
+      { label: "Derating applied", value: `${fmt(bundlingDerate * 100)}%` }
+    ],
+    recommendations: [
+      "Use the selected size as a planning reference, then verify insulation, terminals, installation method, ambient correction, and local code.",
+      match.percent > maxDrop * 0.85 ? "Voltage drop is close to the limit; consider upsizing one step for margin." : "Run breaker, conduit fill, and voltage-drop checks together before finalizing."
+    ]
+  };
+}
+
 function calculateBreakerSize(values: Values): CalculationResult {
   const phase = str(values.phase);
   const kw = positiveNumber(values.power, "Load power");
@@ -175,6 +405,87 @@ function calculateBreakerSize(values: Values): CalculationResult {
     recommendations: [
       "Verify trip curve, breaking capacity, cable ampacity, and selectivity.",
       "For motors or transformers, check inrush and coordination before selecting the final device."
+    ]
+  };
+}
+
+function calculateTransformerSizing(values: Values): CalculationResult {
+  const phase = str(values.phase);
+  const mode = str(values.loadMode);
+  const load = positiveNumber(values.load, "Connected load");
+  const pf = mode === "kva" ? 1 : positiveNumber(values.pf, "Power factor");
+  const efficiency = mode === "hp" ? positiveNumber(values.efficiency, "Motor efficiency") / 100 : 1;
+  const demand = positiveNumber(values.demand, "Demand factor") / 100;
+  const growth = nonNegativeNumber(values.growth, "Future growth") / 100;
+  const loading = positiveNumber(values.loading, "Loading target") / 100;
+  const ambient = finiteNumber(values.ambient, "Average ambient temperature");
+  const voltage = positiveNumber(values.voltage, "Secondary voltage");
+  const series = str(values.series);
+  const connectedKva = mode === "kva"
+    ? load
+    : mode === "hp"
+      ? load * 0.746 / efficiency / pf
+      : load / pf;
+  const demandKva = connectedKva * demand;
+  const designKva = demandKva * (1 + growth);
+  const ambientDerate = ambient > 30 ? Math.max(0.7, 1 - (ambient - 30) * 0.01) : 1;
+  const requiredKva = designKva / loading / ambientDerate;
+  const ratings = transformerRatings(series, phase);
+  const recommended = nextSize(requiredKva, ratings);
+  const secondaryCurrent = phase === "three"
+    ? recommended * 1000 / (Math.sqrt(3) * voltage)
+    : recommended * 1000 / voltage;
+
+  return {
+    primary: `${recommended}`,
+    unit: "kVA",
+    severity: recommended >= 1000 ? "caution" : "ok",
+    summary: `Connected load is ${fmt(connectedKva)} kVA. After demand, growth, loading margin, and ambient derating, the required rating is ${fmt(requiredKva)} kVA.`,
+    metrics: [
+      { label: "Demand load", value: `${fmt(demandKva)} kVA` },
+      { label: "Design load", value: `${fmt(designKva)} kVA` },
+      { label: "Ambient derate", value: `${fmt(ambientDerate * 100)}%` },
+      { label: "Secondary FLC", value: `${fmt(secondaryCurrent)} A` }
+    ],
+    recommendations: [
+      "Use secondary current for first-pass breaker, cable, and busbar checks.",
+      "Confirm transformer standard series, impedance, cooling class, harmonics, inrush, and local code before procurement."
+    ]
+  };
+}
+
+function calculateShortCircuit(values: Values): CalculationResult {
+  const phase = str(values.phase);
+  const kva = positiveNumber(values.kva, "Transformer rating");
+  const impedance = positiveNumber(values.impedance, "Transformer impedance") / 100;
+  const voltage = positiveNumber(values.voltage, "Secondary voltage");
+  const utilityMva = Number(values.utilityMva);
+  const fullLoadCurrent = phase === "three"
+    ? kva * 1000 / (Math.sqrt(3) * voltage)
+    : kva * 1000 / voltage;
+  const sourcePu = Number.isFinite(utilityMva) && utilityMva > 0 ? kva / (utilityMva * 1000) : 0;
+  const totalPu = impedance + sourcePu;
+  const faultCurrent = fullLoadCurrent / totalPu;
+  const faultKa = faultCurrent / 1000;
+  const faultMva = phase === "three"
+    ? Math.sqrt(3) * voltage * faultCurrent / 1_000_000
+    : voltage * faultCurrent / 1_000_000;
+  const rating = nextSize(faultKa, [5, 10, 18, 25, 35, 42, 50, 65, 100, 150, 200]);
+
+  return {
+    primary: fmt(faultKa),
+    unit: "kA",
+    severity: faultKa > 65 ? "warning" : faultKa > 35 ? "caution" : "ok",
+    summary: `Available fault current is estimated from transformer full-load current divided by total per-unit source impedance.`,
+    metrics: [
+      { label: "Full-load current", value: `${fmt(fullLoadCurrent)} A` },
+      { label: "Transformer Z", value: `${fmt(impedance * 100)}%` },
+      { label: "Source Z allowance", value: sourcePu > 0 ? `${fmt(sourcePu * 100)}%` : "Ignored" },
+      { label: "Fault MVA", value: `${fmt(faultMva)} MVA` }
+    ],
+    recommendations: [
+      `Select protective equipment with interrupting capacity above the calculated value; next common reference is ${rating} kA.`,
+      "Final short-circuit study should include upstream utility data, cable impedance, motors, X/R ratio, and applicable IEC 60909 or IEEE method."
     ]
   };
 }
@@ -371,10 +682,75 @@ function nextSize(value: number, sizes: number[]) {
   return sizes.find((size) => size >= value) ?? sizes[sizes.length - 1];
 }
 
+function circleArea(diameter: number) {
+  return Math.PI * Math.pow(diameter / 2, 2);
+}
+
+function selectedCableOd(type: string, customOd: unknown, label: string) {
+  if (type === "custom") return positiveNumber(customOd, label);
+  const od = cableOutsideDiametersInch[type];
+  if (!od) throw new Error(`${label} is not available for the selected cable.`);
+  return od;
+}
+
+function findPassingConduit(type: string, currentSize: string, cableArea: number, limit: number) {
+  const entries = Object.entries(conduitIdsInch[type] ?? {});
+  const currentIndex = entries.findIndex(([size]) => size === currentSize);
+  return entries.slice(Math.max(0, currentIndex + 1)).find(([, id]) => cableArea / circleArea(id) * 100 <= limit)?.[0];
+}
+
+function awgConductor(key: string) {
+  const conductor = awgConductors.find((item) => item.key === key);
+  if (!conductor) throw new Error("Select a valid AWG conductor.");
+  return conductor;
+}
+
+function awgResistanceOhmPerFt(conductor: (typeof awgConductors)[number], material: string, tempC: number) {
+  const materialFactor = material === "aluminum" ? 1.64 : material === "cca" ? 1.6 : 1;
+  const tempFactor = 1 + 0.00393 * (tempC - 20);
+  return conductor.copperOhmPer1000Ft * materialFactor * tempFactor / 1000;
+}
+
+function ampacityFor(conductor: (typeof awgConductors)[number], material: string) {
+  if (material === "aluminum") return conductor.aluminumAmpacity;
+  if (material === "cca") return conductor.copperAmpacity * 0.6;
+  return conductor.copperAmpacity;
+}
+
+function conductorDerating(count: number) {
+  if (count <= 3) return 1;
+  if (count <= 6) return 0.8;
+  if (count <= 9) return 0.7;
+  if (count <= 20) return 0.5;
+  return 0.45;
+}
+
+function transformerRatings(series: string, phase: string) {
+  if (series === "iec") return [50, 100, 160, 250, 315, 400, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150];
+  if (phase === "single") return [5, 10, 15, 25, 37.5, 50, 75, 100, 167, 250, 333, 500];
+  return [15, 30, 45, 75, 112.5, 150, 225, 300, 500, 750, 1000, 1500, 2000, 2500, 3750, 5000, 7500, 10000];
+}
+
 function positiveNumber(value: unknown, label: string) {
   const number = Number(value);
   if (!Number.isFinite(number) || number <= 0) {
     throw new Error(`${label} must be greater than zero.`);
+  }
+  return number;
+}
+
+function nonNegativeNumber(value: unknown, label: string) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number < 0) {
+    throw new Error(`${label} must be zero or greater.`);
+  }
+  return number;
+}
+
+function finiteNumber(value: unknown, label: string) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
+    throw new Error(`${label} must be a valid number.`);
   }
   return number;
 }

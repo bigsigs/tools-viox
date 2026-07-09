@@ -6,6 +6,36 @@ const phaseOptions = [
   { value: "three", label: "Three-phase AC" }
 ];
 
+const conduitTypeOptions = [
+  { value: "emt", label: "EMT" },
+  { value: "rmc", label: "RMC / GRC" },
+  { value: "pvc40", label: "PVC Schedule 40" },
+  { value: "pvc80", label: "PVC Schedule 80" }
+];
+
+const conduitTradeSizeOptions = ["1/2", "3/4", "1", "1-1/4", "1-1/2", "2", "2-1/2", "3", "3-1/2", "4"].map((size) => ({ value: size, label: `${size}\"` }));
+
+const conduitCableOptions = [
+  { value: "cat6", label: "Cat6 UTP, 0.236 in OD" },
+  { value: "cat6a-utp", label: "Cat6A UTP, 0.315 in OD" },
+  { value: "cat6a-stp", label: "Cat6A STP, 0.276 in OD" },
+  { value: "fire-18-2", label: "18/2 fire alarm, 0.157 in OD" },
+  { value: "fire-18-4", label: "18/4 fire alarm, 0.177 in OD" },
+  { value: "control-22-4", label: "22/4 control, 0.138 in OD" },
+  { value: "coax-rg6", label: "RG6 coax, 0.275 in OD" },
+  { value: "fiber-armored", label: "Armored fiber, 0.492 in OD" },
+  { value: "thhn-12", label: "12 AWG THHN, 0.130 in OD" },
+  { value: "thhn-10", label: "10 AWG THHN, 0.164 in OD" },
+  { value: "custom", label: "Custom OD" }
+];
+
+const optionalConduitCableOptions = [
+  { value: "none", label: "None" },
+  ...conduitCableOptions
+];
+
+const awgOptions = ["18", "16", "14", "12", "10", "8", "6", "4", "3", "2", "1", "1/0", "2/0", "3/0", "4/0"].map((size) => ({ value: size, label: `${size} AWG` }));
+
 export const tools: ToolDefinition[] = [
   {
     slug: "spd-calculator",
@@ -118,6 +148,115 @@ export const tools: ToolDefinition[] = [
     keywords: ["cable size calculator", "wire size calculator", "electrical cable sizing"]
   },
   {
+    slug: "conduit-fill-calculator",
+    title: "Conduit Fill Calculator",
+    shortTitle: "Conduit Fill",
+    category: "cable-wiring",
+    description: "Calculate conduit fill percentage from pathway type, trade size, cable outside diameter, and cable quantity.",
+    intent: "Pathway planning for panel entrances, low-voltage wiring, data cable, control cable, and mixed cable runs.",
+    fields: [
+      { id: "conduitType", label: "Conduit type", type: "select", defaultValue: "emt", options: conduitTypeOptions },
+      { id: "tradeSize", label: "Trade size", type: "select", defaultValue: "1", options: conduitTradeSizeOptions },
+      { id: "runType", label: "Run type", type: "select", defaultValue: "normal", options: [
+        { value: "normal", label: "Normal raceway run" },
+        { value: "nipple", label: "Short nipple, 24 in or less" }
+      ] },
+      { id: "cableA", label: "Cable group A", type: "select", defaultValue: "cat6", options: conduitCableOptions },
+      { id: "qtyA", label: "Cable A quantity", type: "number", defaultValue: 12, min: 1, step: 1 },
+      { id: "customOdA", label: "Custom OD A", type: "number", defaultValue: 0.25, unit: "in", min: 0, step: 0.001, help: "Used only when Cable group A is Custom OD." },
+      { id: "cableB", label: "Cable group B", type: "select", defaultValue: "none", options: optionalConduitCableOptions },
+      { id: "qtyB", label: "Cable B quantity", type: "number", defaultValue: 1, min: 1, step: 1 },
+      { id: "customOdB", label: "Custom OD B", type: "number", defaultValue: 0.25, unit: "in", min: 0, step: 0.001, help: "Used only when Cable group B is Custom OD." }
+    ],
+    formula: "Fill percentage = total cable cross-sectional area / conduit internal cross-sectional area x 100. Limit is 53% for one cable, 31% for two, 40% for three or more, and 60% for short nipples.",
+    assumptions: ["Uses typical NEC Chapter 9 Table 4 internal diameters for EMT, RMC, PVC Schedule 40, and PVC Schedule 80", "Cable OD values are planning references; manufacturer OD wins", "Mixed cable fill is calculated by summing each cable group's cross-sectional area"],
+    warnings: ["Conduit fill is not the same as ampacity derating; current-carrying conductor derating must be checked separately.", "Long pulls, bends, and exactly three equal cables can create pull-tension or cable-jam issues even below the fill limit."],
+    faqs: [
+      { question: "Why use outside diameter instead of conductor size?", answer: "Conduit fill is based on the physical area occupied by the complete insulated cable or conductor, so the outer jacket diameter is the important dimension." },
+      { question: "Can I mix cable types?", answer: "Yes. The calculator adds the area of Cable group A and Cable group B before comparing the total against the selected conduit area." }
+    ],
+    relatedTools: ["cable-gland-size-calculator", "awg-wire-size-calculator", "dc-voltage-drop-calculator"],
+    relatedProducts: [
+      { label: "VIOX cable gland support", href: "https://viox.com/contact" },
+      { label: "Cable gland guide", href: "https://viox.com/a-full-guide-to-cable-gland/" }
+    ],
+    keywords: ["conduit fill calculator", "raceway fill calculator", "cat6 conduit fill", "emt conduit fill"]
+  },
+  {
+    slug: "dc-voltage-drop-calculator",
+    title: "DC Voltage Drop Calculator",
+    shortTitle: "DC Voltage Drop",
+    category: "cable-wiring",
+    description: "Check DC voltage drop for 12 V, 24 V, 48 V, control, LED, battery, and PV accessory circuits using AWG conductor resistance.",
+    intent: "Low-voltage DC wiring check where a small voltage loss can become a large percentage of source voltage.",
+    fields: [
+      { id: "voltage", label: "Source voltage", type: "number", defaultValue: 24, unit: "V DC", min: 0 },
+      { id: "current", label: "Load current", type: "number", defaultValue: 3, unit: "A", min: 0 },
+      { id: "length", label: "One-way length", type: "number", defaultValue: 100, unit: "ft", min: 0 },
+      { id: "awg", label: "Conductor size", type: "select", defaultValue: "14", options: awgOptions },
+      { id: "material", label: "Conductor material", type: "select", defaultValue: "copper", options: [
+        { value: "copper", label: "Copper" },
+        { value: "aluminum", label: "Aluminum" },
+        { value: "cca", label: "Copper-clad aluminum estimate" }
+      ] },
+      { id: "temperature", label: "Ambient temperature", type: "number", defaultValue: 75, unit: "F", min: -40 },
+      { id: "maxDrop", label: "Max voltage drop", type: "number", defaultValue: 5, unit: "%", min: 0.1, step: 0.1 }
+    ],
+    formula: "DC voltage drop = 2 x current x conductor resistance per foot x one-way length. Percent drop = voltage drop / source voltage x 100. Resistance is adjusted for material and ambient temperature.",
+    assumptions: ["Two-wire DC circuit with one positive and one return conductor", "AWG resistance references are based on copper at 20 C with temperature correction", "CCA is modeled as a high-resistance estimate, not as a recommended conductor"],
+    warnings: ["Always check equipment minimum input voltage, fuse protection, terminal ratings, and installation temperature.", "Do not use copper-clad aluminum for critical high-current DC circuits."],
+    faqs: [
+      { question: "Why does 24 V fail sooner than 230 V?", answer: "The same absolute voltage loss is a much larger percentage of a low DC source voltage." },
+      { question: "Should I enter round-trip distance?", answer: "No. Enter one-way physical length; the calculator multiplies by two for the outbound and return conductors." }
+    ],
+    relatedTools: ["awg-wire-size-calculator", "voltage-drop-calculator", "conduit-fill-calculator"],
+    relatedProducts: [
+      { label: "VIOX DC and panel wiring support", href: "https://viox.com/contact" }
+    ],
+    keywords: ["dc voltage drop calculator", "12v voltage drop", "24v wire size calculator", "awg voltage drop"]
+  },
+  {
+    slug: "awg-wire-size-calculator",
+    title: "AWG Wire Size Calculator",
+    shortTitle: "AWG Wire Size",
+    category: "cable-wiring",
+    description: "Find the smallest AWG conductor that passes both reference ampacity and voltage-drop checks.",
+    intent: "US-market wire sizing reference for low-voltage DC, single-phase AC, and three-phase AC discussions.",
+    fields: [
+      { id: "circuit", label: "Circuit type", type: "select", defaultValue: "single", options: [
+        { value: "dc", label: "DC / two-wire" },
+        { value: "single", label: "Single-phase AC" },
+        { value: "three", label: "Three-phase AC" }
+      ] },
+      { id: "material", label: "Conductor material", type: "select", defaultValue: "copper", options: [
+        { value: "copper", label: "Copper" },
+        { value: "aluminum", label: "Aluminum" },
+        { value: "cca", label: "CCA estimate" }
+      ] },
+      { id: "current", label: "Load current", type: "number", defaultValue: 20, unit: "A", min: 0 },
+      { id: "voltage", label: "Voltage", type: "number", defaultValue: 120, unit: "V", min: 0 },
+      { id: "length", label: "One-way length", type: "number", defaultValue: 100, unit: "ft", min: 0 },
+      { id: "maxDrop", label: "Max voltage drop", type: "number", defaultValue: 3, unit: "%", min: 0.1, step: 0.1 },
+      { id: "continuous", label: "Continuous load", type: "select", defaultValue: "no", options: [
+        { value: "no", label: "No" },
+        { value: "yes", label: "Yes, apply 125%" }
+      ] },
+      { id: "currentConductors", label: "Current-carrying conductors", type: "number", defaultValue: 3, min: 1, step: 1 }
+    ],
+    formula: "The calculator iterates through AWG sizes from small to large. A size passes when derated ampacity is at least the required current and calculated voltage drop is below the selected limit.",
+    assumptions: ["Reference ampacity table is simplified for planning", "Bundling derating follows common 4-6, 7-9, and 10-20 conductor adjustment bands", "Voltage drop uses copper resistance with material factor"],
+    warnings: ["Final conductor sizing must follow the locally adopted NEC/IEC/BS standard, insulation rating, terminal temperature, ambient correction, and installation method.", "Small-signal conductors may have product-specific limits not captured by building-wire ampacity tables."],
+    faqs: [
+      { question: "Why can voltage drop force a larger wire than ampacity?", answer: "Long routes can pass current capacity but lose too much voltage before the load, especially on low-voltage circuits." },
+      { question: "Why does continuous load change the result?", answer: "Continuous loads are commonly sized at 125%, so the conductor must have more ampacity headroom." }
+    ],
+    relatedTools: ["dc-voltage-drop-calculator", "conduit-fill-calculator", "circuit-breaker-size-calculator"],
+    relatedProducts: [
+      { label: "VIOX selection support", href: "https://viox.com/contact" }
+    ],
+    keywords: ["awg wire size calculator", "wire gauge calculator", "nec wire size", "awg voltage drop"]
+  },
+  {
     slug: "circuit-breaker-size-calculator",
     title: "Circuit Breaker Size Calculator",
     shortTitle: "Breaker Size",
@@ -144,6 +283,81 @@ export const tools: ToolDefinition[] = [
       { label: "MCB vs MCCB guide", href: "https://viox.com/what-is-the-difference-between-mcb-mccb-rcb-rcd-rccb-and-rcbo/" }
     ],
     keywords: ["circuit breaker size calculator", "breaker sizing calculator", "mcb size calculator"]
+  },
+  {
+    slug: "transformer-sizing-calculator",
+    title: "Transformer Sizing Calculator",
+    shortTitle: "Transformer Size",
+    category: "panel-design",
+    description: "Estimate transformer kVA from connected load, demand factor, future growth, loading margin, ambient derating, and standard rating series.",
+    intent: "Distribution transformer planning before feeder, breaker, cable, and busbar sizing.",
+    fields: [
+      { id: "series", label: "Standard rating series", type: "select", defaultValue: "iec", options: [
+        { value: "iec", label: "IEC 60076 reference" },
+        { value: "ansi", label: "ANSI / IEEE reference" }
+      ] },
+      { id: "phase", label: "Phase", type: "select", defaultValue: "three", options: [
+        { value: "three", label: "Three-phase" },
+        { value: "single", label: "Single-phase" }
+      ] },
+      { id: "loadMode", label: "Connected load unit", type: "select", defaultValue: "kw", options: [
+        { value: "kw", label: "kW" },
+        { value: "kva", label: "kVA" },
+        { value: "hp", label: "hp motor load" }
+      ] },
+      { id: "load", label: "Connected load", type: "number", defaultValue: 200, unit: "kW/kVA/hp", min: 0 },
+      { id: "pf", label: "Power factor", type: "number", defaultValue: 0.85, min: 0.1, max: 1, step: 0.01 },
+      { id: "efficiency", label: "Motor efficiency", type: "number", defaultValue: 90, unit: "%", min: 1, max: 100 },
+      { id: "demand", label: "Demand factor", type: "number", defaultValue: 70, unit: "%", min: 1, max: 100 },
+      { id: "growth", label: "Future growth", type: "number", defaultValue: 20, unit: "%", min: 0 },
+      { id: "loading", label: "Target loading", type: "number", defaultValue: 80, unit: "%", min: 1, max: 100 },
+      { id: "ambient", label: "Average ambient", type: "number", defaultValue: 30, unit: "C", min: -20 },
+      { id: "voltage", label: "Secondary voltage", type: "number", defaultValue: 400, unit: "V", min: 0 }
+    ],
+    formula: "Connected kVA is converted from kW or hp when needed. Required kVA = connected kVA x demand x (1 + growth) / (loading target x ambient derate). The result is rounded up to the selected IEC or ANSI standard rating.",
+    assumptions: ["Ambient derate uses an approximate 1% capacity reduction per C above 30 C", "Target loading represents normal operating margin, commonly 75-80%", "Standard rating series is a planning reference"],
+    warnings: ["Final transformer selection must check inrush, impedance, harmonics, cooling class, enclosure, temperature rise, and applicable standards.", "Do not use this as a certified transformer specification."],
+    faqs: [
+      { question: "Why divide by target loading?", answer: "A transformer intended to run at 80% normal loading needs a nameplate rating larger than the design load." },
+      { question: "Why does ambient temperature increase the size?", answer: "Hot ambient conditions reduce transformer cooling capacity, so the required nameplate kVA increases." }
+    ],
+    relatedTools: ["short-circuit-current-calculator", "circuit-breaker-size-calculator", "busbar-current-rating-calculator"],
+    relatedProducts: [
+      { label: "VIOX panel and breaker support", href: "https://viox.com/contact" },
+      { label: "VIOX breaker guide", href: "https://viox.com/what-is-the-difference-between-mcb-mccb-rcb-rcd-rccb-and-rcbo/" }
+    ],
+    keywords: ["transformer sizing calculator", "kva transformer calculator", "transformer full load current"]
+  },
+  {
+    slug: "short-circuit-current-calculator",
+    title: "Short Circuit Current Calculator",
+    shortTitle: "Fault Current",
+    category: "circuit-protection",
+    description: "Estimate available transformer secondary fault current from transformer kVA, impedance, voltage, phase, and optional utility fault contribution.",
+    intent: "First-pass interrupting-capacity check for MCB, MCCB, switchgear, busbar, and panel discussions.",
+    fields: [
+      { id: "phase", label: "System", type: "select", defaultValue: "three", options: [
+        { value: "three", label: "Three-phase" },
+        { value: "single", label: "Single-phase" }
+      ] },
+      { id: "kva", label: "Transformer rating", type: "number", defaultValue: 500, unit: "kVA", min: 0 },
+      { id: "impedance", label: "Transformer impedance", type: "number", defaultValue: 5.75, unit: "%Z", min: 0.1, step: 0.01 },
+      { id: "voltage", label: "Secondary voltage", type: "number", defaultValue: 400, unit: "V", min: 0 },
+      { id: "utilityMva", label: "Utility fault contribution", type: "number", defaultValue: 0, unit: "MVA", min: 0, help: "Optional. Use 0 for an infinite-bus transformer-only estimate." }
+    ],
+    formula: "Full-load current is calculated from transformer kVA and voltage. Available fault current = full-load current / total per-unit impedance, where total impedance includes transformer %Z and optional utility source impedance on the transformer base.",
+    assumptions: ["Transformer-secondary estimate only", "Cable impedance and motor contribution are not included", "Utility MVA is optional and treated as upstream source impedance"],
+    warnings: ["Final interrupting capacity must be based on a complete short-circuit study including upstream utility data, feeder impedance, motors, X/R ratio, and the applicable IEC or IEEE method.", "Always select protective devices with interrupting rating above the available fault current at the installation point."],
+    faqs: [
+      { question: "Why does lower transformer impedance increase fault current?", answer: "Short-circuit current is inversely proportional to source impedance. A lower %Z transformer can deliver more fault current." },
+      { question: "Can this choose a breaker model?", answer: "No. It gives a first-pass kA level. Final breaker selection also needs voltage, poles, trip unit, coordination, standard, and enclosure conditions." }
+    ],
+    relatedTools: ["transformer-sizing-calculator", "circuit-breaker-size-calculator", "busbar-current-rating-calculator"],
+    relatedProducts: [
+      { label: "VIOX MCCB support", href: "https://viox.com/contact" },
+      { label: "MCB vs MCCB guide", href: "https://viox.com/what-is-the-difference-between-mcb-mccb-rcb-rcd-rccb-and-rcbo/" }
+    ],
+    keywords: ["short circuit current calculator", "fault current calculator", "transformer fault current", "breaker ka rating"]
   },
   {
     slug: "kw-kva-amp-calculator",
