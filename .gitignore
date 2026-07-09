@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.astro/
+.DS_Store
+npm-debug.log*
+
+# Legacy static prototypes kept locally only.
+assets/
+index.html
+robots.txt
+sitemap.xml
+README 2.md
+busbar-current-rating-calculator/
+cable-gland-size-calculator/
+circuit-breaker-size-calculator/
+kw-to-amps-calculator/
+spd-selection-calculator/
+voltage-drop-calculator/
+wire-size-calculator/
