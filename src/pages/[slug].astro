@@ -64,7 +64,7 @@ const schema = [
               {equation.equations.map((item) => (
                 <figure class="equation-card">
                   {item.label ? <figcaption>{item.label}</figcaption> : null}
-                  <code>{item.expression}</code>
+                  {item.mathml ? <div class="equation-math" set:html={item.mathml} /> : <code>{item.expression}</code>}
                   {item.note ? <p>{item.note}</p> : null}
                 </figure>
               ))}
@@ -76,7 +76,7 @@ const schema = [
                   <dt>{item.symbol}</dt>
                   <dd>
                     {item.meaning}
-                    {item.unit ? <span>{item.unit}</span> : null}
+                    {item.unit ? <span>[{item.unit}]</span> : null}
                   </dd>
                 </div>
               ))}

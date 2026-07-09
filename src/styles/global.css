@@ -797,7 +797,7 @@ select {
 
 .equation-section {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .equation-intro,
@@ -807,21 +807,20 @@ select {
 
 .equation-stack {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .equation-card {
   margin: 0;
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--red);
+  overflow: hidden;
+  border: 1px solid #efe4c2;
   border-radius: var(--radius);
-  padding: 16px;
-  background: linear-gradient(180deg, #fff, #f9fbfd);
+  background: #fbf3d8;
 }
 
 .equation-card figcaption {
-  margin-bottom: 8px;
-  color: var(--muted);
+  padding: 10px 16px 0;
+  color: #7a6a45;
   font-size: 12px;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -831,66 +830,90 @@ select {
 .equation-card code {
   display: block;
   overflow-x: auto;
+  padding: 16px 18px 18px;
   color: var(--ink);
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  font-size: clamp(18px, 2.1vw, 26px);
-  font-weight: 800;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(20px, 2.1vw, 28px);
+  font-weight: 700;
+  font-style: italic;
   line-height: 1.35;
+  text-align: center;
   white-space: nowrap;
 }
 
+.equation-math {
+  overflow-x: auto;
+  padding: 14px 18px 18px;
+}
+
+.equation-math math {
+  min-width: max-content;
+  margin-inline: auto;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(22px, 2.4vw, 32px);
+  font-weight: 700;
+}
+
 .equation-card p {
-  margin-top: 8px;
+  padding: 0 16px 14px;
   color: var(--muted);
   font-size: 14px;
 }
 
 .where-heading {
   color: var(--ink);
-  font-size: 18px;
+  font-size: 17px;
   letter-spacing: 0;
 }
 
 .symbol-list {
   display: grid;
-  gap: 8px;
+  gap: 9px;
   margin: 0;
 }
 
 .symbol-list div {
   display: grid;
-  grid-template-columns: minmax(72px, 0.18fr) minmax(0, 1fr);
-  gap: 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 10px 12px;
-  background: var(--soft);
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+  padding: 0;
+}
+
+.symbol-list div::before {
+  content: "-";
+  color: var(--muted);
+  font-weight: 900;
 }
 
 .symbol-list dt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 30px;
+  border: 1px solid rgba(215, 25, 32, 0.22);
+  border-radius: 6px;
+  padding: 2px 8px;
   color: var(--red);
+  background: rgba(215, 25, 32, 0.06);
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 900;
 }
 
 .symbol-list dd {
   margin: 0;
-  color: var(--ink);
-  font-size: 14px;
-  font-weight: 700;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .symbol-list dd span {
-  display: inline-flex;
-  margin-left: 8px;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
-  padding: 1px 8px;
+  margin-left: 4px;
   color: var(--muted);
-  background: #fff;
-  font-size: 12px;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .equation-note {
@@ -1189,14 +1212,8 @@ select {
   }
 
   .symbol-list div {
-    grid-template-columns: 1fr;
-    gap: 4px;
-  }
-
-  .symbol-list dd span {
-    margin-top: 4px;
-    margin-left: 0;
-    width: fit-content;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    gap: 8px;
   }
 
   .footer-links {

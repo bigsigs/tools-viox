@@ -21,18 +21,53 @@ export const equationsBySlug: Record<string, ToolEquation> = {
     title: "Voltage drop equation",
     intro: "You can estimate cable voltage drop from load current, route length, conductor material, and conductor cross-section.",
     equations: [
-      { label: "DC or single-phase", expression: "Vd = 2 × I × ρ × L / S" },
-      { label: "Three-phase", expression: "Vd = √3 × I × ρ × L / S" },
-      { label: "Voltage drop percentage", expression: "Vd% = Vd / Vn × 100" }
+      {
+        label: "DC or single-phase",
+        expression: "Vd = 2 × I × ρ × L / S",
+        mathml: `<math display="block" aria-label="V d equals two I rho L over S">
+          <msub><mi>V</mi><mi>d</mi></msub>
+          <mo>=</mo>
+          <mfrac>
+            <mrow><mn>2</mn><mi>I</mi><mi>ρ</mi><mi>L</mi></mrow>
+            <mi>S</mi>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "Three-phase",
+        expression: "Vd = √3 × I × ρ × L / S",
+        mathml: `<math display="block" aria-label="V d equals square root of three I rho L over S">
+          <msub><mi>V</mi><mi>d</mi></msub>
+          <mo>=</mo>
+          <mfrac>
+            <mrow><msqrt><mn>3</mn></msqrt><mi>I</mi><mi>ρ</mi><mi>L</mi></mrow>
+            <mi>S</mi>
+          </mfrac>
+        </math>`
+      },
+      {
+        label: "Voltage drop percentage",
+        expression: "Vd% = Vd / Vn × 100",
+        mathml: `<math display="block" aria-label="V d percent equals V d over V n times one hundred">
+          <msub><mi>V</mi><mrow><mi>d</mi><mo>%</mo></mrow></msub>
+          <mo>=</mo>
+          <mfrac>
+            <msub><mi>V</mi><mi>d</mi></msub>
+            <msub><mi>V</mi><mi>n</mi></msub>
+          </mfrac>
+          <mo>×</mo>
+          <mn>100</mn>
+        </math>`
+      }
     ],
     symbols: [
-      { symbol: "Vd", meaning: "Calculated voltage drop", unit: "V" },
+      { symbol: "Vd", meaning: "Voltage drop, measured in volts", unit: "V" },
       { symbol: "Vd%", meaning: "Voltage drop as a percentage of nominal voltage", unit: "%" },
-      { symbol: "I", meaning: "Load current", unit: "A" },
-      { symbol: "ρ", meaning: "Conductor resistivity reference", unit: "ohm mm2/m" },
-      { symbol: "L", meaning: "One-way cable length", unit: "m" },
-      { symbol: "S", meaning: "Conductor cross-sectional area", unit: "mm2" },
-      { symbol: "Vn", meaning: "Nominal system voltage", unit: "V" }
+      { symbol: "I", meaning: "Load current, measured in amperes", unit: "A" },
+      { symbol: "ρ", meaning: "Conductor resistivity reference, measured in ohm square millimeters per meter", unit: "ohm mm2/m" },
+      { symbol: "L", meaning: "One-way cable length, measured in meters", unit: "m" },
+      { symbol: "S", meaning: "Conductor cross-sectional area, measured in square millimeters", unit: "mm2" },
+      { symbol: "Vn", meaning: "Nominal system voltage, measured in volts", unit: "V" }
     ],
     conclusion: "The result excludes reactance, harmonics, operating temperature, and installation correction factors, so long feeder runs need a standards-based cable check."
   },

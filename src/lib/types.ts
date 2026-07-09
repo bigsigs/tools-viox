@@ -38,6 +38,7 @@ export type ToolFaq = {
 export type ToolEquationBlock = {
   label?: string;
   expression: string;
+  mathml?: string;
   note?: string;
 };
 
