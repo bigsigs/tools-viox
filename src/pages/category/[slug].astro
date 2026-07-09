@@ -1,0 +1,38 @@
+---
+import Layout from "../../components/Layout.astro";
+import ToolCard from "../../components/ToolCard.astro";
+import { categories } from "../../lib/categories";
+import { getToolsByCategory } from "../../lib/tools";
+import { breadcrumbSchema, site } from "../../lib/seo";
+import type { ToolCategory } from "../../lib/types";
+
+export function getStaticPaths() {
+  return Object.values(categories).map((category) => ({ params: { slug: category.slug }, props: { category } }));
+}
+
+const { category } = Astro.props;
+const categoryTools = getToolsByCategory(category.slug as ToolCategory);
+const canonical = `${site.origin}/category/${category.slug}/`;
+const schema = [
+  breadcrumbSchema([
+    { name: "Electrical Tools", url: `${site.origin}/` },
+    { name: category.title, url: canonical }
+  ])
+];
+---
+
+<Layout title={`${category.title} | VIOX Electrical Tools`} description={category.description} canonical={canonical} schema={schema}>
+  <main>
+    <section class="category-hero">
+      <span class="eyebrow">{category.deck}</span>
+      <h1>{category.title}</h1>
+      <p>{category.description}</p>
+    </section>
+
+    <section class="section-shell">
+      <div class="tool-grid">
+        {categoryTools.map((tool) => <ToolCard tool={tool} />)}
+      </div>
+    </section>
+  </main>
+</Layout>
