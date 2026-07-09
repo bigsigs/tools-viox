@@ -1,0 +1,33 @@
+---
+import { categories } from "../lib/categories";
+import type { ToolDefinition } from "../lib/types";
+
+type Props = {
+  tool: ToolDefinition;
+};
+
+const { tool } = Astro.props;
+const category = categories[tool.category];
+const icons: Record<string, string> = {
+  "spd-calculator": "SPD",
+  "voltage-drop-calculator": "Vd",
+  "cable-size-calculator": "mm2",
+  "circuit-breaker-size-calculator": "A",
+  "kw-kva-amp-calculator": "kW",
+  "three-phase-current-calculator": "3P",
+  "motor-current-calculator": "M",
+  "ev-charger-load-calculator": "EV",
+  "cable-gland-size-calculator": "M",
+  "busbar-current-rating-calculator": "Cu"
+};
+---
+
+<article class="tool-card">
+  <div class="tool-card-top">
+    <span class="tool-icon" aria-hidden="true">{icons[tool.slug] ?? "V"}</span>
+    <span class="tool-tag">{category.deck}</span>
+  </div>
+  <h3><a href={`/${tool.slug}/`}>{tool.title}</a></h3>
+  <p>{tool.description}</p>
+  <a class="card-link" href={`/${tool.slug}/`}>Open calculator</a>
+</article>
