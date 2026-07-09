@@ -3,6 +3,7 @@ import CalculatorIsland from "../components/CalculatorIsland";
 import Layout from "../components/Layout.astro";
 import ToolCard from "../components/ToolCard.astro";
 import { categories } from "../lib/categories";
+import { equationsBySlug } from "../lib/equations";
 import { tools, toolsBySlug } from "../lib/tools";
 import { breadcrumbSchema, site, softwareSchema, toolTitle, toolUrl } from "../lib/seo";
 
@@ -13,6 +14,7 @@ export function getStaticPaths() {
 const { tool } = Astro.props;
 const category = categories[tool.category];
 const relatedTools = tool.relatedTools.map((slug) => toolsBySlug[slug]).filter(Boolean);
+const equation = equationsBySlug[tool.slug];
 const embedUrl = `${site.origin}/embed/${tool.slug}/`;
 const embedCode = `<div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,.1);">
   <iframe
@@ -54,8 +56,36 @@ const schema = [
 
     <section class="detail-grid">
       <article class="detail-main">
-        <h2>Formula and Method</h2>
-        <p>{tool.formula}</p>
+        <h2>{equation?.title ?? "Formula and Method"}</h2>
+        {equation ? (
+          <section class="equation-section" aria-labelledby={`${tool.slug}-equation-title`}>
+            <p id={`${tool.slug}-equation-title`} class="equation-intro">{equation.intro}</p>
+            <div class="equation-stack">
+              {equation.equations.map((item) => (
+                <figure class="equation-card">
+                  {item.label ? <figcaption>{item.label}</figcaption> : null}
+                  <code>{item.expression}</code>
+                  {item.note ? <p>{item.note}</p> : null}
+                </figure>
+              ))}
+            </div>
+            <h3 class="where-heading">where:</h3>
+            <dl class="symbol-list">
+              {equation.symbols.map((item) => (
+                <div>
+                  <dt>{item.symbol}</dt>
+                  <dd>
+                    {item.meaning}
+                    {item.unit ? <span>{item.unit}</span> : null}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            {equation.conclusion ? <p class="equation-note">{equation.conclusion}</p> : null}
+          </section>
+        ) : (
+          <p>{tool.formula}</p>
+        )}
 
         <h2>Assumptions</h2>
         <ul>

@@ -35,6 +35,26 @@ export type ToolFaq = {
   answer: string;
 };
 
+export type ToolEquationBlock = {
+  label?: string;
+  expression: string;
+  note?: string;
+};
+
+export type ToolEquationSymbol = {
+  symbol: string;
+  meaning: string;
+  unit?: string;
+};
+
+export type ToolEquation = {
+  title: string;
+  intro: string;
+  equations: ToolEquationBlock[];
+  symbols: ToolEquationSymbol[];
+  conclusion?: string;
+};
+
 export type ToolDefinition = {
   slug: string;
   title: string;

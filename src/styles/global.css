@@ -795,6 +795,111 @@ select {
   margin-top: 6px;
 }
 
+.equation-section {
+  display: grid;
+  gap: 16px;
+}
+
+.equation-intro,
+.equation-note {
+  color: var(--text);
+}
+
+.equation-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.equation-card {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--red);
+  border-radius: var(--radius);
+  padding: 16px;
+  background: linear-gradient(180deg, #fff, #f9fbfd);
+}
+
+.equation-card figcaption {
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.equation-card code {
+  display: block;
+  overflow-x: auto;
+  color: var(--ink);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: clamp(18px, 2.1vw, 26px);
+  font-weight: 800;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.equation-card p {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.where-heading {
+  color: var(--ink);
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+.symbol-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.symbol-list div {
+  display: grid;
+  grid-template-columns: minmax(72px, 0.18fr) minmax(0, 1fr);
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  background: var(--soft);
+}
+
+.symbol-list dt {
+  color: var(--red);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.symbol-list dd {
+  margin: 0;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.symbol-list dd span {
+  display: inline-flex;
+  margin-left: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 1px 8px;
+  color: var(--muted);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.equation-note {
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
 .faq-list {
   display: grid;
   gap: 12px;
@@ -1081,6 +1186,17 @@ select {
   .metric-list,
   .embed-shell .calculator-grid {
     grid-template-columns: 1fr;
+  }
+
+  .symbol-list div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .symbol-list dd span {
+    margin-top: 4px;
+    margin-left: 0;
+    width: fit-content;
   }
 
   .footer-links {
