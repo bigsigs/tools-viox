@@ -1,0 +1,81 @@
+---
+import "../styles/global.css";
+import { site } from "../lib/seo";
+
+type Props = {
+  title: string;
+  description: string;
+  canonical?: string;
+  schema?: unknown[];
+};
+
+const { title, description, canonical = site.origin, schema = [] } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content={site.name} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    {schema.map((item) => <script is:inline type="application/ld+json" set:html={JSON.stringify(item)} />)}
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="VIOX Electrical Tools home">
+        <span class="brand-logo-wrap">
+          <img class="brand-logo" src={site.logo} alt="VIOX" width="140" height="42" loading="eager" decoding="async" />
+        </span>
+        <span>
+          Electrical Tools
+          <small>tools.viox.com</small>
+        </span>
+      </a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="/#tools">Tools</a>
+        <a href="/category/circuit-protection/">Protection</a>
+        <a href="/category/cable-wiring/">Cable</a>
+        <a href="https://viox.com/contact">Contact</a>
+      </nav>
+    </header>
+    <slot />
+    <footer class="site-footer">
+      <div class="footer-simple">
+        <a class="footer-brand" href="/" aria-label="VIOX Electrical Tools home">
+          <img src={site.logo} alt="VIOX" width="132" height="40" loading="lazy" decoding="async" />
+          <span>Electrical Tools</span>
+        </a>
+        <nav class="footer-links" aria-label="Footer navigation">
+          <a href="/#tools">Tools</a>
+          <a href="/category/circuit-protection/">Protection</a>
+          <a href="/category/cable-wiring/">Cable</a>
+          <a href="https://viox.com/">VIOX.com</a>
+          <a href="https://viox.com/contact">Contact</a>
+        </nav>
+        <p class="footer-contact">
+          <a href="mailto:sales@viox.com">sales@viox.com</a>
+          <span>+8618066396588</span>
+        </p>
+      </div>
+      <div class="footer-note">
+        <p>© 2026 VIOX Electric.</p>
+        <p>Calculator results are for preliminary selection only. Final design must follow local codes, standards, and qualified engineering review.</p>
+        <nav aria-label="Footer legal links">
+          <a href="https://viox.com/terms-use/">Terms Use</a>
+          <a href="https://viox.com/privacy-policy/">Privacy</a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>
