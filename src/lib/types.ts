@@ -51,11 +51,18 @@ export type ToolDefinition = {
   keywords: string[];
 };
 
+export type ResultSeverity = "ok" | "caution" | "warning";
+
+export type ResultMetric = {
+  label: string;
+  value: string;
+};
+
 export type CalculationResult = {
-  primaryLabel: string;
-  primaryValue: string;
-  secondary?: string;
+  primary: string;
+  unit?: string;
+  severity: ResultSeverity;
   summary: string;
-  notes: string[];
-  warnings: string[];
+  metrics: ResultMetric[];
+  recommendations: string[];
 };
