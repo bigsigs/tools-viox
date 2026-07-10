@@ -506,13 +506,16 @@ function calculateShortCircuit(values: Values): CalculationResult {
   const interruptingRatings = [5, 10, 18, 25, 35, 42, 50, 65, 100, 150, 200];
   const rating = nextSize(faultKa, interruptingRatings);
   const exceedsRatingRange = faultKa > interruptingRatings[interruptingRatings.length - 1];
+  const phaseLabel = phase === "three" ? "three-phase" : "single-phase";
+  const calculationBasis = phase === "three" ? "Three-phase: S = √3 × V × I" : "Single-phase: S = V × I";
 
   return {
     primary: fmt(faultKa),
     unit: "kA",
     severity: faultKa > 65 ? "warning" : faultKa > 35 ? "caution" : "ok",
-    summary: `Available fault current is estimated from transformer full-load current divided by total per-unit source impedance.`,
+    summary: `Available ${phaseLabel} fault current is estimated from transformer full-load current divided by total per-unit source impedance.`,
     metrics: [
+      { label: "Calculation basis", value: calculationBasis },
       { label: "Full-load current", value: `${fmt(fullLoadCurrent)} A` },
       { label: "Transformer Z", value: `${fmt(impedance * 100)}%` },
       { label: "Source Z allowance", value: sourcePu > 0 ? `${fmt(sourcePu * 100)}%` : "Ignored" },
@@ -520,6 +523,7 @@ function calculateShortCircuit(values: Values): CalculationResult {
     ],
     recommendations: [
       exceedsRatingRange ? "The result exceeds the internal 200 kA reference range; a detailed engineered solution is required." : `Select protective equipment with interrupting capacity above the calculated value; next common reference is ${rating} kA.`,
+      phase === "single" ? "For center-tapped single-phase systems, calculate line-to-neutral terminal faults with the applicable transformer winding method." : "Confirm that secondary voltage is the line-to-line voltage for the three-phase transformer.",
       "Final short-circuit study should include upstream utility data, cable impedance, motors, X/R ratio, and applicable IEC 60909 or IEEE method."
     ]
   };

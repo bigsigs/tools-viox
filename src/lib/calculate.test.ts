@@ -304,6 +304,36 @@ describe("calculateTool", () => {
     expect(Number(result.primary)).toBeCloseTo(12.6, 1);
   });
 
+  it("uses the single-phase transformer current formula when single-phase is selected", () => {
+    const result = calculateTool("short-circuit-current-calculator", {
+      phase: "single",
+      kva: 600,
+      impedance: 5.75,
+      voltage: 400,
+      utilityMva: 0
+    });
+
+    expect(result.primary).toBe("26.1");
+    expect(result.metrics.find((metric) => metric.label === "Calculation basis")?.value).toBe("Single-phase: S = V × I");
+    expect(result.metrics.find((metric) => metric.label === "Full-load current")?.value).toBe("1500 A");
+    expect(result.metrics.find((metric) => metric.label === "Fault MVA")?.value).toBe("10.4 MVA");
+  });
+
+  it("uses the three-phase transformer current formula when three-phase is selected", () => {
+    const result = calculateTool("short-circuit-current-calculator", {
+      phase: "three",
+      kva: 600,
+      impedance: 5.75,
+      voltage: 400,
+      utilityMva: 0
+    });
+
+    expect(result.primary).toBe("15.1");
+    expect(result.metrics.find((metric) => metric.label === "Calculation basis")?.value).toBe("Three-phase: S = √3 × V × I");
+    expect(result.metrics.find((metric) => metric.label === "Full-load current")?.value).toBe("866 A");
+    expect(result.metrics.find((metric) => metric.label === "Fault MVA")?.value).toBe("10.4 MVA");
+  });
+
   it("includes upstream utility impedance in short-circuit current", () => {
     const result = calculateTool("short-circuit-current-calculator", {
       phase: "three",

@@ -359,7 +359,7 @@ export const tools: ToolDefinition[] = [
     description: "Estimate available transformer secondary fault current from transformer kVA, impedance, voltage, phase, and optional utility fault contribution.",
     intent: "First-pass interrupting-capacity check for MCB, MCCB, switchgear, busbar, and panel discussions.",
     fields: [
-      { id: "phase", label: "System", type: "select", defaultValue: "three", options: [
+      { id: "phase", label: "Transformer phase", type: "select", defaultValue: "three", help: "Three-phase uses S = √3 × V × I with line-to-line voltage. Single-phase uses S = V × I.", options: [
         { value: "three", label: "Three-phase" },
         { value: "single", label: "Single-phase" }
       ] },
