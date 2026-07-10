@@ -615,6 +615,7 @@ select {
 .calculator-grid {
   display: grid;
   grid-template-columns: minmax(0, 0.92fr) minmax(360px, 1.08fr);
+  align-items: start;
   gap: 16px;
 }
 
@@ -626,6 +627,7 @@ select {
 
 .input-panel {
   display: grid;
+  align-self: start;
   gap: 13px;
 }
 
@@ -641,13 +643,13 @@ select {
   gap: 8px;
   color: var(--ink);
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .field em {
   color: var(--muted);
   font-style: normal;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .field input,
@@ -661,10 +663,69 @@ select {
   background: var(--paper);
 }
 
+.unit-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  min-height: 44px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--paper);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.unit-input:focus-within {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(215, 25, 32, 0.12);
+}
+
+.unit-input input,
+.unit-input select {
+  height: 42px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.unit-input input {
+  min-width: 0;
+  padding: 0 12px;
+}
+
+.unit-input select,
+.unit-addon {
+  min-width: 76px;
+  border-left: 1px solid var(--line);
+  color: var(--red);
+  background: rgba(215, 25, 32, 0.045);
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.unit-input select {
+  padding: 0 28px 0 12px;
+  cursor: pointer;
+}
+
+.unit-addon {
+  display: inline-grid;
+  place-items: center;
+  padding: 0 12px;
+}
+
 .field input:focus,
 .field select:focus {
   border-color: var(--red);
   outline: 3px solid rgba(215, 25, 32, 0.12);
+}
+
+.unit-input input:focus,
+.unit-input select:focus {
+  border-color: transparent;
+  outline: 0;
 }
 
 .result-panel {
@@ -807,7 +868,7 @@ select {
 
 .equation-stack {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .equation-card {
@@ -819,9 +880,9 @@ select {
 }
 
 .equation-card figcaption {
-  padding: 10px 16px 0;
+  padding: 8px 14px 0;
   color: #7a6a45;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -830,10 +891,10 @@ select {
 .equation-card code {
   display: block;
   overflow-x: auto;
-  padding: 16px 18px 18px;
+  padding: 12px 14px 14px;
   color: var(--ink);
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(20px, 2.1vw, 28px);
+  font-size: clamp(16px, 1.45vw, 21px);
   font-weight: 700;
   font-style: italic;
   line-height: 1.35;
@@ -843,7 +904,7 @@ select {
 
 .equation-math {
   overflow-x: auto;
-  padding: 14px 18px 18px;
+  padding: 10px 14px 14px;
 }
 
 .equation-math math {
@@ -851,7 +912,7 @@ select {
   margin-inline: auto;
   color: var(--ink);
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(22px, 2.4vw, 32px);
+  font-size: clamp(17px, 1.6vw, 23px);
   font-weight: 700;
 }
 

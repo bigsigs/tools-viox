@@ -49,16 +49,16 @@ const conduitIdsInch: Record<string, Record<string, number>> = {
     "4": 4.05
   },
   pvc40: {
-    "1/2": 0.622,
-    "3/4": 0.824,
-    "1": 1.049,
-    "1-1/4": 1.38,
-    "1-1/2": 1.61,
-    "2": 2.067,
-    "2-1/2": 2.469,
-    "3": 3.068,
-    "3-1/2": 3.548,
-    "4": 4.026
+    "1/2": 0.602,
+    "3/4": 0.804,
+    "1": 1.029,
+    "1-1/4": 1.36,
+    "1-1/2": 1.59,
+    "2": 2.047,
+    "2-1/2": 2.445,
+    "3": 3.042,
+    "3-1/2": 3.521,
+    "4": 3.998
   },
   pvc80: {
     "1/2": 0.546,
@@ -194,10 +194,12 @@ function calculateSpd(values: Values): CalculationResult {
 function calculateVoltageDrop(values: Values): CalculationResult {
   const phase = str(values.phase);
   const rho = str(values.material) === "aluminum" ? 0.0282 : 0.0175;
-  const current = positiveNumber(values.current, "Load current");
-  const voltage = positiveNumber(values.voltage, "System voltage");
-  const length = positiveNumber(values.length, "Cable length");
-  const area = positiveNumber(values.area, "Conductor size");
+  const current = currentToAmps(positiveNumber(values.current, "Load current"), str(values.currentUnit || "A"));
+  const voltage = voltageToVolts(positiveNumber(values.voltage, "System voltage"), str(values.voltageUnit || "V"));
+  const length = lengthToMeters(positiveNumber(values.length, "Cable length"), str(values.lengthUnit || "m"));
+  const singleArea = conductorAreaToMm2(positiveNumber(values.area, "Conductor size"), str(values.areaUnit || "mm2"));
+  const conductors = positiveInteger(values.conductors || 1, "Parallel conductors");
+  const area = singleArea * conductors;
   const drop = phase === "three"
     ? Math.sqrt(3) * current * rho * length / area
     : 2 * current * rho * length / area;
@@ -211,7 +213,8 @@ function calculateVoltageDrop(values: Values): CalculationResult {
     metrics: [
       { label: "Voltage drop", value: `${fmt(drop)} V` },
       { label: "Drop percentage", value: `${fmt(percent)}%` },
-      { label: "Resistivity used", value: `${rho} ohm mm2/m` },
+      { label: "Resistivity used", value: `${rho} ohm mm²/m` },
+      { label: "Converted basis", value: `${fmt(current)} A, ${fmt(length)} m, ${fmt(area)} mm² total` },
       { label: "Formula basis", value: phase === "three" ? "Three-phase approximation" : "Two-wire path approximation" }
     ],
     recommendations: [
@@ -219,6 +222,34 @@ function calculateVoltageDrop(values: Values): CalculationResult {
       "Check local voltage-drop limits for the application and market."
     ]
   };
+}
+
+function currentToAmps(value: number, unit: string) {
+  if (unit === "mA") return value / 1000;
+  if (unit === "kA") return value * 1000;
+  return value;
+}
+
+function voltageToVolts(value: number, unit: string) {
+  if (unit === "kV") return value * 1000;
+  return value;
+}
+
+function lengthToMeters(value: number, unit: string) {
+  if (unit === "ft") return value * 0.3048;
+  return value;
+}
+
+function conductorAreaToMm2(value: number, unit: string) {
+  if (unit === "AWG") return awgToMm2(value);
+  if (unit === "kcmil") return value * 0.506707479;
+  return value;
+}
+
+function awgToMm2(gauge: number) {
+  const diameterInch = 0.005 * Math.pow(92, (36 - gauge) / 39);
+  const diameterMm = diameterInch * 25.4;
+  return Math.PI * Math.pow(diameterMm, 2) / 4;
 }
 
 function calculateCableSize(values: Values): CalculationResult {
@@ -232,7 +263,7 @@ function calculateCableSize(values: Values): CalculationResult {
 
   return {
     primary: fmt(row.mm2),
-    unit: "mm2",
+    unit: "mm²",
     severity: row === conductorTable[conductorTable.length - 1] && required > row.amps ? "warning" : "ok",
     summary: `Reference conductor size based on ${fmt(required)} A required ampacity after sizing and derating.`,
     metrics: [
@@ -390,11 +421,12 @@ function calculateBreakerSize(values: Values): CalculationResult {
   const loadCurrent = currentFromKw(kw, voltage, pf, phase, 1);
   const minimum = loadCurrent * factor;
   const recommended = nextSize(minimum, breakerSizes);
+  const exceedsStandardRange = minimum > breakerSizes[breakerSizes.length - 1];
 
   return {
     primary: `${recommended}`,
     unit: "A",
-    severity: recommended >= 630 ? "caution" : "ok",
+    severity: exceedsStandardRange ? "warning" : recommended >= 630 ? "caution" : "ok",
     summary: `Calculated load current is ${fmt(loadCurrent)} A. Minimum breaker rating after sizing factor is ${fmt(minimum)} A.`,
     metrics: [
       { label: "Load current", value: `${fmt(loadCurrent)} A` },
@@ -403,7 +435,7 @@ function calculateBreakerSize(values: Values): CalculationResult {
       { label: "Rounded standard rating", value: `${recommended} A` }
     ],
     recommendations: [
-      "Verify trip curve, breaking capacity, cable ampacity, and selectivity.",
+      exceedsStandardRange ? "The calculated minimum exceeds the internal standard-rating list; use engineered parallel protection or a higher-rated assembly." : "Verify trip curve, breaking capacity, cable ampacity, and selectivity.",
       "For motors or transformers, check inrush and coordination before selecting the final device."
     ]
   };
@@ -432,6 +464,7 @@ function calculateTransformerSizing(values: Values): CalculationResult {
   const requiredKva = designKva / loading / ambientDerate;
   const ratings = transformerRatings(series, phase);
   const recommended = nextSize(requiredKva, ratings);
+  const exceedsStandardRange = requiredKva > ratings[ratings.length - 1];
   const secondaryCurrent = phase === "three"
     ? recommended * 1000 / (Math.sqrt(3) * voltage)
     : recommended * 1000 / voltage;
@@ -439,7 +472,7 @@ function calculateTransformerSizing(values: Values): CalculationResult {
   return {
     primary: `${recommended}`,
     unit: "kVA",
-    severity: recommended >= 1000 ? "caution" : "ok",
+    severity: exceedsStandardRange ? "warning" : recommended >= 1000 ? "caution" : "ok",
     summary: `Connected load is ${fmt(connectedKva)} kVA. After demand, growth, loading margin, and ambient derating, the required rating is ${fmt(requiredKva)} kVA.`,
     metrics: [
       { label: "Demand load", value: `${fmt(demandKva)} kVA` },
@@ -448,7 +481,7 @@ function calculateTransformerSizing(values: Values): CalculationResult {
       { label: "Secondary FLC", value: `${fmt(secondaryCurrent)} A` }
     ],
     recommendations: [
-      "Use secondary current for first-pass breaker, cable, and busbar checks.",
+      exceedsStandardRange ? "The required capacity exceeds the selected standard series; use an engineered multi-transformer or larger-unit design." : "Use secondary current for first-pass breaker, cable, and busbar checks.",
       "Confirm transformer standard series, impedance, cooling class, harmonics, inrush, and local code before procurement."
     ]
   };
@@ -470,7 +503,9 @@ function calculateShortCircuit(values: Values): CalculationResult {
   const faultMva = phase === "three"
     ? Math.sqrt(3) * voltage * faultCurrent / 1_000_000
     : voltage * faultCurrent / 1_000_000;
-  const rating = nextSize(faultKa, [5, 10, 18, 25, 35, 42, 50, 65, 100, 150, 200]);
+  const interruptingRatings = [5, 10, 18, 25, 35, 42, 50, 65, 100, 150, 200];
+  const rating = nextSize(faultKa, interruptingRatings);
+  const exceedsRatingRange = faultKa > interruptingRatings[interruptingRatings.length - 1];
 
   return {
     primary: fmt(faultKa),
@@ -484,7 +519,7 @@ function calculateShortCircuit(values: Values): CalculationResult {
       { label: "Fault MVA", value: `${fmt(faultMva)} MVA` }
     ],
     recommendations: [
-      `Select protective equipment with interrupting capacity above the calculated value; next common reference is ${rating} kA.`,
+      exceedsRatingRange ? "The result exceeds the internal 200 kA reference range; a detailed engineered solution is required." : `Select protective equipment with interrupting capacity above the calculated value; next common reference is ${rating} kA.`,
       "Final short-circuit study should include upstream utility data, cable impedance, motors, X/R ratio, and applicable IEC 60909 or IEEE method."
     ]
   };
@@ -497,15 +532,17 @@ function calculatePowerConversion(values: Values): CalculationResult {
   const pf = phase === "dc" ? 1 : positiveNumber(values.pf, "Power factor");
   const efficiency = positiveNumber(values.efficiency, "Efficiency") / 100;
   const amps = currentFromKw(kw, voltage, pf, phase, efficiency);
-  const kva = phase === "dc" ? kw : kw / pf;
+  const inputKw = kw / efficiency;
+  const kva = phase === "dc" ? inputKw : inputKw / pf;
 
   return {
     primary: fmt(amps),
     unit: "A",
     severity: "ok",
-    summary: `${fmt(kw)} kW equals approximately ${fmt(kva)} kVA and ${fmt(amps)} A for the selected system.`,
+    summary: `${fmt(kw)} kW output requires approximately ${fmt(inputKw)} kW input and ${fmt(amps)} A for the selected system.`,
     metrics: [
-      { label: "Real power", value: `${fmt(kw)} kW` },
+      { label: "Output power", value: `${fmt(kw)} kW` },
+      { label: "Input power", value: `${fmt(inputKw)} kW` },
       { label: "Apparent power", value: phase === "dc" ? "Not used for DC" : `${fmt(kva)} kVA` },
       { label: "Voltage", value: `${fmt(voltage)} V` },
       { label: "Formula basis", value: phase === "three" ? "sqrt(3) three-phase" : phase === "single" ? "Single-phase AC" : "DC" }
@@ -526,7 +563,7 @@ function calculateThreePhase(values: Values): CalculationResult {
   const amps = mode === "kva"
     ? power * 1000 / (Math.sqrt(3) * voltage)
     : power * 1000 / (Math.sqrt(3) * voltage * pf * efficiency);
-  const kva = mode === "kva" ? power : power / pf;
+  const kva = mode === "kva" ? power : power / (pf * efficiency);
 
   return {
     primary: fmt(amps),
@@ -579,7 +616,7 @@ function calculateEvCharger(values: Values): CalculationResult {
   const phase = str(values.phase);
   const kw = positiveNumber(values.power, "Power per charger");
   const voltage = positiveNumber(values.voltage, "Voltage");
-  const count = positiveNumber(values.count, "Number of chargers");
+  const count = positiveInteger(values.count, "Number of chargers");
   const simultaneity = positiveNumber(values.simultaneity, "Simultaneity factor") / 100;
   const pf = positiveNumber(values.pf, "Power factor");
   const currentPerCharger = currentFromKw(kw, voltage, pf, phase, 1);
@@ -657,9 +694,9 @@ function calculateBusbar(values: Values): CalculationResult {
     primary: fmt(amps),
     unit: "A",
     severity: "caution",
-    summary: `Estimated current from ${fmt(area)} mm2 cross-section and ${fmt(density)} A/mm2 current-density reference.`,
+    summary: `Estimated current from ${fmt(area)} mm² cross-section and ${fmt(density)} A/mm² current-density reference.`,
     metrics: [
-      { label: "Cross-section", value: `${fmt(area)} mm2` },
+      { label: "Cross-section", value: `${fmt(area)} mm²` },
       { label: "Material factor", value: str(values.material) === "aluminum" ? "0.65 aluminum estimate" : "1.00 copper reference" },
       { label: "Derating", value: `${fmt(derating * 100)}%` },
       { label: "Estimated rating", value: `${fmt(amps)} A` }
@@ -722,7 +759,9 @@ function conductorDerating(count: number) {
   if (count <= 6) return 0.8;
   if (count <= 9) return 0.7;
   if (count <= 20) return 0.5;
-  return 0.45;
+  if (count <= 30) return 0.45;
+  if (count <= 40) return 0.4;
+  return 0.35;
 }
 
 function transformerRatings(series: string, phase: string) {
@@ -735,6 +774,14 @@ function positiveNumber(value: unknown, label: string) {
   const number = Number(value);
   if (!Number.isFinite(number) || number <= 0) {
     throw new Error(`${label} must be greater than zero.`);
+  }
+  return number;
+}
+
+function positiveInteger(value: unknown, label: string) {
+  const number = positiveNumber(value, label);
+  if (!Number.isInteger(number)) {
+    throw new Error(`${label} must be a whole number.`);
   }
   return number;
 }

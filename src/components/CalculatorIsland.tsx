@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+/** @jsxRuntime classic */
+import React, { useMemo, useState } from "react";
 import { calculateTool } from "../lib/calculate";
 import { toolsBySlug } from "../lib/tools";
 import type { CalculationResult } from "../lib/types";
@@ -10,7 +11,13 @@ type Props = {
 export default function CalculatorIsland({ slug }: Props) {
   const tool = toolsBySlug[slug];
   const defaults = useMemo<Record<string, string | number>>(() => {
-    return Object.fromEntries(tool.fields.map((field) => [field.id, field.defaultValue ?? ""]));
+    return Object.fromEntries(tool.fields.flatMap((field) => {
+      const entries: Array<[string, string | number]> = [[field.id, field.defaultValue ?? ""]];
+      if (field.unitOptions?.length) {
+        entries.push([`${field.id}Unit`, field.defaultUnit ?? field.unitOptions[0].value]);
+      }
+      return entries;
+    }));
   }, [tool]);
   const [values, setValues] = useState<Record<string, string | number>>(defaults);
   const [copied, setCopied] = useState(false);
@@ -48,7 +55,6 @@ export default function CalculatorIsland({ slug }: Props) {
           <label className="field" key={field.id}>
             <span>
               {field.label}
-              {field.unit ? <em>{field.unit}</em> : null}
             </span>
             {field.type === "select" ? (
               <select value={String(values[field.id])} onChange={(event) => update(field.id, event.target.value)}>
@@ -57,15 +63,30 @@ export default function CalculatorIsland({ slug }: Props) {
                 ))}
               </select>
             ) : (
-              <input
-                type="number"
-                inputMode="decimal"
-                value={String(values[field.id])}
-                min={field.min}
-                max={field.max}
-                step={field.step ?? "any"}
-                onChange={(event) => update(field.id, event.target.value)}
-              />
+              <div className="unit-input">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  value={String(values[field.id])}
+                  min={field.min}
+                  max={field.max}
+                  step={field.step ?? (values[`${field.id}Unit`] === "AWG" ? 1 : "any")}
+                  onChange={(event) => update(field.id, event.target.value)}
+                />
+                {field.unitOptions?.length ? (
+                  <select
+                    aria-label={`${field.label} unit`}
+                    value={String(values[`${field.id}Unit`] ?? field.defaultUnit ?? field.unitOptions[0].value)}
+                    onChange={(event) => update(`${field.id}Unit`, event.target.value)}
+                  >
+                    {field.unitOptions.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                ) : field.unit ? (
+                  <span className="unit-addon">{field.unit}</span>
+                ) : null}
+              </div>
             )}
             {field.help ? <small>{field.help}</small> : null}
           </label>

@@ -23,25 +23,25 @@ export const equationsBySlug: Record<string, ToolEquation> = {
     equations: [
       {
         label: "DC or single-phase",
-        expression: "Vd = 2 × I × ρ × L / S",
-        mathml: `<math display="block" aria-label="V d equals two I rho L over S">
+        expression: "Vd = 2 × I × ρ × L / (S × n)",
+        mathml: `<math display="block" aria-label="V d equals two I rho L over S times n">
           <msub><mi>V</mi><mi>d</mi></msub>
           <mo>=</mo>
           <mfrac>
             <mrow><mn>2</mn><mi>I</mi><mi>ρ</mi><mi>L</mi></mrow>
-            <mi>S</mi>
+            <mrow><mi>S</mi><mi>n</mi></mrow>
           </mfrac>
         </math>`
       },
       {
         label: "Three-phase",
-        expression: "Vd = √3 × I × ρ × L / S",
-        mathml: `<math display="block" aria-label="V d equals square root of three I rho L over S">
+        expression: "Vd = √3 × I × ρ × L / (S × n)",
+        mathml: `<math display="block" aria-label="V d equals square root of three I rho L over S times n">
           <msub><mi>V</mi><mi>d</mi></msub>
           <mo>=</mo>
           <mfrac>
             <mrow><msqrt><mn>3</mn></msqrt><mi>I</mi><mi>ρ</mi><mi>L</mi></mrow>
-            <mi>S</mi>
+            <mrow><mi>S</mi><mi>n</mi></mrow>
           </mfrac>
         </math>`
       },
@@ -64,9 +64,10 @@ export const equationsBySlug: Record<string, ToolEquation> = {
       { symbol: "Vd", meaning: "Voltage drop, measured in volts", unit: "V" },
       { symbol: "Vd%", meaning: "Voltage drop as a percentage of nominal voltage", unit: "%" },
       { symbol: "I", meaning: "Load current, measured in amperes", unit: "A" },
-      { symbol: "ρ", meaning: "Conductor resistivity reference, measured in ohm square millimeters per meter", unit: "ohm mm2/m" },
+      { symbol: "ρ", meaning: "Conductor resistivity reference, measured in ohm square millimeters per meter", unit: "ohm mm²/m" },
       { symbol: "L", meaning: "One-way cable length, measured in meters", unit: "m" },
-      { symbol: "S", meaning: "Conductor cross-sectional area, measured in square millimeters", unit: "mm2" },
+      { symbol: "S", meaning: "Conductor cross-sectional area, measured in square millimeters", unit: "mm²" },
+      { symbol: "n", meaning: "Number of parallel conductors per polarity or phase" },
       { symbol: "Vn", meaning: "Nominal system voltage, measured in volts", unit: "V" }
     ],
     conclusion: "The result excludes reactance, harmonics, operating temperature, and installation correction factors, so long feeder runs need a standards-based cable check."
@@ -511,17 +512,17 @@ export const equationsBySlug: Record<string, ToolEquation> = {
       },
       {
         label: "Apparent power",
-        expression: "S = P / PF",
-        mathml: `<math display="block" aria-label="S equals P over power factor">
+        expression: "S = P / (PF × η)",
+        mathml: `<math display="block" aria-label="S equals output power over power factor times efficiency">
           <mi>S</mi>
           <mo>=</mo>
-          <mfrac><mi>P</mi><mi>PF</mi></mfrac>
+          <mfrac><mi>P</mi><mrow><mi>PF</mi><mi>η</mi></mrow></mfrac>
         </math>`
       }
     ],
     symbols: [
       { symbol: "I", meaning: "Calculated current", unit: "A" },
-      { symbol: "P", meaning: "Real power converted to watts", unit: "W" },
+      { symbol: "P", meaning: "Output power converted to watts", unit: "W" },
       { symbol: "V", meaning: "System voltage", unit: "V" },
       { symbol: "PF", meaning: "Power factor for AC systems" },
       { symbol: "η", meaning: "Efficiency as a decimal" },
@@ -713,11 +714,11 @@ export const equationsBySlug: Record<string, ToolEquation> = {
       }
     ],
     symbols: [
-      { symbol: "A", meaning: "Busbar cross-sectional area", unit: "mm2" },
+      { symbol: "A", meaning: "Busbar cross-sectional area", unit: "mm²" },
       { symbol: "W", meaning: "Busbar width", unit: "mm" },
       { symbol: "T", meaning: "Busbar thickness", unit: "mm" },
       { symbol: "I", meaning: "Estimated current rating", unit: "A" },
-      { symbol: "J", meaning: "Selected current density reference", unit: "A/mm2" },
+      { symbol: "J", meaning: "Selected current density reference", unit: "A/mm²" },
       { symbol: "Km", meaning: "Material factor for copper or aluminum" },
       { symbol: "Kd", meaning: "Derating factor for enclosure and installation conditions" }
     ],

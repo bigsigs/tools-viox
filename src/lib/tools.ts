@@ -36,6 +36,28 @@ const optionalConduitCableOptions = [
 
 const awgOptions = ["18", "16", "14", "12", "10", "8", "6", "4", "3", "2", "1", "1/0", "2/0", "3/0", "4/0"].map((size) => ({ value: size, label: `${size} AWG` }));
 
+const currentUnitOptions = [
+  { value: "A", label: "A" },
+  { value: "mA", label: "mA" },
+  { value: "kA", label: "kA" }
+];
+
+const voltageUnitOptions = [
+  { value: "V", label: "V" },
+  { value: "kV", label: "kV" }
+];
+
+const lengthUnitOptions = [
+  { value: "m", label: "m" },
+  { value: "ft", label: "ft" }
+];
+
+const conductorSizeUnitOptions = [
+  { value: "mm2", label: "mm²" },
+  { value: "AWG", label: "AWG" },
+  { value: "kcmil", label: "kcmil" }
+];
+
 export const tools: ToolDefinition[] = [
   {
     slug: "spd-calculator",
@@ -94,12 +116,13 @@ export const tools: ToolDefinition[] = [
         { value: "copper", label: "Copper" },
         { value: "aluminum", label: "Aluminum" }
       ] },
-      { id: "current", label: "Load current", type: "number", defaultValue: 32, unit: "A", min: 0 },
-      { id: "voltage", label: "System voltage", type: "number", defaultValue: 400, unit: "V", min: 0 },
-      { id: "length", label: "One-way cable length", type: "number", defaultValue: 50, unit: "m", min: 0 },
-      { id: "area", label: "Conductor size", type: "number", defaultValue: 10, unit: "mm2", min: 0 }
+      { id: "current", label: "Load current", type: "number", defaultValue: 32, unit: "A", defaultUnit: "A", unitOptions: currentUnitOptions, min: 0 },
+      { id: "voltage", label: "System voltage", type: "number", defaultValue: 400, unit: "V", defaultUnit: "V", unitOptions: voltageUnitOptions, min: 0 },
+      { id: "length", label: "One-way cable length", type: "number", defaultValue: 50, unit: "m", defaultUnit: "m", unitOptions: lengthUnitOptions, min: 0 },
+      { id: "area", label: "Conductor size", type: "number", defaultValue: 10, unit: "mm²", defaultUnit: "mm2", unitOptions: conductorSizeUnitOptions, min: 0 },
+      { id: "conductors", label: "Parallel conductors", type: "number", defaultValue: 1, unit: "runs", min: 1, step: 1 }
     ],
-    formula: "For DC and single-phase circuits, Vd = 2 x I x rho x L / S. For three-phase circuits, Vd = sqrt(3) x I x rho x L / S.",
+    formula: "For DC and single-phase circuits, Vd = 2 x I x rho x L / (S x n). For three-phase circuits, Vd = sqrt(3) x I x rho x L / (S x n).",
     assumptions: ["Approximate conductor resistivity at normal temperature", "Reactance and installation temperature effects are not included", "One-way length is used"],
     warnings: ["Use project voltage-drop limits and local electrical code for final design.", "Long runs, high temperature, and grouped cables need additional derating."],
     faqs: [
@@ -368,16 +391,16 @@ export const tools: ToolDefinition[] = [
     intent: "Fast electrical power conversion before equipment sizing.",
     fields: [
       { id: "phase", label: "System type", type: "select", defaultValue: "three", options: phaseOptions },
-      { id: "power", label: "Real power", type: "number", defaultValue: 15, unit: "kW", min: 0 },
+      { id: "power", label: "Output power", type: "number", defaultValue: 15, unit: "kW", min: 0 },
       { id: "voltage", label: "Voltage", type: "number", defaultValue: 400, unit: "V", min: 0 },
       { id: "pf", label: "Power factor", type: "number", defaultValue: 0.9, min: 0.1, max: 1, step: 0.01 },
       { id: "efficiency", label: "Efficiency", type: "number", defaultValue: 100, unit: "%", min: 1, max: 100 }
     ],
-    formula: "DC: I = P / V. Single-phase: I = P / (V x PF). Three-phase: I = P / (sqrt(3) x V x PF). Efficiency is applied when entered below 100%.",
-    assumptions: ["Balanced three-phase load", "Power factor applies to AC systems only", "Efficiency is treated as input-side correction"],
+    formula: "DC: I = Pout / (V x efficiency). Single-phase: I = Pout / (V x PF x efficiency). Three-phase: I = Pout / (sqrt(3) x V x PF x efficiency).",
+    assumptions: ["Entered kW is output power", "Balanced three-phase load", "Power factor applies to AC systems only", "Efficiency converts output power to required input power"],
     warnings: ["Use nameplate data when available.", "Nonlinear loads, harmonics, and starting current are not included."],
     faqs: [
-      { question: "What is the difference between kW and kVA?", answer: "kW is real power. kVA is apparent power. For AC systems, kW = kVA x power factor." },
+      { question: "What is the difference between kW and kVA?", answer: "kW is real power and kVA is apparent power. This calculator treats entered kW as output power, converts it to input kW using efficiency, then divides input kW by power factor for kVA." },
       { question: "Can I use this for motors?", answer: "Yes for a first estimate, but the motor current calculator is better because it includes efficiency and overload context." }
     ],
     relatedTools: ["three-phase-current-calculator", "motor-current-calculator", "circuit-breaker-size-calculator"],
@@ -528,7 +551,7 @@ export const tools: ToolDefinition[] = [
     fields: [
       { id: "width", label: "Busbar width", type: "number", defaultValue: 30, unit: "mm", min: 0 },
       { id: "thickness", label: "Busbar thickness", type: "number", defaultValue: 5, unit: "mm", min: 0 },
-      { id: "density", label: "Current density", type: "number", defaultValue: 1.2, unit: "A/mm2", min: 0, step: 0.1 },
+      { id: "density", label: "Current density", type: "number", defaultValue: 1.2, unit: "A/mm²", min: 0, step: 0.1 },
       { id: "material", label: "Material", type: "select", defaultValue: "copper", options: [
         { value: "copper", label: "Copper" },
         { value: "aluminum", label: "Aluminum" }

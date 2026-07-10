@@ -17,6 +17,8 @@ export type ToolField = {
   label: string;
   type: "number" | "select" | "radio";
   unit?: string;
+  defaultUnit?: string;
+  unitOptions?: ToolFieldOption[];
   defaultValue?: string | number;
   min?: number;
   max?: number;

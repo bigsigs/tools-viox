@@ -31,7 +31,7 @@ const embedUrl = `${site.origin}/embed/${tool.slug}/`;
         </div>
         <a href={toolUrl(tool)} target="_blank" rel="noopener">Open full page</a>
       </header>
-      <CalculatorIsland slug={tool.slug} client:load />
+      <CalculatorIsland slug={tool.slug} client:only="react" />
       <footer class="embed-footer">
         Preliminary engineering reference only. Verify final selection against local codes, applicable standards, manufacturer data, and site conditions.
       </footer>
