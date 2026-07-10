@@ -1,0 +1,51 @@
+---
+import type { SeoGuide } from "../lib/seoGuides";
+
+type Props = {
+  guide: SeoGuide;
+};
+
+const { guide } = Astro.props;
+---
+
+<div class="seo-guide">
+  {guide.sections.map((section) => (
+    <section>
+      <h2>{section.title}</h2>
+      {section.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+      {section.callouts?.map((callout) => <p class="worked-equation">{callout}</p>)}
+      {section.steps ? (
+        <ol>
+          {section.steps.map((item) => <li>{item}</li>)}
+        </ol>
+      ) : null}
+      {section.bullets ? (
+        <ul>
+          {section.bullets.map((item) => <li>{item}</li>)}
+        </ul>
+      ) : null}
+      {section.table ? (
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>{section.table.headers.map((header) => <th>{header}</th>)}</tr>
+            </thead>
+            <tbody>
+              {section.table.rows.map((row) => <tr>{row.map((cell) => <td>{cell}</td>)}</tr>)}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+      {section.links?.length ? (
+        <p class="guide-links">
+          {section.links.map((link, index) => (
+            <>
+              {index > 0 ? <span aria-hidden="true"> · </span> : null}
+              <a href={link.href}>{link.label}</a>
+            </>
+          ))}
+        </p>
+      ) : null}
+    </section>
+  ))}
+</div>

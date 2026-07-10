@@ -2,10 +2,12 @@
 import CalculatorIsland from "../components/CalculatorIsland";
 import Layout from "../components/Layout.astro";
 import ToolCard from "../components/ToolCard.astro";
+import ToolSeoGuide from "../components/ToolSeoGuide.astro";
 import { categories } from "../lib/categories";
 import { equationsBySlug } from "../lib/equations";
+import { seoGuidesBySlug } from "../lib/seoGuides";
 import { tools, toolsBySlug } from "../lib/tools";
-import { breadcrumbSchema, site, softwareSchema, toolTitle, toolUrl } from "../lib/seo";
+import { breadcrumbSchema, site, softwareSchema, toolDescription, toolTitle, toolUrl } from "../lib/seo";
 
 export function getStaticPaths() {
   return tools.map((tool) => ({ params: { slug: tool.slug }, props: { tool } }));
@@ -15,6 +17,7 @@ const { tool } = Astro.props;
 const category = categories[tool.category];
 const relatedTools = tool.relatedTools.map((slug) => toolsBySlug[slug]).filter(Boolean);
 const equation = equationsBySlug[tool.slug];
+const seoGuide = seoGuidesBySlug[tool.slug];
 const embedUrl = `${site.origin}/embed/${tool.slug}/`;
 const embedCode = `<div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,.1);">
   <iframe
@@ -36,7 +39,7 @@ const schema = [
 ];
 ---
 
-<Layout title={toolTitle(tool)} description={tool.description} canonical={toolUrl(tool)} schema={schema}>
+<Layout title={toolTitle(tool)} description={toolDescription(tool)} canonical={toolUrl(tool)} schema={schema}>
   <main>
     <section class="tool-hero">
       <div>
@@ -87,6 +90,8 @@ const schema = [
           <p>{tool.formula}</p>
         )}
 
+        {seoGuide ? <ToolSeoGuide guide={seoGuide} /> : null}
+
         <h2>Assumptions</h2>
         <ul>
           {tool.assumptions.map((item) => <li>{item}</li>)}
@@ -97,15 +102,6 @@ const schema = [
           {tool.warnings.map((item) => <li>{item}</li>)}
         </ul>
 
-        <h2>FAQ</h2>
-        <div class="faq-list">
-          {tool.faqs.map((faq) => (
-            <section>
-              <h3>{faq.question}</h3>
-              <p>{faq.answer}</p>
-            </section>
-          ))}
-        </div>
       </article>
 
       <aside class="detail-side">
@@ -128,6 +124,27 @@ const schema = [
           <pre class="embed-code"><code>{embedCode}</code></pre>
         </section>
       </aside>
+    </section>
+
+    <section class="section-shell faq-section" aria-labelledby={`${tool.slug}-faq-title`}>
+      <div class="faq-panel">
+        <div class="faq-heading">
+          <h2 id={`${tool.slug}-faq-title`}>FAQ</h2>
+        </div>
+        <div class="faq-list">
+          {tool.faqs.map((faq) => (
+            <details>
+              <summary>
+                <span>{faq.question}</span>
+                <i aria-hidden="true"></i>
+              </summary>
+              <div class="faq-answer">
+                <p>{faq.answer}</p>
+              </div>
+            </details>
+          ))}
+        </div>
+      </div>
     </section>
 
     <section class="section-shell related-section">

@@ -134,7 +134,7 @@ export const tools: ToolDefinition[] = [
       { label: "Cable gland selection support", href: "https://viox.com/contact" },
       { label: "Cable and wiring articles", href: "https://viox.com/a-full-guide-to-cable-gland/" }
     ],
-    keywords: ["voltage drop calculator", "cable voltage drop", "three phase voltage drop calculator"]
+    keywords: ["voltage drop calculator", "voltage drop formula", "voltage drop equation", "how to calculate voltage drop", "single phase voltage drop formula", "three phase voltage drop formula", "voltage drop percentage"]
   },
   {
     slug: "cable-size-calculator",
