@@ -1,5 +1,4 @@
-/** @jsxRuntime classic */
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { calculateTool } from "../lib/calculate";
 import { toolsBySlug } from "../lib/tools";
 import type { CalculationResult } from "../lib/types";
@@ -51,7 +50,7 @@ export default function CalculatorIsland({ slug }: Props) {
     <div className="calculator-grid">
       <form className="input-panel" onSubmit={(event) => event.preventDefault()}>
         <div className="panel-label">Inputs</div>
-        {tool.fields.map((field) => (
+        {tool.fields.filter((field) => !field.showWhen || field.showWhen.values.includes(String(values[field.showWhen.field]))).map((field) => (
           <label className="field" key={field.id}>
             <span>
               {field.label}

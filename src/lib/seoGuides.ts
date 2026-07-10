@@ -1017,5 +1017,53 @@ export const seoGuidesBySlug: Record<string, SeoGuide> = {
         ]
       }
     ]
+  },
+  "fuse-sizing-calculator": {
+    sections: [
+      { title: "How to size a fuse", paragraphs: ["Choose the application first because gG, aM, and gPV fuse links do different jobs. Enter the real load or module current, apply the justified design factor, then check the rounded standard rating against the protected conductor or module limit."], steps: ["Choose gG, aM, or gPV duty.", "Calculate or enter the design current.", "Round up to a standard fuse rating.", "Check cable or module limits.", "Verify voltage, breaking capacity, holder, curve, and temperature."] },
+      { title: "gG fuse sizing example", paragraphs: ["A 32 A general load with a 125% factor creates a 40 A corrected current. A 40 A gG fuse is the first listed rating, provided the corrected cable ampacity is at least 40 A and the time-current requirements are satisfied."], callouts: ["Id = 32 A × 1.25 = 40 A", "32 A ≤ 40 A ≤ cable ampacity"] },
+      { title: "Motor and PV fuse selection", paragraphs: ["An aM motor fuse must tolerate the real starting-current profile while a separate overload relay protects the motor against sustained overload. A gPV fuse must carry the PV design current, remain within the module maximum series fuse rating, and interrupt DC faults at the array voltage."], table: { headers: ["Category", "Primary duty", "Mandatory follow-up"], rows: [["gG", "Full-range cable and feeder protection", "Cable coordination and curve"], ["aM", "Motor short-circuit protection", "Overload relay and start curve"], ["gPV", "PV string protection", "Module limit and DC rating"]] } },
+      { title: "Checks after fuse calculation", paragraphs: ["A current rating alone does not specify a fuse. Confirm utilization category, AC or DC voltage, breaking capacity, physical size, holder compatibility, power dissipation, ambient derating, time-current curve, I²t, selectivity, and any tested combination rating before ordering."] }
+    ]
+  },
+  "power-factor-correction-calculator": {
+    sections: [
+      { title: "How to calculate capacitor kvar", paragraphs: ["Enter active power, existing power factor, target power factor, voltage, and phase. The calculator converts each power factor to its phase angle and subtracts the target reactive-power requirement from the existing requirement."], steps: ["Measure or obtain real kW and power factor.", "Choose a justified target.", "Calculate required kvar.", "Compare current before and after correction.", "Design practical switching steps and harmonic protection."] },
+      { title: "Power factor correction example", paragraphs: ["For a 100 kW load improving from 0.75 to 0.95 power factor, the mathematical compensation is approximately 55 kvar. The final bank may use several switched stages so correction follows the changing load."], callouts: ["Qc = 100 × [tan(cos⁻¹ 0.75) - tan(cos⁻¹ 0.95)]", "Qc ≈ 55 kvar"] },
+      { title: "Why line current decreases", paragraphs: ["With useful kW held constant, improved power factor lowers kVA. Lower apparent power reduces line current, conductor loss, voltage drop, and transformer loading, but it does not reduce the mechanical output power required by the load."] },
+      { title: "Harmonics and capacitor-bank design", paragraphs: ["VFDs, UPS systems, welders, rectifiers, and nonlinear loads can create harmonic resonance and excess capacitor current. Measure harmonic conditions and evaluate detuned reactors, filters, capacitor voltage margin, contactor duty, discharge resistors, ventilation, and automatic controller settings."] }
+    ]
+  },
+  "motor-starter-selection-calculator": {
+    sections: [
+      { title: "How to select a motor starter", paragraphs: ["Start with motor nameplate current whenever available. Then select the contactor by AC-3 or AC-4 duty, choose an overload relay whose adjustable range contains the required setting, and coordinate the short-circuit protective device with the starter assembly."], steps: ["Confirm nameplate current and voltage.", "Identify AC-3 or AC-4 duty.", "Estimate starting current and acceleration time.", "Select overload range and trip class.", "Use a tested manufacturer coordination table."] },
+      { title: "Motor starter example", paragraphs: ["A 7.5 kW, 400 V motor at 0.85 power factor and 90% efficiency draws about 14.2 A by calculation. The actual nameplate current controls the final overload setting and may differ from the estimate."], callouts: ["IFL = 7500 / (√3 × 400 × 0.85 × 0.90)", "IFL ≈ 14.2 A"] },
+      { title: "AC-3 vs AC-4 contactor duty", paragraphs: ["AC-3 is the normal starting and stopping category for squirrel-cage motors that open after reaching speed. AC-4 covers inching, plugging, and reversing, which imposes much more severe making and breaking duty and requires the manufacturer's AC-4 ratings."] },
+      { title: "Overload and short-circuit coordination", paragraphs: ["The overload relay protects against sustained overload and phase-related heating; the fuse, breaker, or MPCB handles short-circuit duty within its rating. Final selection must check motor thermal limits, start duration, trip class, cable protection, breaking capacity, and Type 1 or Type 2 coordination."] }
+    ]
+  },
+  "three-phase-voltage-unbalance-calculator": {
+    sections: [
+      { title: "How to calculate voltage unbalance", paragraphs: ["Enter three line-to-line readings for a three-wire system or three line-to-neutral readings for a four-wire system. The calculator finds their average, the largest absolute deviation, and the deviation percentage."], steps: ["Use the same measurement basis for all phases.", "Record stable RMS readings.", "Calculate average voltage.", "Find maximum deviation.", "Compare with equipment and relay limits."] },
+      { title: "Voltage asymmetry example", paragraphs: ["Readings of 400 V, 392 V, and 408 V average 400 V. The FCP18-style range-to-average asymmetry is 4%, while the secondary maximum-deviation method gives 2%. The page labels both results so they are not treated as interchangeable."], callouts: ["Va = (408 - 392) / 400 × 100 = 4%", "Vu = 8 / 400 × 100 = 2%"] },
+      { title: "Why small voltage differences matter", paragraphs: ["Three-phase motors can develop a much larger current imbalance than the measured voltage imbalance, increasing negative-sequence heating, vibration, torque pulsation, and insulation stress. Use the motor manufacturer's limit rather than assuming one percentage suits every load."] },
+      { title: "Choosing an FCP18 function", paragraphs: ["Choose FCP18-01 for phase loss and sequence, FCP18-02 for a voltage window, FCP18-03 for comprehensive monitoring with adjustable delay, FCP18-04 for adjustable asymmetry, FCP18-05 for imbalance-focused protection, or FCP18-06 for fixed OEM settings. Verify voltage and wiring variants before ordering."] }
+    ]
+  },
+  "pv-combiner-box-sizing-calculator": {
+    sections: [
+      { title: "How to size a PV combiner box", paragraphs: ["Begin with module Voc, Isc, temperature coefficient, minimum temperature, modules per string, and parallel-string count. Cold voltage sets the DC voltage class while corrected short-circuit current sets string and output current requirements."], steps: ["Calculate cold string Voc.", "Check inverter and component voltage limits.", "Calculate string design current.", "Evaluate reverse-current contribution and gPV fusing.", "Size output conductors and switching devices.", "Select and coordinate the PV SPD and enclosure."] },
+      { title: "Cold string voltage example", paragraphs: ["Eighteen modules at 49.5 V Voc produce 891 V at STC. With a -0.28%/°C coefficient and -10°C minimum temperature, the correction factor is 1.098 and cold string Voc is about 978 V."], callouts: ["Voc,STC = 49.5 × 18 = 891 V", "Voc,cold = 891 × [1 + 0.0028 × 35] ≈ 978 V"] },
+      { title: "String fuse and output-current checks", paragraphs: ["The string fuse must carry corrected Isc without exceeding the module maximum series fuse rating. Combined output current grows with the number of parallel strings, while a faulted string may receive current contribution from the remaining strings."] },
+      { title: "Combiner components and environment", paragraphs: ["Verify gPV fuse and holder, DC isolator or breaker, Ucpv and SPD type, output terminals, busbar, cable glands, enclosure ingress rating, UV resistance, corrosion, condensation, temperature rise, labeling, and safe service access as one coordinated assembly."] }
+    ]
+  },
+  "advanced-spd-selection-calculator": {
+    sections: [
+      { title: "How to select an SPD", paragraphs: ["Start with system voltage across each protection mode, earthing arrangement, installation point, lightning exposure, supply route, prospective short-circuit current, and equipment impulse withstand. These inputs determine the starting Type, connection arrangement, and voltage-rating screen."], steps: ["Identify Type 1, Type 2, or coordinated Type 3 duty.", "Choose the earthing-specific connection arrangement.", "Check Uc or Ucpv.", "Coordinate Up with equipment withstand and lead length.", "Verify discharge ratings and backup protection."] },
+      { title: "Uc and Ucpv selection", paragraphs: ["Uc or Ucpv must remain above the maximum continuous voltage expected across the SPD protection mode, including normal system variation and earthing behavior. Selecting it too low risks premature failure; selecting it unnecessarily high can weaken practical protection coordination."] },
+      { title: "Type 1, Type 2, and Type 3 duties", paragraphs: ["Type 1 addresses lightning-current duty at the installation origin, Type 2 addresses distribution-level induced and switching surges, and Type 3 provides coordinated local protection near sensitive equipment. A Type 1+2 product combines tested duties but still requires correct placement and coordination."] },
+      { title: "Protection level and backup device", paragraphs: ["Effective protection includes the SPD Up value plus voltage contributed by connection leads. Confirm In, Imax, Iimp where applicable, thermal disconnection, status indication, Isccr or SCCR, the exact permitted backup fuse or breaker, conductor routing, pole arrangement, and manufacturer wiring diagram."] }
+    ]
   }
 };

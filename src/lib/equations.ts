@@ -723,5 +723,127 @@ export const equationsBySlug: Record<string, ToolEquation> = {
       { symbol: "Kd", meaning: "Derating factor for enclosure and installation conditions" }
     ],
     conclusion: "A real busbar rating depends on temperature rise, enclosure ventilation, spacing, plating, supports, and short-circuit withstand testing."
+  },
+  "fuse-sizing-calculator": {
+    title: "Fuse sizing equations and limits",
+    intro: "Fuse selection is a constrained calculation: the fuse must carry the design current without exceeding the protected cable or PV module limit, and its breaking capacity must exceed the prospective fault current.",
+    equations: [
+      { label: "Corrected design current", expression: "Id = Ib × K" },
+      { label: "Cable protection check", expression: "Ib ≤ In ≤ Iz" },
+      { label: "PV string current basis", expression: "Id,pv = Isc × Kpv" },
+      { label: "Breaking-capacity check", expression: "Icn,fuse ≥ Isc,prospective" }
+    ],
+    symbols: [
+      { symbol: "Ib", meaning: "Normal circuit design or load current", unit: "A" },
+      { symbol: "Id", meaning: "Corrected current after the selected design factor", unit: "A" },
+      { symbol: "In", meaning: "Fuse-link rated current", unit: "A" },
+      { symbol: "Iz", meaning: "Corrected conductor ampacity", unit: "A" },
+      { symbol: "Isc", meaning: "PV module short-circuit current or prospective system fault current, as identified by the subscript", unit: "A or kA" },
+      { symbol: "K", meaning: "Applicable current or design factor" }
+    ],
+    conclusion: "These equations shortlist a rating. Exact motor-starting tolerance, clearing time, selectivity, peak let-through current, and I²t require the selected manufacturer's curves and coordination tables."
+  },
+  "power-factor-correction-calculator": {
+    title: "Power factor correction equation",
+    intro: "The required capacitor reactive power is the difference between reactive power at the existing and target power factors.",
+    equations: [
+      {
+        label: "Required compensation",
+        expression: "Qc = P × [tan(cos⁻¹ PF1) - tan(cos⁻¹ PF2)]",
+        mathml: `<math display="block" aria-label="Q c equals P times tangent phi one minus tangent phi two"><msub><mi>Q</mi><mi>c</mi></msub><mo>=</mo><mi>P</mi><mo>[</mo><mi>tan</mi><msub><mi>φ</mi><mn>1</mn></msub><mo>−</mo><mi>tan</mi><msub><mi>φ</mi><mn>2</mn></msub><mo>]</mo></math>`
+      },
+      { label: "Power-factor angles", expression: "φ1 = cos⁻¹(PF1),  φ2 = cos⁻¹(PF2)" },
+      { label: "Three-phase line current", expression: "I = P / (√3 × V × PF)" }
+    ],
+    symbols: [
+      { symbol: "Qc", meaning: "Capacitive reactive power required", unit: "kvar" },
+      { symbol: "P", meaning: "Active power of the load", unit: "kW" },
+      { symbol: "PF1", meaning: "Existing power factor" },
+      { symbol: "PF2", meaning: "Target power factor" },
+      { symbol: "φ", meaning: "Phase angle corresponding to the power factor" },
+      { symbol: "I", meaning: "AC line current", unit: "A" }
+    ],
+    conclusion: "The calculated kvar is the mathematical requirement at one operating point. A real bank needs practical steps, switching control, harmonic assessment, voltage margin, discharge, and thermal design."
+  },
+  "motor-starter-selection-calculator": {
+    title: "Motor starter sizing equations",
+    intro: "Motor power provides an estimated full-load current. Starter selection then uses the motor nameplate current, starting duty, utilization category, and overload curve.",
+    equations: [
+      {
+        label: "Three-phase motor current",
+        expression: "IFL = Pout / (√3 × VLL × PF × η)",
+        mathml: `<math display="block" aria-label="I F L equals P out over square root three V L L power factor eta"><msub><mi>I</mi><mi>FL</mi></msub><mo>=</mo><mfrac><msub><mi>P</mi><mi>out</mi></msub><mrow><msqrt><mn>3</mn></msqrt><msub><mi>V</mi><mi>LL</mi></msub><mi>PF</mi><mi>η</mi></mrow></mfrac></math>`
+      },
+      { label: "Starting-current estimate", expression: "Istart = IFL × Kstart" },
+      { label: "Contactor screening current", expression: "Ie ≥ IFL × Kduty" }
+    ],
+    symbols: [
+      { symbol: "IFL", meaning: "Motor full-load current", unit: "A" },
+      { symbol: "Pout", meaning: "Motor shaft output power", unit: "W" },
+      { symbol: "VLL", meaning: "Three-phase line-to-line voltage", unit: "V" },
+      { symbol: "PF", meaning: "Motor power factor" },
+      { symbol: "η", meaning: "Motor efficiency as a decimal" },
+      { symbol: "Kstart", meaning: "Starting-current multiple for the selected starting method" },
+      { symbol: "Ie", meaning: "Required contactor utilization-category current rating", unit: "A" }
+    ],
+    conclusion: "Use nameplate current and the manufacturer's tested Type 1 or Type 2 coordination tables for final contactor, overload relay, MPCB, breaker, or fuse selection."
+  },
+  "three-phase-voltage-unbalance-calculator": {
+    title: "Three-phase voltage unbalance equation",
+    intro: "The calculator averages three like-for-like voltage readings and expresses the largest deviation from that average as a percentage.",
+    equations: [
+      { label: "Average voltage", expression: "Vavg = (V1 + V2 + V3) / 3" },
+      { label: "FCP18-style voltage asymmetry", expression: "Va% = (Vmax - Vmin) / Vavg × 100" },
+      { label: "Maximum-deviation unbalance", expression: "Vu% = max(|Vn - Vavg|) / Vavg × 100" },
+      { label: "Monitoring window", expression: "Uhigh = Un(1 + khigh),  Ulow = Un(1 - klow)" }
+    ],
+    symbols: [
+      { symbol: "V1, V2, V3", meaning: "Three line-to-line or three line-to-neutral readings", unit: "V" },
+      { symbol: "Vavg", meaning: "Arithmetic average of the three readings", unit: "V" },
+      { symbol: "Va%", meaning: "Voltage spread divided by average, used for the FCP18-style asymmetry result", unit: "%" },
+      { symbol: "Vu%", meaning: "Maximum-deviation voltage unbalance shown as a secondary metric", unit: "%" },
+      { symbol: "Un", meaning: "Nominal monitored voltage", unit: "V" },
+      { symbol: "khigh, klow", meaning: "Overvoltage and undervoltage settings as decimals" }
+    ],
+    conclusion: "Use the same measurement basis for all three readings. Equipment limits, relay delays, wiring system, and manufacturer instructions determine the final protection setting."
+  },
+  "pv-combiner-box-sizing-calculator": {
+    title: "PV combiner sizing equations",
+    intro: "PV combiner voltage is governed by the coldest expected string open-circuit voltage, while string and output protection are governed by short-circuit current, parallel strings, and the adopted current factor.",
+    equations: [
+      { label: "Cold string voltage", expression: "Voc,cold = Voc,module × Ns × [1 + |βVoc| × (25 - Tmin)]" },
+      { label: "String design current", expression: "Id,string = Isc × Kpv" },
+      { label: "Combined output current", expression: "Id,out = Isc × Kpv × Np" },
+      { label: "Other-string contribution", expression: "Ireverse ≈ (Np - 1) × Isc" }
+    ],
+    symbols: [
+      { symbol: "Voc,cold", meaning: "Maximum corrected open-circuit voltage of one series string", unit: "V DC" },
+      { symbol: "Voc,module", meaning: "Module open-circuit voltage at STC", unit: "V" },
+      { symbol: "Ns", meaning: "Number of modules connected in series" },
+      { symbol: "Np", meaning: "Number of parallel strings" },
+      { symbol: "βVoc", meaning: "Magnitude of module Voc temperature coefficient", unit: "per °C" },
+      { symbol: "Tmin", meaning: "Minimum design temperature", unit: "°C" },
+      { symbol: "Isc", meaning: "Module short-circuit current", unit: "A" }
+    ],
+    conclusion: "Verify the result against the module and inverter instructions, adopted PV standard, DC component voltage ratings, conductor ampacity, enclosure temperature, and actual fault-current paths."
+  },
+  "advanced-spd-selection-calculator": {
+    title: "Advanced SPD selection method",
+    intro: "Advanced SPD selection starts with installation duty and connection mode, then checks continuous operating voltage, protection level, discharge ratings, prospective fault current, and backup protection.",
+    equations: [
+      { label: "Continuous-voltage screening", expression: "Uc ≥ Uworking × Km" },
+      { label: "Effective protection check", expression: "Ueffective = Up + ΔUleads < Uw,equipment" },
+      { label: "Short-circuit coordination", expression: "SPD Isccr/SCCR with specified backup device ≥ prospective fault current" }
+    ],
+    symbols: [
+      { symbol: "Uc", meaning: "Maximum continuous operating voltage for an AC SPD", unit: "V" },
+      { symbol: "Ucpv", meaning: "Maximum continuous operating voltage for a PV SPD", unit: "V DC" },
+      { symbol: "Uworking", meaning: "Maximum normal voltage across the selected protection mode", unit: "V" },
+      { symbol: "Km", meaning: "Screening margin for voltage variation, earthing, and operating conditions" },
+      { symbol: "Up", meaning: "SPD voltage protection level from the datasheet", unit: "kV" },
+      { symbol: "ΔUleads", meaning: "Additional voltage created by surge current through connecting leads", unit: "kV" },
+      { symbol: "Uw,equipment", meaning: "Equipment impulse withstand voltage", unit: "kV" }
+    ],
+    conclusion: "The selected SPD must be a tested product configuration for the actual earthing system and backup protective device. The calculator intentionally does not invent exact In, Imax, Iimp, or fuse values without product-family data."
   }
 };

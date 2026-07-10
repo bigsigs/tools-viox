@@ -3,6 +3,7 @@ import type { CalculationResult } from "./types";
 type Values = Record<string, string | number>;
 
 const breakerSizes = [1, 2, 3, 4, 6, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3200, 4000];
+const contactorSizes = [6, 9, 12, 18, 25, 32, 40, 50, 65, 80, 95, 115, 150, 185, 225, 265, 330, 400, 500, 630, 800];
 const conductorTable = [
   { mm2: 1.5, amps: 15 },
   { mm2: 2.5, amps: 21 },
@@ -142,9 +143,308 @@ export function calculateTool(slug: string, values: Values): CalculationResult {
       return calculateCableGland(values);
     case "busbar-current-rating-calculator":
       return calculateBusbar(values);
+    case "fuse-sizing-calculator":
+      return calculateFuseSizing(values);
+    case "power-factor-correction-calculator":
+      return calculatePowerFactorCorrection(values);
+    case "motor-starter-selection-calculator":
+      return calculateMotorStarter(values);
+    case "three-phase-voltage-unbalance-calculator":
+      return calculateVoltageUnbalance(values);
+    case "pv-combiner-box-sizing-calculator":
+      return calculatePvCombiner(values);
+    case "advanced-spd-selection-calculator":
+      return calculateAdvancedSpd(values);
     default:
       throw new Error("Unknown calculator");
   }
+}
+
+const fuseSizes = [1, 2, 4, 6, 8, 10, 12, 16, 20, 25, 32, 35, 40, 50, 63, 80, 100, 125, 160, 200, 224, 250, 315, 355, 400, 500, 630, 800, 1000, 1250];
+
+function calculateFuseSizing(values: Values): CalculationResult {
+  const application = str(values.application);
+  const voltage = positiveNumber(values.systemVoltage, "System voltage");
+  const faultCurrent = positiveNumber(values.faultCurrent, "Prospective fault current");
+
+  if (application === "general") {
+    const load = positiveNumber(values.loadCurrent, "Design load current");
+    const factor = positiveNumber(values.continuousFactor, "Design factor") / 100;
+    const cableAmpacity = positiveNumber(values.cableAmpacity, "Corrected cable ampacity");
+    const designCurrent = load * factor;
+    const rating = nextSize(designCurrent, fuseSizes);
+    const passesCable = rating <= cableAmpacity;
+    return {
+      primary: passesCable ? `${rating} A gG` : "No passing gG size",
+      severity: passesCable ? (rating > cableAmpacity * 0.9 ? "caution" : "ok") : "warning",
+      summary: passesCable
+        ? `${rating} A is the first listed gG rating at or above the ${fmt(designCurrent)} A corrected design current.`
+        : `The first standard rating above ${fmt(designCurrent)} A exceeds the ${fmt(cableAmpacity)} A corrected cable ampacity.`,
+      metrics: [
+        { label: "Corrected design current", value: `${fmt(designCurrent)} A` },
+        { label: "Cable ampacity", value: `${fmt(cableAmpacity)} A` },
+        { label: "Minimum breaking capacity", value: `At least ${fmt(faultCurrent)} kA at ${fmt(voltage)} V` },
+        { label: "Utilization category", value: "gG full-range protection" }
+      ],
+      recommendations: [
+        passesCable ? "Verify Ib <= In <= Iz using the adopted wiring rules and the actual fuse time-current curve." : "Increase corrected cable ampacity, reduce the design load, or revise the protection arrangement.",
+        "Confirm voltage rating, breaking capacity, holder compatibility, ambient derating, and power dissipation."
+      ]
+    };
+  }
+
+  if (application === "motor") {
+    const motorCurrent = positiveNumber(values.motorCurrent, "Motor nameplate current");
+    const fuseFactor = positiveNumber(values.motorFuseFactor ?? 160, "aM fuse current factor") / 100;
+    const startMultiple = positiveNumber(values.startMultiple, "Starting-current multiple");
+    const startTime = positiveNumber(values.startTime, "Starting time");
+    const minimum = motorCurrent * fuseFactor;
+    const rating = nextSize(minimum, fuseSizes);
+    return {
+      primary: `${rating} A aM`,
+      severity: startMultiple >= 8 || startTime > 10 ? "caution" : "ok",
+      summary: `${rating} A is a preliminary aM candidate based on the entered ${fmt(fuseFactor * 100)}% current factor; curve verification at ${fmt(motorCurrent * startMultiple)} A for ${fmt(startTime)} s is mandatory.`,
+      metrics: [
+        { label: "Motor full-load current", value: `${fmt(motorCurrent)} A` },
+        { label: "Entered fuse factor", value: `${fmt(fuseFactor * 100)}%` },
+        { label: "Estimated starting current", value: `${fmt(motorCurrent * startMultiple)} A` },
+        { label: "Starting duty", value: `${fmt(startMultiple)} x FLC for ${fmt(startTime)} s` },
+        { label: "Minimum breaking capacity", value: `At least ${fmt(faultCurrent)} kA at ${fmt(voltage)} V` }
+      ],
+      recommendations: [
+        "Plot the starting point on the exact aM pre-arcing/time-current curve; upsize only within the manufacturer's coordinated motor-starter table.",
+        "Provide a correctly adjusted overload relay or motor protection device because an aM fuse does not provide full-range overload protection."
+      ]
+    };
+  }
+
+  const isc = positiveNumber(values.moduleIsc, "Module short-circuit current");
+  const factor = positiveNumber(values.pvFactor, "PV current factor") / 100;
+  const strings = positiveInteger(values.parallelStrings, "Parallel strings");
+  const maxSeries = positiveNumber(values.maxSeriesFuse, "Module maximum series fuse");
+  const minimum = isc * factor;
+  const rating = nextSize(minimum, fuseSizes);
+  const reverseCurrent = Math.max(0, strings - 1) * isc;
+  const passesModule = rating <= maxSeries;
+  return {
+    primary: passesModule ? `${rating} A gPV` : "No passing gPV size",
+    severity: !passesModule ? "warning" : reverseCurrent > maxSeries ? "caution" : "ok",
+    summary: passesModule
+      ? `${rating} A is the first listed gPV rating at or above ${fmt(minimum)} A and does not exceed the module's ${fmt(maxSeries)} A maximum series fuse rating.`
+      : `The required current basis rounds above the module's ${fmt(maxSeries)} A maximum series fuse rating.`,
+    metrics: [
+      { label: "PV design current", value: `${fmt(minimum)} A` },
+      { label: "Other-string contribution", value: `${fmt(reverseCurrent)} A` },
+      { label: "Module series-fuse limit", value: `${fmt(maxSeries)} A` },
+      { label: "Minimum breaking capacity", value: `At least ${fmt(faultCurrent)} kA DC at ${fmt(voltage)} V DC` }
+    ],
+    recommendations: [
+      passesModule ? "Verify the selected gPV fuse against module instructions, conductor ampacity, local PV rules, and the fuse-holder thermal rating." : "Review the module, string architecture, conductor, and adopted PV sizing factors; do not exceed the module maximum series fuse rating.",
+      strings > 2 ? "Multiple parallel strings can feed a faulted string; document whether string overcurrent protection is required by the adopted standard and inverter design." : "Confirm whether the inverter or array design still requires string fusing."
+    ]
+  };
+}
+
+function calculatePowerFactorCorrection(values: Values): CalculationResult {
+  const phase = str(values.phase);
+  const power = positiveNumber(values.power, "Active power");
+  const voltage = positiveNumber(values.voltage, "System voltage");
+  const initialPf = positiveNumber(values.initialPf, "Existing power factor");
+  const targetPf = positiveNumber(values.targetPf, "Target power factor");
+  if (initialPf > 1 || targetPf > 1) throw new Error("Power factor cannot exceed 1.00.");
+  if (targetPf <= initialPf) throw new Error("Target power factor must be higher than the existing power factor.");
+  const tan1 = Math.tan(Math.acos(initialPf));
+  const tan2 = Math.tan(Math.acos(targetPf));
+  const kvar = power * (tan1 - tan2);
+  const initialKva = power / initialPf;
+  const targetKva = power / targetPf;
+  const divisor = phase === "three" ? Math.sqrt(3) * voltage : voltage;
+  const initialCurrent = initialKva * 1000 / divisor;
+  const targetCurrent = targetKva * 1000 / divisor;
+  const harmonics = str(values.harmonics);
+  return {
+    primary: fmt(kvar),
+    unit: "kvar",
+    severity: harmonics === "high" ? "warning" : harmonics === "moderate" ? "caution" : "ok",
+    summary: `${fmt(kvar)} kvar of capacitive compensation raises power factor from ${fmt(initialPf)} to ${fmt(targetPf)} at a constant ${fmt(power)} kW load.`,
+    metrics: [
+      { label: "Apparent power before", value: `${fmt(initialKva)} kVA` },
+      { label: "Apparent power after", value: `${fmt(targetKva)} kVA` },
+      { label: "Line current before", value: `${fmt(initialCurrent)} A` },
+      { label: "Line current after", value: `${fmt(targetCurrent)} A` },
+      { label: "Current reduction", value: `${fmt((1 - targetCurrent / initialCurrent) * 100)}%` }
+    ],
+    recommendations: [
+      `Use ${fmt(kvar)} kvar as the mathematical requirement, then select practical automatic steps around the real load profile rather than blindly rounding to one fixed bank.`,
+      harmonics === "low" ? "Confirm capacitor voltage, switching duty, discharge resistors, ventilation, and utility target." : "Measure harmonic distortion and check detuned reactor or filtered-bank requirements before selecting capacitors."
+    ]
+  };
+}
+
+function calculateMotorStarter(values: Values): CalculationResult {
+  const mode = str(values.inputMode);
+  const voltage = positiveNumber(values.voltage, "Line voltage");
+  const motorCurrent = mode === "nameplate"
+    ? positiveNumber(values.nameplateCurrent, "Nameplate current")
+    : currentFromKw(positiveNumber(values.power, "Motor power"), voltage, positiveNumber(values.pf, "Power factor"), "three", positiveNumber(values.efficiency, "Efficiency") / 100);
+  const duty = str(values.duty);
+  const method = str(values.startMethod);
+  const startTime = positiveNumber(values.startTime, "Acceleration time");
+  const tripClass = Number(str(values.tripClass));
+  const startMultiples: Record<string, number> = { dol: 6, "star-delta": 2.2, soft: 3, vfd: 1.5 };
+  const startMultiple = startMultiples[method] ?? 6;
+  const startCurrent = motorCurrent * startMultiple;
+  const contactorMinimum = motorCurrent * (duty === "ac4" ? 1.5 : 1.15);
+  const contactorRating = nextSize(contactorMinimum, contactorSizes);
+  const protection = str(values.protection);
+  const classConcern = (tripClass === 10 && startTime > 10) || (tripClass === 20 && startTime > 20) || (tripClass === 30 && startTime > 30);
+  return {
+    primary: `${contactorRating} A ${duty.toUpperCase()}`,
+    severity: duty === "ac4" || classConcern ? "caution" : "ok",
+    summary: `Use a contactor with at least ${fmt(contactorMinimum)} A ${duty.toUpperCase()} motor-duty rating; ${contactorRating} A is the next listed current reference, not a model substitution table.`,
+    metrics: [
+      { label: "Motor full-load current", value: `${fmt(motorCurrent)} A${mode === "power" ? " calculated" : " nameplate"}` },
+      { label: "Estimated starting current", value: `${fmt(startCurrent)} A (${fmt(startMultiple)} x FLC)` },
+      { label: "Overload range requirement", value: `Selected relay range must include ${fmt(motorCurrent)} A` },
+      { label: "Overload trip class", value: `Class ${tripClass}` },
+      { label: "Protection arrangement", value: protection === "fuse" ? "aM fuse + overload relay" : protection === "breaker" ? "MCB/MCCB + overload relay" : "MPCB / coordinated starter" }
+    ],
+    recommendations: [
+      mode === "power" ? "Replace the calculated current with the actual motor nameplate current before ordering or setting protection." : "Set the overload relay according to motor and relay instructions; the range must contain the required setting.",
+      classConcern ? `The ${fmt(startTime)} s acceleration time may conflict with the selected Class ${tripClass}; verify the overload curve and motor thermal limit.` : "Verify the starting point, overload curve, short-circuit device, cable, and contactor in a tested manufacturer coordination table.",
+      duty === "ac4" ? "AC-4 duty is severe; use the manufacturer's AC-4 kW/current table and switching-frequency limits." : "Confirm coil voltage, poles, auxiliary contacts, electrical endurance, and enclosure temperature."
+    ]
+  };
+}
+
+function calculateVoltageUnbalance(values: Values): CalculationResult {
+  const readings = [positiveNumber(values.v1, "Voltage 1"), positiveNumber(values.v2, "Voltage 2"), positiveNumber(values.v3, "Voltage 3")];
+  const average = readings.reduce((sum, value) => sum + value, 0) / 3;
+  const maxDeviation = Math.max(...readings.map((value) => Math.abs(value - average)));
+  const maxDeviationUnbalance = maxDeviation / average * 100;
+  const asymmetry = (Math.max(...readings) - Math.min(...readings)) / average * 100;
+  const nominal = positiveNumber(values.nominal, "Nominal voltage");
+  const high = nominal * (1 + positiveNumber(values.overSetting, "Overvoltage setting") / 100);
+  const low = nominal * (1 - positiveNumber(values.underSetting, "Undervoltage setting") / 100);
+  const asymThreshold = positiveNumber(values.asymSetting, "Asymmetry threshold");
+  const monitoring = str(values.monitoring);
+  const modelMap: Record<string, string> = { phase: "FCP18-01", voltage: "FCP18-02", "full-delay": "FCP18-03", "full-asym": "FCP18-04", asym: "FCP18-05", fixed: "FCP18-06" };
+  const outsideWindow = readings.some((value) => value > high || value < low);
+  const overAsym = asymmetry > asymThreshold;
+  return {
+    primary: fmt(asymmetry),
+    unit: "% asymmetry",
+    severity: outsideWindow || overAsym ? "warning" : asymmetry > asymThreshold * 0.75 ? "caution" : "ok",
+    summary: `${modelMap[monitoring]} is the starting FCP18 function for the selected monitoring requirement. FCP18-style voltage asymmetry is ${fmt(asymmetry)}%.`,
+    metrics: [
+      { label: "Average voltage", value: `${fmt(average)} V` },
+      { label: "Voltage spread", value: `${fmt(Math.max(...readings) - Math.min(...readings))} V` },
+      { label: "Maximum-deviation unbalance", value: `${fmt(maxDeviationUnbalance)}%` },
+      { label: "Voltage window", value: `${fmt(low)}-${fmt(high)} V` },
+      { label: "Asymmetry threshold", value: `${fmt(asymThreshold)}%` },
+      { label: "Recommended function", value: modelMap[monitoring] }
+    ],
+    recommendations: [
+      outsideWindow ? "At least one reading is outside the selected voltage window; investigate supply, transformer taps, loading, and connections." : "All three readings are inside the selected voltage window.",
+      overAsym ? "Measured unbalance exceeds the selected threshold. Do not repeatedly restart a motor until the supply and connections are checked." : "Compare the result with the connected equipment manufacturer's voltage-unbalance limit.",
+      "Match the ordered relay to three-wire or four-wire measurement, nominal voltage, required delay, output-contact use, and the latest FCP18 datasheet."
+    ]
+  };
+}
+
+function calculatePvCombiner(values: Values): CalculationResult {
+  const moduleVoc = positiveNumber(values.moduleVoc, "Module open-circuit voltage");
+  const coefficient = finiteNumber(values.vocTempCoeff, "Voc temperature coefficient");
+  if (coefficient > 0) throw new Error("Enter the module Voc temperature coefficient as a negative value.");
+  const minimumTemp = finiteNumber(values.minimumTemp, "Minimum design temperature");
+  const series = positiveInteger(values.seriesModules, "Modules in series");
+  const isc = positiveNumber(values.moduleIsc, "Module short-circuit current");
+  const strings = positiveInteger(values.parallelStrings, "Parallel strings");
+  const currentFactor = positiveNumber(values.currentFactor, "PV current factor") / 100;
+  const maxSeriesFuse = positiveNumber(values.maxSeriesFuse, "Module maximum series fuse");
+  const outputCableAmpacity = positiveNumber(values.outputCableAmpacity, "Output cable ampacity");
+  const inverterMax = positiveNumber(values.inverterMaxVoltage, "Inverter maximum input voltage");
+  const temperatureRise = Math.max(0, 25 - minimumTemp);
+  const coldFactor = 1 + Math.abs(coefficient) / 100 * temperatureRise;
+  const stcStringVoc = moduleVoc * series;
+  const coldVoc = stcStringVoc * coldFactor;
+  const stringDesignCurrent = isc * currentFactor;
+  const outputDesignCurrent = stringDesignCurrent * strings;
+  const stringFuse = nextSize(stringDesignCurrent, fuseSizes);
+  const fusePasses = stringFuse <= maxSeriesFuse;
+  const cablePasses = outputDesignCurrent <= outputCableAmpacity;
+  const voltagePasses = coldVoc < inverterMax;
+  const dcVoltageClass = nextSize(coldVoc, [600, 800, 1000, 1200, 1500]);
+  const outputDevice = nextSize(outputDesignCurrent, breakerSizes);
+  const reverseCurrent = Math.max(0, strings - 1) * isc;
+  const lightning = str(values.lightning);
+  const environment = str(values.environment);
+  const severity = !voltagePasses || !fusePasses || !cablePasses || dcVoltageClass < coldVoc ? "warning" : coldVoc > inverterMax * 0.9 ? "caution" : "ok";
+  return {
+    primary: `${fmt(coldVoc)} V DC`,
+    severity,
+    summary: `Cold-corrected string Voc is ${fmt(coldVoc)} V. The preliminary combiner voltage class is ${dcVoltageClass >= coldVoc ? `${dcVoltageClass} V DC` : "above 1500 V DC"}.`,
+    metrics: [
+      { label: "STC string Voc", value: `${fmt(stcStringVoc)} V` },
+      { label: "Cold-voltage factor", value: `${fmt(coldFactor)} at ${fmt(minimumTemp)} °C` },
+      { label: "String design current", value: `${fmt(stringDesignCurrent)} A` },
+      { label: "Preliminary string fuse", value: fusePasses ? `${stringFuse} A gPV` : `No size within ${fmt(maxSeriesFuse)} A limit` },
+      { label: "Combined design current", value: `${fmt(outputDesignCurrent)} A` },
+      { label: "Output device reference", value: `${outputDevice} A DC-rated isolator/breaker basis` },
+      { label: "Other-string contribution", value: `${fmt(reverseCurrent)} A` },
+      { label: "SPD starting family", value: lightning === "high" ? "PV Type 1+2" : "PV Type 2" }
+    ],
+    recommendations: [
+      voltagePasses ? `Cold Voc remains below the ${fmt(inverterMax)} V inverter input limit; retain manufacturer voltage margin and verify every DC component.` : `Cold Voc exceeds or reaches the ${fmt(inverterMax)} V inverter limit. Reduce modules per string or redesign the array.`,
+      fusePasses ? "Confirm the gPV curve, DC breaking capacity, holder thermal rating, and module instructions." : "The calculated string-fuse basis exceeds the module maximum series fuse rating; revise the design factors or module/string arrangement.",
+      cablePasses ? "The entered output cable ampacity exceeds the combined current basis; verify installation derating and voltage drop." : `The ${fmt(outputCableAmpacity)} A corrected output cable ampacity is below the ${fmt(outputDesignCurrent)} A design current.`,
+      environment === "coastal" ? "Specify corrosion-resistant enclosure material, glands, hardware, UV resistance, and a documented ingress rating for the coastal environment." : environment === "outdoor" ? "Verify outdoor ingress protection, UV resistance, condensation control, gland sealing, and enclosure temperature rise." : "Verify enclosure temperature rise, service access, labeling, and internal clearances."
+    ]
+  };
+}
+
+function calculateAdvancedSpd(values: Values): CalculationResult {
+  const system = str(values.system);
+  const workingVoltage = positiveNumber(values.nominalVoltage, "Working voltage");
+  const earthing = str(values.earthing);
+  const location = str(values.location);
+  const lps = str(values.externalLps);
+  const supply = str(values.supply);
+  const faultCurrent = positiveNumber(values.faultCurrent, "Prospective short-circuit current");
+  const withstand = positiveNumber(values.equipmentWithstand, "Equipment impulse withstand");
+  const exposed = lps === "yes" || supply === "overhead" || (system === "pv" && supply === "long");
+  let type = exposed && (location === "origin" || location === "main") ? "Type 1+2" : "Type 2";
+  if (location === "equipment") type = exposed ? "Type 1+2 upstream + Type 3 local" : "Type 2 upstream + Type 3 local";
+  if (system === "pv") type = `PV ${type}`;
+  const margin = system === "pv" ? 1 : earthing === "it" ? 1.73 : 1.15;
+  const requiredUc = workingVoltage * margin;
+  const ucStandards = system === "pv" ? [150, 300, 500, 600, 800, 1000, 1200, 1500] : [150, 175, 275, 320, 350, 385, 440, 510, 600, 750, 1000];
+  const uc = nextSize(requiredUc, ucStandards);
+  const arrangement = system === "pv"
+    ? "PV/DC polarity and earthing-specific arrangement"
+    : system === "ac-single"
+      ? earthing === "tt" ? "1+1 (L-N plus N-PE) starting arrangement" : "1P+N / 2-pole arrangement"
+      : earthing === "tt" ? "3+1 (L-N plus N-PE) starting arrangement" : earthing === "it" ? "IT-specific 3/4-pole arrangement" : "3P+N / 4-pole arrangement";
+  const dischargeDuty = exposed ? "Lightning-current duty: verify Iimp and Type 1 backup coordination" : supply === "long" ? "Elevated induced-surge duty: verify In and Imax" : "Distribution duty: verify In and Imax";
+  return {
+    primary: type,
+    severity: earthing === "it" || lps === "unknown" || system === "pv" ? "caution" : "ok",
+    summary: `${arrangement}. Start with Uc/Ucpv not below ${fmt(requiredUc)} V; ${uc >= requiredUc ? `${uc} V is the next listed reference` : "the requirement exceeds the internal reference list"}.`,
+    metrics: [
+      { label: "Connection arrangement", value: arrangement },
+      { label: "Minimum Uc/Ucpv basis", value: `${fmt(requiredUc)} V` },
+      { label: "Next voltage reference", value: uc >= requiredUc ? `${uc} V` : ">1000/1500 V review required" },
+      { label: "Up coordination check", value: `Up + lead voltage must remain below ${fmt(withstand)} kV equipment withstand` },
+      { label: "Discharge duty", value: dischargeDuty },
+      { label: "Fault-current check", value: `${fmt(faultCurrent)} kA prospective; verify backup SCPD and SPD SCCR/Isccr` }
+    ],
+    recommendations: [
+      "Select the exact Uc/Ucpv from the manufacturer's table for the system voltage, protection mode, earthing arrangement, and temporary-overvoltage conditions; the rounded reference is not a product approval.",
+      exposed ? "Use a Type 1 tested product at the origin where lightning-current duty applies and verify Iimp per mode plus the specified backup fuse or breaker." : "Verify Type 2 In, Imax, Up, thermal disconnection, status indication, and backup protection.",
+      location === "equipment" ? "Coordinate the local Type 3 device with the upstream SPD and the equipment impulse withstand." : "Keep total connecting leads short and direct; include lead inductive voltage when checking effective protection level.",
+      earthing === "tt" ? "For TT, verify the 3+1 or 1+1 N-PE component, follow-current behavior, and RCD coordination." : earthing === "it" ? "IT-system SPD selection is application-specific; verify insulation-monitoring behavior, earth-fault conditions, and manufacturer approval." : "Confirm neutral treatment, pole count, conductor protection, and installation diagram."
+    ]
+  };
 }
 
 function calculateSpd(values: Values): CalculationResult {
@@ -288,8 +588,8 @@ function calculateConduitFill(values: Values): CalculationResult {
 
   const cableA = str(values.cableA);
   const cableB = str(values.cableB);
-  const qtyA = Math.floor(positiveNumber(values.qtyA, "Cable A quantity"));
-  const qtyB = cableB === "none" ? 0 : Math.floor(positiveNumber(values.qtyB, "Cable B quantity"));
+  const qtyA = positiveInteger(values.qtyA, "Cable A quantity");
+  const qtyB = cableB === "none" ? 0 : positiveInteger(values.qtyB, "Cable B quantity");
   const odA = selectedCableOd(cableA, values.customOdA, "Cable A OD");
   const odB = cableB === "none" ? 0 : selectedCableOd(cableB, values.customOdB, "Cable B OD");
   const totalCount = qtyA + qtyB;
@@ -365,7 +665,7 @@ function calculateAwgWireSize(values: Values): CalculationResult {
   const length = positiveNumber(values.length, "One-way length");
   const maxDrop = positiveNumber(values.maxDrop, "Maximum voltage drop");
   const continuousFactor = str(values.continuous) === "yes" ? 1.25 : 1;
-  const conductorCount = Math.floor(positiveNumber(values.currentConductors, "Current-carrying conductors"));
+  const conductorCount = positiveInteger(values.currentConductors, "Current-carrying conductors");
   const bundlingDerate = conductorDerating(conductorCount);
   const requiredAmpacity = current * continuousFactor / bundlingDerate;
 

@@ -25,6 +25,10 @@ export type ToolField = {
   step?: number;
   options?: ToolFieldOption[];
   help?: string;
+  showWhen?: {
+    field: string;
+    values: string[];
+  };
 };
 
 export type ToolLink = {

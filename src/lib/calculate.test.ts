@@ -19,6 +19,90 @@ describe("calculateTool", () => {
     }
   });
 
+  it("sizes a general-purpose gG fuse within cable ampacity", () => {
+    const result = calculateTool("fuse-sizing-calculator", {
+      application: "general", loadCurrent: 32, continuousFactor: 125,
+      cableAmpacity: 50, systemVoltage: 400, faultCurrent: 10
+    });
+    expect(result.primary).toBe("40 A gG");
+    expect(result.metrics.find((item) => item.label === "Corrected design current")?.value).toBe("40.0 A");
+  });
+
+  it("uses an explicit manufacturer-dependent factor for aM fuse screening", () => {
+    const result = calculateTool("fuse-sizing-calculator", {
+      application: "motor", motorCurrent: 14.2, motorFuseFactor: 160,
+      startMultiple: 6, startTime: 3, systemVoltage: 400, faultCurrent: 10
+    });
+    expect(result.primary).toBe("25 A aM");
+    expect(result.metrics.find((item) => item.label === "Entered fuse factor")?.value).toBe("160%");
+  });
+
+  it("rejects fractional conduit cable quantities", () => {
+    expect(() => calculateTool("conduit-fill-calculator", {
+      conduitType: "emt", tradeSize: "1", runType: "normal",
+      cableA: "cat6", qtyA: 2.5, customOdA: 0.25,
+      cableB: "none", qtyB: 1, customOdB: 0.25
+    })).toThrow("whole number");
+  });
+
+  it("rejects fractional current-carrying conductor quantities", () => {
+    expect(() => calculateTool("awg-wire-size-calculator", {
+      circuit: "single", material: "copper", current: 20, voltage: 120,
+      length: 50, maxDrop: 3, continuous: "no", currentConductors: 3.5
+    })).toThrow("whole number");
+  });
+
+  it("calculates capacitor kvar and current reduction", () => {
+    const result = calculateTool("power-factor-correction-calculator", {
+      phase: "three", power: 100, voltage: 400, initialPf: 0.75,
+      targetPf: 0.95, frequency: "50", harmonics: "low"
+    });
+    expect(Number(result.primary)).toBeCloseTo(55.3, 1);
+    expect(result.unit).toBe("kvar");
+  });
+
+  it("selects a motor starter from a 7.5 kW motor estimate", () => {
+    const result = calculateTool("motor-starter-selection-calculator", {
+      inputMode: "power", power: 7.5, voltage: 400, pf: 0.85,
+      efficiency: 90, duty: "ac3", startMethod: "dol", startTime: 3,
+      tripClass: "10", protection: "mpcb"
+    });
+    expect(result.metrics.find((item) => item.label === "Motor full-load current")?.value).toContain("14.2 A");
+    expect(result.primary).toBe("18 A AC3");
+  });
+
+  it("calculates maximum-deviation three-phase voltage unbalance", () => {
+    const result = calculateTool("three-phase-voltage-unbalance-calculator", {
+      v1: 400, v2: 392, v3: 408, nominal: 400,
+      overSetting: 10, underSetting: 10, asymSetting: 8,
+      monitoring: "full-delay", wiring: "three-wire"
+    });
+    expect(result.primary).toBe("4.00");
+    expect(result.summary).toContain("FCP18-03");
+  });
+
+  it("corrects PV string Voc for cold temperature", () => {
+    const result = calculateTool("pv-combiner-box-sizing-calculator", {
+      moduleVoc: 49.5, vocTempCoeff: -0.28, minimumTemp: -10,
+      seriesModules: 18, moduleIsc: 13.7, parallelStrings: 6,
+      currentFactor: 125, maxSeriesFuse: 25, outputCableAmpacity: 125,
+      inverterMaxVoltage: 1000, lightning: "normal", environment: "outdoor"
+    });
+    expect(Number(result.primary.split(" ")[0])).toBeCloseTo(978, 0);
+    expect(result.metrics.find((item) => item.label === "Preliminary string fuse")?.value).toBe("20 A gPV");
+  });
+
+  it("selects an advanced Type 1+2 SPD for an exposed origin", () => {
+    const result = calculateTool("advanced-spd-selection-calculator", {
+      system: "ac-three", nominalVoltage: 230, earthing: "tt",
+      location: "origin", externalLps: "yes", supply: "overhead",
+      faultCurrent: 15, equipmentWithstand: "2.5"
+    });
+    expect(result.primary).toBe("Type 1+2");
+    expect(result.metrics.find((item) => item.label === "Connection arrangement")?.value).toContain("3+1");
+    expect(result.metrics.find((item) => item.label === "Next voltage reference")?.value).toBe("275 V");
+  });
+
   it("selects Type 1+2 SPD for exposed incoming installations", () => {
     const result = calculateTool("spd-calculator", {
       building: "yes",

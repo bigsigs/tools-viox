@@ -571,6 +571,289 @@ export const tools: ToolDefinition[] = [
       { label: "Busbar insulator guide", href: "https://viox.com/what-is-a-busbar-insulator/" }
     ],
     keywords: ["busbar current rating calculator", "copper busbar ampacity", "busbar size calculator"]
+  },
+  {
+    slug: "fuse-sizing-calculator",
+    title: "Fuse Sizing & Selection Calculator",
+    shortTitle: "Fuse Sizing",
+    category: "circuit-protection",
+    description: "Size a preliminary gG, aM, or gPV fuse and check load current, cable ampacity, breaking capacity, motor starting duty, or PV module limits.",
+    intent: "First-pass IEC fuse selection before checking the exact fuse curve, holder, temperature derating, and manufacturer coordination data.",
+    fields: [
+      { id: "application", label: "Application", type: "select", defaultValue: "general", options: [
+        { value: "general", label: "Cable / general load (gG)" },
+        { value: "motor", label: "Motor short-circuit protection (aM)" },
+        { value: "pv", label: "Solar PV string (gPV)" }
+      ] },
+      { id: "loadCurrent", label: "Design load current", type: "number", defaultValue: 32, unit: "A", min: 0, showWhen: { field: "application", values: ["general"] } },
+      { id: "continuousFactor", label: "Design factor", type: "number", defaultValue: 125, unit: "%", min: 100, max: 200, showWhen: { field: "application", values: ["general"] }, help: "Use the factor required by the applicable installation rules." },
+      { id: "cableAmpacity", label: "Corrected cable ampacity", type: "number", defaultValue: 50, unit: "A", min: 0, showWhen: { field: "application", values: ["general"] } },
+      { id: "motorCurrent", label: "Motor nameplate current", type: "number", defaultValue: 14.2, unit: "A", min: 0, showWhen: { field: "application", values: ["motor"] } },
+      { id: "motorFuseFactor", label: "aM fuse current factor", type: "number", defaultValue: 160, unit: "%", min: 100, max: 300, showWhen: { field: "application", values: ["motor"] }, help: "Starting reference only. Replace it with the factor or coordinated rating required by the selected fuse manufacturer's motor table." },
+      { id: "startMultiple", label: "Starting current", type: "number", defaultValue: 6, unit: "× FLC", min: 1, max: 20, step: 0.1, showWhen: { field: "application", values: ["motor"] } },
+      { id: "startTime", label: "Starting time", type: "number", defaultValue: 3, unit: "s", min: 0.1, step: 0.1, showWhen: { field: "application", values: ["motor"] } },
+      { id: "moduleIsc", label: "Module short-circuit current", type: "number", defaultValue: 13.7, unit: "A", min: 0, showWhen: { field: "application", values: ["pv"] } },
+      { id: "pvFactor", label: "PV current factor", type: "number", defaultValue: 125, unit: "%", min: 100, max: 200, showWhen: { field: "application", values: ["pv"] }, help: "Confirm the required factor with the adopted code and module data." },
+      { id: "parallelStrings", label: "Parallel strings", type: "number", defaultValue: 4, unit: "strings", min: 1, step: 1, showWhen: { field: "application", values: ["pv"] } },
+      { id: "maxSeriesFuse", label: "Module max series fuse", type: "number", defaultValue: 25, unit: "A", min: 0, showWhen: { field: "application", values: ["pv"] } },
+      { id: "systemVoltage", label: "System voltage", type: "number", defaultValue: 400, unit: "V", min: 0 },
+      { id: "faultCurrent", label: "Prospective fault current", type: "number", defaultValue: 10, unit: "kA", min: 0 }
+    ],
+    formula: "The selected fuse rating must carry the corrected design current, remain within the protected conductor or module limit, and have breaking capacity above the prospective fault current. Motor aM selection also requires a manufacturer time-current curve check.",
+    assumptions: ["IEC-style utilization categories", "Standard current ratings are used for preliminary rounding", "PV reverse-current contribution is approximated from the other parallel strings"],
+    warnings: ["Do not treat the calculated rating as proof that a fuse will ride through a motor start; verify the actual aM curve at the stated current and time.", "The fuse voltage rating, DC capability, breaking capacity, holder, size, power dissipation, ambient temperature, and manufacturer data must all match."],
+    faqs: [
+      { question: "What is the difference between gG, aM, and gPV?", answer: "gG is a full-range general-purpose fuse commonly used for cable and feeder protection. aM provides motor short-circuit protection and requires separate overload protection. gPV is designed for photovoltaic DC string protection." },
+      { question: "Why can the calculator reject a standard fuse size?", answer: "A rounded fuse may exceed the corrected cable ampacity or the PV module maximum series fuse rating. In that case the conductor, load design, or protection arrangement must be reviewed." },
+      { question: "Does the result predict clearing time?", answer: "No. Clearing time and I²t depend on the exact fuse family, current level, voltage, and manufacturer curve." }
+    ],
+    relatedTools: ["short-circuit-current-calculator", "cable-size-calculator", "circuit-breaker-size-calculator"],
+    relatedProducts: [
+      { label: "VIOX fuse selection support", href: "https://viox.com/contact" },
+      { label: "IEC 60269 fuse selection guide", href: "https://viox.com/iec-60269-low-voltage-fuse-selection-guide-gg-am-nh/" }
+    ],
+    keywords: ["fuse sizing calculator", "fuse size calculator", "gG fuse calculator", "aM motor fuse selection", "gPV fuse calculator"]
+  },
+  {
+    slug: "power-factor-correction-calculator",
+    title: "Power Factor Correction Calculator",
+    shortTitle: "Power Factor",
+    category: "power-conversion",
+    description: "Calculate the capacitor-bank kvar needed to improve power factor and compare line current before and after correction.",
+    intent: "Preliminary capacitor-bank sizing for balanced AC loads before harmonic, switching-step, and equipment checks.",
+    fields: [
+      { id: "phase", label: "System", type: "select", defaultValue: "three", options: [
+        { value: "single", label: "Single-phase AC" },
+        { value: "three", label: "Three-phase AC" }
+      ] },
+      { id: "power", label: "Active power", type: "number", defaultValue: 100, unit: "kW", min: 0 },
+      { id: "voltage", label: "System voltage", type: "number", defaultValue: 400, unit: "V", min: 0 },
+      { id: "initialPf", label: "Existing power factor", type: "number", defaultValue: 0.75, min: 0.01, max: 1, step: 0.01 },
+      { id: "targetPf", label: "Target power factor", type: "number", defaultValue: 0.95, min: 0.01, max: 1, step: 0.01 },
+      { id: "frequency", label: "Frequency", type: "select", defaultValue: "50", options: [
+        { value: "50", label: "50 Hz" },
+        { value: "60", label: "60 Hz" }
+      ] },
+      { id: "harmonics", label: "Power-electronic loads", type: "select", defaultValue: "moderate", options: [
+        { value: "low", label: "Low / mainly linear loads" },
+        { value: "moderate", label: "Moderate VFD, UPS, or rectifier load" },
+        { value: "high", label: "High harmonic loading" }
+      ] }
+    ],
+    formula: "Required compensation is Qc = P x (tan(arccos PF1) - tan(arccos PF2)). Line current is calculated from active power, voltage, phase, and power factor.",
+    assumptions: ["Balanced steady-state AC load", "Active power remains constant after correction", "Capacitor steps and harmonic resonance are not modeled"],
+    warnings: ["Do not raise the target above the utility or project requirement; overcorrection can create leading power factor and overvoltage.", "Sites with VFDs, UPS systems, rectifiers, or significant harmonics require harmonic measurement and detuned or filtered capacitor-bank review."],
+    faqs: [
+      { question: "What target power factor should I use?", answer: "A target around 0.95 is a common planning value, but the correct target depends on utility penalties, load variation, harmonics, and project requirements." },
+      { question: "Why does correction reduce current?", answer: "For the same useful kW, improving power factor reduces apparent power and therefore reduces line current, cable loss, and transformer loading." },
+      { question: "Is the calculated kvar a final capacitor-bank specification?", answer: "No. Round to a practical stepped bank only after checking load variation, switching frequency, harmonics, voltage, temperature, and capacitor tolerances." }
+    ],
+    relatedTools: ["kw-kva-amp-calculator", "three-phase-current-calculator", "transformer-sizing-calculator"],
+    relatedProducts: [
+      { label: "VIOX compensation panel support", href: "https://viox.com/contact" },
+      { label: "Low-voltage electrical formulas", href: "https://viox.com/electrical-formulas-low-voltage-panel-design-maintenance/" }
+    ],
+    keywords: ["power factor correction calculator", "capacitor bank sizing calculator", "kvar calculator", "power factor capacitor calculator"]
+  },
+  {
+    slug: "motor-starter-selection-calculator",
+    title: "Motor Starter Selection Calculator",
+    shortTitle: "Motor Starter",
+    category: "motor-control",
+    description: "Estimate motor current, starting current, contactor duty, overload-relay range, and preliminary short-circuit protection for a motor starter.",
+    intent: "Build a preliminary IEC motor-starter specification before checking motor nameplate and coordinated manufacturer tables.",
+    fields: [
+      { id: "inputMode", label: "Motor data", type: "select", defaultValue: "power", options: [
+        { value: "power", label: "Calculate from motor power" },
+        { value: "nameplate", label: "Use nameplate current" }
+      ] },
+      { id: "power", label: "Motor output power", type: "number", defaultValue: 7.5, unit: "kW", min: 0, showWhen: { field: "inputMode", values: ["power"] } },
+      { id: "nameplateCurrent", label: "Nameplate full-load current", type: "number", defaultValue: 14.2, unit: "A", min: 0, showWhen: { field: "inputMode", values: ["nameplate"] } },
+      { id: "voltage", label: "Line voltage", type: "number", defaultValue: 400, unit: "V", min: 0 },
+      { id: "pf", label: "Power factor", type: "number", defaultValue: 0.85, min: 0.1, max: 1, step: 0.01, showWhen: { field: "inputMode", values: ["power"] } },
+      { id: "efficiency", label: "Efficiency", type: "number", defaultValue: 90, unit: "%", min: 1, max: 100, showWhen: { field: "inputMode", values: ["power"] } },
+      { id: "duty", label: "Contactor duty", type: "select", defaultValue: "ac3", options: [
+        { value: "ac3", label: "AC-3 normal start / stop" },
+        { value: "ac4", label: "AC-4 inching / plugging / reversing" }
+      ] },
+      { id: "startMethod", label: "Starting method", type: "select", defaultValue: "dol", options: [
+        { value: "dol", label: "Direct-on-line" },
+        { value: "star-delta", label: "Star-delta" },
+        { value: "soft", label: "Soft starter" },
+        { value: "vfd", label: "Variable-frequency drive" }
+      ] },
+      { id: "startTime", label: "Acceleration time", type: "number", defaultValue: 3, unit: "s", min: 0.1, step: 0.1 },
+      { id: "tripClass", label: "Overload trip class", type: "select", defaultValue: "10", options: [
+        { value: "10", label: "Class 10 / normal starting" },
+        { value: "20", label: "Class 20 / longer acceleration" },
+        { value: "30", label: "Class 30 / heavy starting" }
+      ] },
+      { id: "protection", label: "Short-circuit protection", type: "select", defaultValue: "mpcb", options: [
+        { value: "mpcb", label: "MPCB / motor circuit breaker" },
+        { value: "breaker", label: "MCB or MCCB + overload relay" },
+        { value: "fuse", label: "aM fuse + overload relay" }
+      ] }
+    ],
+    formula: "Three-phase motor current is I = P / (sqrt(3) x V x PF x efficiency). Starter components are then screened against nameplate current, utilization category, starting method, acceleration time, and overload trip class.",
+    assumptions: ["Balanced three-phase squirrel-cage motor", "Calculated current is an estimate when nameplate current is unavailable", "Starting-current multiples are planning references by starting method"],
+    warnings: ["Use the actual motor nameplate current for final overload adjustment and manufacturer motor-coordination tables for contactor and protective-device selection.", "AC-4, reversing, plugging, high cycling, high inertia, VFD output switching, and safety functions require application-specific review."],
+    faqs: [
+      { question: "Why is AC-3 different from AC-4?", answer: "AC-3 covers normal squirrel-cage motor starting and opening after the motor reaches speed. AC-4 includes severe inching, plugging, and reversing duty and usually needs a larger or specially rated contactor." },
+      { question: "Should the overload relay be set to the calculated current?", answer: "Final adjustment should follow the motor nameplate, service factor, ambient conditions, local rules, and relay instructions. The calculator only identifies a suitable adjustable range." },
+      { question: "Does an aM fuse replace the overload relay?", answer: "No. An aM fuse is intended for motor short-circuit protection and must be paired with overload protection." }
+    ],
+    relatedTools: ["motor-current-calculator", "fuse-sizing-calculator", "circuit-breaker-size-calculator"],
+    relatedProducts: [
+      { label: "VIOX motor-control support", href: "https://viox.com/contact" },
+      { label: "Motor starter selection guide", href: "https://viox.com/how-to-select-contactors-overload-relays-circuit-breakers-motor-power/" }
+    ],
+    keywords: ["motor starter selection calculator", "contactor sizing calculator", "overload relay calculator", "motor protection calculator"]
+  },
+  {
+    slug: "three-phase-voltage-unbalance-calculator",
+    title: "Three-Phase Voltage Unbalance Calculator",
+    shortTitle: "Voltage Unbalance",
+    category: "motor-control",
+    description: "Calculate three-phase voltage unbalance, voltage-window thresholds, and select a starting VIOX FCP18 monitoring-relay function.",
+    intent: "Check measured phase-voltage deviation and match the required monitoring functions to the FCP18 family.",
+    fields: [
+      { id: "wiring", label: "Measurement system", type: "select", defaultValue: "three-wire", options: [
+        { value: "three-wire", label: "Three-phase, three-wire (L-L)" },
+        { value: "four-wire", label: "Three-phase, four-wire (L-N)" }
+      ] },
+      { id: "v1", label: "Voltage 1", type: "number", defaultValue: 400, unit: "V", min: 0 },
+      { id: "v2", label: "Voltage 2", type: "number", defaultValue: 392, unit: "V", min: 0 },
+      { id: "v3", label: "Voltage 3", type: "number", defaultValue: 408, unit: "V", min: 0 },
+      { id: "nominal", label: "Nominal voltage", type: "number", defaultValue: 400, unit: "V", min: 0 },
+      { id: "overSetting", label: "Overvoltage setting", type: "number", defaultValue: 10, unit: "%", min: 1, max: 30 },
+      { id: "underSetting", label: "Undervoltage setting", type: "number", defaultValue: 10, unit: "%", min: 1, max: 30 },
+      { id: "asymSetting", label: "Asymmetry threshold", type: "number", defaultValue: 8, unit: "%", min: 1, max: 20 },
+      { id: "monitoring", label: "Required monitoring", type: "select", defaultValue: "full-delay", options: [
+        { value: "phase", label: "Phase loss and phase sequence only" },
+        { value: "voltage", label: "Overvoltage and undervoltage" },
+        { value: "full-delay", label: "Full monitoring + adjustable delay" },
+        { value: "full-asym", label: "Full monitoring + adjustable asymmetry" },
+        { value: "asym", label: "Asymmetry + adjustable delay" },
+        { value: "fixed", label: "Fixed full monitoring for OEM panels" }
+      ] }
+    ],
+    formula: "FCP18-style asymmetry % = (maximum voltage - minimum voltage) / average x 100. The calculator also reports maximum-deviation unbalance separately. Voltage-window thresholds are Uhigh = Un x (1 + setting) and Ulow = Un x (1 - setting).",
+    assumptions: ["The three entered values use the same measurement basis", "The percentage is a maximum-deviation-from-average calculation", "FCP18 selection follows the function comparison described in the VIOX product guide"],
+    warnings: ["Do not mix line-to-line and line-to-neutral readings in one calculation.", "Acceptable voltage unbalance depends on the motor or equipment manufacturer; even modest voltage unbalance can produce much larger current unbalance."],
+    faqs: [
+      { question: "How is voltage asymmetry calculated?", answer: "For the FCP18 selection result, subtract the minimum reading from the maximum reading, divide by the three-reading average, and multiply by 100. The page also shows the maximum-deviation method as a separate metric." },
+      { question: "What is the difference between FCP18-03 and FCP18-04?", answer: "FCP18-03 provides full monitoring with adjustable delay and fixed 8% asymmetry. FCP18-04 provides full monitoring with adjustable 5-15% asymmetry and fixed delay." },
+      { question: "Does the relay replace overload or surge protection?", answer: "No. It supervises sustained supply-voltage conditions. Motor overload protection and transient surge protection are separate functions." }
+    ],
+    relatedTools: ["motor-starter-selection-calculator", "three-phase-current-calculator", "motor-current-calculator"],
+    relatedProducts: [
+      { label: "VIOX FCP18 selection support", href: "https://viox.com/contact" },
+      { label: "FCP18 selection guide", href: "https://viox.com/three-phase-voltage-monitoring-relay-fcp18-selection-guide/" }
+    ],
+    keywords: ["three phase voltage unbalance calculator", "voltage imbalance calculator", "phase monitoring relay selector", "FCP18 selection"]
+  },
+  {
+    slug: "pv-combiner-box-sizing-calculator",
+    title: "PV Combiner Box Sizing Calculator",
+    shortTitle: "PV Combiner Box",
+    category: "panel-design",
+    description: "Size key PV combiner-box ratings from module Voc, Isc, temperature coefficient, series modules, parallel strings, cable ampacity, and lightning exposure.",
+    intent: "Coordinate preliminary gPV fuse, output current, isolator or breaker, DC SPD, voltage class, and enclosure requirements.",
+    fields: [
+      { id: "moduleVoc", label: "Module open-circuit voltage", type: "number", defaultValue: 49.5, unit: "V", min: 0 },
+      { id: "vocTempCoeff", label: "Voc temperature coefficient", type: "number", defaultValue: -0.28, unit: "%/°C", max: 0, step: 0.01 },
+      { id: "minimumTemp", label: "Minimum design temperature", type: "number", defaultValue: -10, unit: "°C", step: 1 },
+      { id: "seriesModules", label: "Modules in series", type: "number", defaultValue: 18, unit: "modules", min: 1, step: 1 },
+      { id: "moduleIsc", label: "Module short-circuit current", type: "number", defaultValue: 13.7, unit: "A", min: 0 },
+      { id: "parallelStrings", label: "Parallel strings", type: "number", defaultValue: 6, unit: "strings", min: 1, step: 1 },
+      { id: "currentFactor", label: "PV current factor", type: "number", defaultValue: 125, unit: "%", min: 100, max: 200 },
+      { id: "maxSeriesFuse", label: "Module max series fuse", type: "number", defaultValue: 25, unit: "A", min: 0 },
+      { id: "outputCableAmpacity", label: "Corrected output cable ampacity", type: "number", defaultValue: 125, unit: "A", min: 0 },
+      { id: "inverterMaxVoltage", label: "Inverter max DC input", type: "number", defaultValue: 1000, unit: "V DC", min: 0 },
+      { id: "lightning", label: "Lightning exposure", type: "select", defaultValue: "normal", options: [
+        { value: "high", label: "External LPS / high exposure" },
+        { value: "normal", label: "Normal exposed PV array" },
+        { value: "low", label: "Lower exposure / coordinated upstream protection" }
+      ] },
+      { id: "environment", label: "Installation environment", type: "select", defaultValue: "outdoor", options: [
+        { value: "indoor", label: "Indoor protected location" },
+        { value: "outdoor", label: "Outdoor exposed location" },
+        { value: "coastal", label: "Coastal / corrosive environment" }
+      ] }
+    ],
+    formula: "Cold string Voc = module Voc x modules in series x [1 + |temperature coefficient| x (25°C - minimum temperature)]. Design current is module Isc x the selected current factor; combined output current also multiplies by parallel-string count.",
+    assumptions: ["Module ratings are entered at STC", "Voc coefficient is entered as a negative percent per degree Celsius", "All parallel strings use matching modules and orientation", "Current and voltage factors must be confirmed against the adopted code and module instructions"],
+    warnings: ["Cold string Voc must remain below the inverter, isolator, breaker, fuse holder, SPD, terminal, and enclosure system voltage ratings.", "This tool does not replace IEC 62548, IEC 60364-7-712, NEC Article 690, project-specific protection studies, or manufacturer instructions."],
+    faqs: [
+      { question: "Why does PV voltage increase in cold weather?", answer: "Module open-circuit voltage normally rises as cell temperature falls. The cold-temperature correction prevents a series string from exceeding the inverter or DC component voltage rating." },
+      { question: "When are string fuses important?", answer: "They become especially important when other parallel strings can feed damaging reverse current into a faulted string. The final need and rating depend on module limits, string count, conductor protection, inverter design, and local rules." },
+      { question: "Can a DC isolator replace a DC breaker?", answer: "Only when overcurrent protection is provided elsewhere and the device is needed solely for rated switching and isolation. An isolator does not automatically provide overcurrent or short-circuit protection." }
+    ],
+    relatedTools: ["fuse-sizing-calculator", "advanced-spd-selection-calculator", "dc-voltage-drop-calculator"],
+    relatedProducts: [
+      { label: "VIOX PV combiner support", href: "https://viox.com/contact" },
+      { label: "PV combiner protection guide", href: "https://viox.com/solar-combiner-box-protection-design-fuses-breakers-spds/" }
+    ],
+    keywords: ["pv combiner box sizing calculator", "solar combiner box calculator", "pv string fuse calculator", "solar string voltage calculator"]
+  },
+  {
+    slug: "advanced-spd-selection-calculator",
+    title: "Advanced SPD Selection Calculator",
+    shortTitle: "Advanced SPD",
+    category: "surge-protection",
+    description: "Select a preliminary SPD type, connection arrangement, Uc or Ucpv range, discharge-duty level, and backup-protection checks.",
+    intent: "Detailed AC or PV SPD screening by voltage, earthing, installation point, external lightning protection, supply exposure, and fault level.",
+    fields: [
+      { id: "system", label: "System", type: "select", defaultValue: "ac-three", options: [
+        { value: "ac-single", label: "Single-phase AC" },
+        { value: "ac-three", label: "Three-phase AC" },
+        { value: "pv", label: "Solar PV DC" }
+      ] },
+      { id: "nominalVoltage", label: "Nominal working voltage", type: "number", defaultValue: 230, unit: "V", min: 0, help: "For AC, enter the voltage across each SPD protection mode, normally L-N. For PV, enter maximum corrected array Voc." },
+      { id: "earthing", label: "Earthing arrangement", type: "select", defaultValue: "tns", options: [
+        { value: "tns", label: "TN-S / TN-C-S" },
+        { value: "tt", label: "TT" },
+        { value: "it", label: "IT" },
+        { value: "dc", label: "PV / DC arrangement" }
+      ] },
+      { id: "location", label: "Installation point", type: "select", defaultValue: "main", options: [
+        { value: "origin", label: "Service entrance / installation origin" },
+        { value: "main", label: "Main distribution board" },
+        { value: "sub", label: "Sub-distribution board" },
+        { value: "equipment", label: "Sensitive equipment panel" }
+      ] },
+      { id: "externalLps", label: "External lightning protection", type: "select", defaultValue: "no", options: [
+        { value: "yes", label: "Present / direct lightning-current risk" },
+        { value: "no", label: "Not present" },
+        { value: "unknown", label: "Unknown" }
+      ] },
+      { id: "supply", label: "Supply or cable exposure", type: "select", defaultValue: "underground", options: [
+        { value: "overhead", label: "Overhead / highly exposed" },
+        { value: "underground", label: "Underground / normal exposure" },
+        { value: "long", label: "Long outdoor feeder or PV cable" }
+      ] },
+      { id: "faultCurrent", label: "Prospective short-circuit current", type: "number", defaultValue: 10, unit: "kA", min: 0 },
+      { id: "equipmentWithstand", label: "Equipment impulse withstand", type: "select", defaultValue: "2.5", options: [
+        { value: "1.5", label: "1.5 kV sensitive electronics" },
+        { value: "2.5", label: "2.5 kV distribution equipment" },
+        { value: "4", label: "4 kV robust equipment" },
+        { value: "6", label: "6 kV installation-origin equipment" }
+      ] }
+    ],
+    formula: "SPD type is selected from lightning exposure and installation position. The minimum continuous operating voltage basis is rounded above the working voltage with operating margin; the final Uc, Ucpv, Up, In, Imax, Iimp, and backup device must come from a compatible manufacturer selection table.",
+    assumptions: ["The entered voltage is across the SPD protection mode, not automatically the system line-to-line label", "AC frequency is 50 or 60 Hz", "The output is a product-family screening result rather than an IEC compliance certificate"],
+    warnings: ["TT, IT, PV, and special neutral arrangements require the exact manufacturer connection diagram and failure-mode coordination.", "Lead length can add substantial residual voltage; keep SPD connections short and follow the manufacturer's routing instructions."],
+    faqs: [
+      { question: "Why should I not select an SPD by kA alone?", answer: "SPD type, Uc or Ucpv, Up, earthing arrangement, installation point, backup protection, short-circuit conditions, and lead length can be more important than a headline maximum-discharge-current value." },
+      { question: "What is the difference between In, Imax, and Iimp?", answer: "In is a nominal discharge-current test reference, Imax is a maximum discharge-current rating for Type 2 context, and Iimp is an impulse-current rating associated with Type 1 lightning-current duty." },
+      { question: "What does 3+1 mean for an SPD?", answer: "It normally describes phase-to-neutral protection modules plus a separate neutral-to-PE spark-gap or protection path, commonly considered for TT arrangements according to the product design." }
+    ],
+    relatedTools: ["spd-calculator", "pv-combiner-box-sizing-calculator", "short-circuit-current-calculator"],
+    relatedProducts: [
+      { label: "VIOX SPD engineering support", href: "https://viox.com/contact" },
+      { label: "How to read an SPD datasheet", href: "https://viox.com/how-to-read-spd-datasheet-uc-up-in-imax-iimp-type-backup-fuse/" }
+    ],
+    keywords: ["advanced spd selection calculator", "surge protection device sizing", "Uc SPD calculator", "Type 1 Type 2 SPD selector"]
   }
 ];
 

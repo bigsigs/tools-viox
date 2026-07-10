@@ -838,7 +838,12 @@ select {
 
 .detail-main,
 .detail-side section {
+  min-width: 0;
   padding: 24px;
+}
+
+.detail-side {
+  min-width: 0;
 }
 
 .detail-main {
