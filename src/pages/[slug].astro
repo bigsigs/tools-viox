@@ -19,7 +19,7 @@ const relatedTools = tool.relatedTools.map((slug) => toolsBySlug[slug]).filter(B
 const equation = equationsBySlug[tool.slug];
 const seoGuide = seoGuidesBySlug[tool.slug];
 const embedUrl = `${site.origin}/embed/${tool.slug}/`;
-const embedCode = `<div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,.1);">
+const embedCode = `<div style="overflow:hidden;background:#fff;">
   <iframe
     src="${embedUrl}"
     width="100%"

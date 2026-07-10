@@ -25,15 +25,12 @@ const embedUrl = `${site.origin}/embed/${tool.slug}/`;
   <body class="embed-body">
     <main class="embed-shell" data-viox-embed data-embed-url={embedUrl}>
       <header class="embed-header">
-        <div>
-          <img class="embed-logo" src={site.logo} alt="VIOX" width="96" height="29" loading="eager" decoding="async" />
-          <h1>{tool.title}</h1>
-        </div>
-        <a href={toolUrl(tool)} target="_blank" rel="noopener">Open full page</a>
+        <h1>{tool.title}</h1>
       </header>
       <CalculatorIsland slug={tool.slug} client:only="react" />
       <footer class="embed-footer">
-        Preliminary engineering reference only. Verify final selection against local codes, applicable standards, manufacturer data, and site conditions.
+        <span>Preliminary engineering reference only. Verify final selection against local codes, applicable standards, manufacturer data, and site conditions.</span>
+        <a class="embed-full-link" href={toolUrl(tool)} target="_blank" rel="noopener">Open full page</a>
       </footer>
     </main>
     <script is:inline>
