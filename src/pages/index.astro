@@ -1,6 +1,7 @@
 ---
 import Layout from "../components/Layout.astro";
 import ToolCard from "../components/ToolCard.astro";
+import ToolDiscovery from "../components/ToolDiscovery";
 import { categories } from "../lib/categories";
 import { tools } from "../lib/tools";
 import { breadcrumbSchema, site } from "../lib/seo";
@@ -21,6 +22,7 @@ const schema = [
   },
   breadcrumbSchema([{ name: "Electrical Tools", url: site.origin }])
 ];
+const searchableTools = tools.map(({ slug, title, shortTitle, description, keywords }) => ({ slug, title, shortTitle, description, keywords }));
 ---
 
 <Layout title="VIOX Electrical Tools | Free Electrical Calculators" description={site.description} canonical={`${site.origin}/`} schema={schema}>
@@ -49,11 +51,9 @@ const schema = [
       </div>
     </section>
 
+    <ToolDiscovery tools={searchableTools} client:load />
+
     <section class="section-shell" id="tools">
-      <div class="section-heading">
-        <span class="eyebrow">Calculator library</span>
-        <p>Each tool includes a browser-based calculator, formula notes, assumptions, warnings, related calculators, and links to relevant VIOX product support.</p>
-      </div>
       <div class="tool-grid">
         {tools.map((tool) => <ToolCard tool={tool} />)}
       </div>

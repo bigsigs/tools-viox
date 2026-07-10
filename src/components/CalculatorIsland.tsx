@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { calculateTool } from "../lib/calculate";
 import { toolsBySlug } from "../lib/tools";
 import type { CalculationResult } from "../lib/types";
@@ -20,6 +20,17 @@ export default function CalculatorIsland({ slug }: Props) {
   }, [tool]);
   const [values, setValues] = useState<Record<string, string | number>>(defaults);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const storageKey = "viox:last-used-calculators";
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) ?? "[]");
+      const current = Array.isArray(saved) ? saved.filter((item): item is string => typeof item === "string") : [];
+      localStorage.setItem(storageKey, JSON.stringify([slug, ...current.filter((item) => item !== slug)].slice(0, 3)));
+    } catch {
+      localStorage.setItem(storageKey, JSON.stringify([slug]));
+    }
+  }, [slug]);
 
   const result = useMemo<CalculationResult | { error: string }>(() => {
     try {

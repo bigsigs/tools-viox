@@ -76,6 +76,7 @@ select {
 
 .site-header,
 .hero-shell,
+.tool-discovery-shell,
 .section-shell,
 .tool-hero,
 .calculator-shell,
@@ -347,6 +348,289 @@ select {
 
 .workflow-list a:hover {
   color: var(--red);
+}
+
+.tool-discovery-shell {
+  margin-top: 10px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 34px 0 0;
+  background: #fff;
+}
+
+.tool-discovery-shell.has-recent {
+  padding-bottom: 24px;
+}
+
+.tool-discovery-top {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.34fr) minmax(0, 1fr);
+  gap: 42px;
+  align-items: center;
+  padding: 0 18px 30px;
+}
+
+.calculator-count {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.calculator-count strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 72px;
+  width: 72px;
+  height: 72px;
+  border: 1px solid rgba(215, 25, 32, 0.24);
+  border-radius: var(--radius);
+  color: var(--red);
+  background: rgba(215, 25, 32, 0.06);
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.calculator-count b {
+  color: var(--ink);
+  font-size: 23px;
+  font-weight: 900;
+  line-height: 1.08;
+}
+
+.tool-search {
+  position: relative;
+  z-index: 12;
+  min-width: 0;
+}
+
+.tool-search form > label {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.tool-search-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 58px;
+  min-height: 60px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow-soft);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.tool-search-control:focus-within {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(215, 25, 32, 0.1), var(--shadow-soft);
+}
+
+.tool-search-control input {
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  padding: 0 18px;
+  color: var(--ink);
+  background: transparent;
+  font-size: 17px;
+}
+
+.tool-search-control input::placeholder {
+  color: #8a949f;
+}
+
+.tool-search-control button {
+  position: relative;
+  border: 0;
+  border-left: 1px solid var(--line);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--soft);
+  cursor: pointer;
+}
+
+.tool-search-control button:hover {
+  background: rgba(215, 25, 32, 0.08);
+}
+
+.tool-search-control button span {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  width: 17px;
+  height: 17px;
+  border: 3px solid var(--red);
+  border-radius: 50%;
+}
+
+.tool-search-control button span::after {
+  content: "";
+  position: absolute;
+  right: -8px;
+  bottom: -5px;
+  width: 9px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--red);
+  transform: rotate(45deg);
+}
+
+.tool-search-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.tool-search-results > button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 13px 16px;
+  text-align: left;
+  background: #fff;
+  cursor: pointer;
+}
+
+.tool-search-results > button:last-child {
+  border-bottom: 0;
+}
+
+.tool-search-results > button:hover,
+.tool-search-results > button:focus-visible {
+  outline: 0;
+  background: var(--soft);
+}
+
+.tool-search-results button span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.tool-search-results strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-search-results small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-search-results i,
+.recent-list i {
+  color: var(--red);
+  font-size: 20px;
+  font-style: normal;
+}
+
+.tool-search-results > p {
+  padding: 18px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.recent-calculators {
+  position: relative;
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
+  margin: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px 18px;
+  background: #fff;
+  box-shadow: var(--shadow-soft);
+}
+
+.recent-calculators::before {
+  content: "";
+  position: absolute;
+  top: -11px;
+  left: 94px;
+  width: 20px;
+  height: 20px;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  background: #fff;
+  transform: rotate(45deg);
+}
+
+.recent-heading {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--ink);
+}
+
+.recent-heading strong {
+  font-size: 16px;
+}
+
+.recent-mark {
+  width: 10px;
+  height: 28px;
+  border-radius: 2px;
+  background: var(--red);
+}
+
+.recent-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.recent-list a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  min-height: 50px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 0 14px;
+  color: var(--ink);
+  background: var(--soft);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.recent-list a:hover {
+  border-color: rgba(215, 25, 32, 0.42);
+  color: var(--red-dark);
+}
+
+.recent-list a span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-list > p {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 14px;
 }
 
 .section-shell {
@@ -1414,6 +1698,15 @@ select {
     align-items: flex-start;
     flex-direction: column;
   }
+
+  .tool-discovery-top {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .recent-calculators {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 760px) {
@@ -1488,5 +1781,44 @@ select {
 
   .result-primary strong {
     font-size: 42px;
+  }
+
+  .tool-discovery-shell {
+    padding-top: 26px;
+  }
+
+  .tool-discovery-top,
+  .recent-calculators {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .recent-calculators {
+    margin-right: 0;
+    margin-left: 0;
+    padding: 20px 16px;
+  }
+
+  .recent-calculators::before {
+    left: 34px;
+  }
+
+  .calculator-count strong {
+    flex-basis: 64px;
+    width: 64px;
+    height: 64px;
+    font-size: 27px;
+  }
+
+  .calculator-count b {
+    font-size: 22px;
+  }
+
+  .tool-search-control {
+    min-height: 56px;
+  }
+
+  .recent-list {
+    grid-template-columns: 1fr;
   }
 }
