@@ -845,5 +845,140 @@ export const equationsBySlug: Record<string, ToolEquation> = {
       { symbol: "Uw,equipment", meaning: "Equipment impulse withstand voltage", unit: "kV" }
     ],
     conclusion: "The selected SPD must be a tested product configuration for the actual earthing system and backup protective device. The calculator intentionally does not invent exact In, Imax, Iimp, or fuse values without product-family data."
+  },
+  "mcb-inrush-compatibility-checker": {
+    title: "MCB inrush compatibility method",
+    intro: "The checker compares peak inrush current with the selected MCB magnetic-trip band and separately checks whether available fault current reaches the conservative upper magnetic threshold.",
+    equations: [
+      { label: "Inrush multiple", expression: "Kinrush = Iinrush / In" },
+      { label: "B curve band", expression: "Imag = 3-5 × In" },
+      { label: "C curve band", expression: "Imag = 5-10 × In" },
+      { label: "D curve band", expression: "Imag = 10-20 × In" }
+    ],
+    symbols: [
+      { symbol: "Kinrush", meaning: "Inrush current as a multiple of breaker rated current" },
+      { symbol: "Iinrush", meaning: "Peak equipment energization current", unit: "A" },
+      { symbol: "In", meaning: "MCB rated current", unit: "A" },
+      { symbol: "Imag", meaning: "Generic instantaneous magnetic operating band", unit: "A" }
+    ],
+    conclusion: "Below the lower threshold magnetic tripping is not expected, inside the band operation is uncertain, and above the upper threshold magnetic tripping is expected. Exact time still requires the manufacturer curve."
+  },
+  "rcd-rcbo-selector": {
+    title: "RCD and RCBO selection rules",
+    intro: "Residual-current waveform type, sensitivity, pole arrangement, current rating, trip curve, and breaking capacity are separate decisions and must all match the circuit.",
+    equations: [
+      { label: "Conductor protection", expression: "IB ≤ In ≤ IZ" },
+      { label: "Breaking-capacity check", expression: "Icn ≥ prospective short-circuit current" },
+      { label: "Curve screening", expression: "Kinrush = Iinrush / In" }
+    ],
+    symbols: [
+      { symbol: "IB", meaning: "Circuit design current", unit: "A" },
+      { symbol: "In", meaning: "RCBO rated current", unit: "A" },
+      { symbol: "IZ", meaning: "Corrected conductor current-carrying capacity", unit: "A" },
+      { symbol: "Icn", meaning: "Rated short-circuit breaking capacity", unit: "kA" },
+      { symbol: "IΔn", meaning: "Rated residual operating current", unit: "mA" }
+    ],
+    conclusion: "Type A, F, or B refers to residual-current waveform detection; B, C, or D curve refers to overcurrent magnetic behavior. The labels must not be confused."
+  },
+  "ats-selection-calculator": {
+    title: "ATS current and architecture rules",
+    intro: "ATS screening begins with maximum load current and design margin, then selects class, poles, transfer architecture, and short-circuit rating requirements.",
+    equations: [
+      { label: "Required ATS current", expression: "IATS = Iload × Kdesign" },
+      { label: "Short-circuit requirement", expression: "ATS WCR/SCCR ≥ available fault current" },
+      { label: "Total outage concept", expression: "toutage = detection + source availability + transfer" }
+    ],
+    symbols: [
+      { symbol: "IATS", meaning: "Minimum ATS continuous-current basis", unit: "A" },
+      { symbol: "Iload", meaning: "Maximum transferred load current", unit: "A" },
+      { symbol: "Kdesign", meaning: "Entered design factor" },
+      { symbol: "WCR/SCCR", meaning: "Short-circuit withstand/closing or equipment rating under specified conditions", unit: "kA" }
+    ],
+    conclusion: "Switch movement time is only one part of an outage. Generator start, voltage and frequency stabilization, intentional delays, and load ride-through must be considered separately."
+  },
+  "cable-lug-selector": {
+    title: "Cable lug selection method",
+    intro: "The lug must match conductor size and material, conductor strand class, terminal metal, stud pattern, environment, and the approved termination system.",
+    equations: [
+      { label: "AWG area reference", expression: "Amm² = 0.012668 × 92^((36-AWG)/19.5)" },
+      { label: "Compatibility rule", expression: "Cable marking = approved lug barrel range" },
+      { label: "Dissimilar-metal rule", expression: "Al conductor + Cu terminal → rated Al-Cu transition connector" }
+    ],
+    symbols: [
+      { symbol: "Amm²", meaning: "Approximate conductor cross-sectional area", unit: "mm²" },
+      { symbol: "AWG", meaning: "American Wire Gauge number" },
+      { symbol: "Al-Cu", meaning: "Connector explicitly rated for aluminum-to-copper transition" }
+    ],
+    conclusion: "Approximate area conversion does not make metric and AWG lugs interchangeable. The cable marking and manufacturer barrel/die chart control the final selection."
+  },
+  "battery-c-rate-runtime-calculator": {
+    title: "Battery C-rate and runtime equations",
+    intro: "Pack calculations use volts, ampere-hours, and current. Project calculations use MW and MWh. Both apply the selected SOC window, SOH, and efficiency to estimate delivered energy.",
+    equations: [
+      { label: "Pack energy", expression: "E = V × Ah" },
+      { label: "C-rate", expression: "C-rate = I / Ah" },
+      { label: "P-rate", expression: "P-rate = MW / MWh" },
+      { label: "Usable runtime", expression: "t = Erated × ΔSOC × SOH × η / P" }
+    ],
+    symbols: [
+      { symbol: "E", meaning: "Battery energy", unit: "Wh, kWh, or MWh" },
+      { symbol: "Ah", meaning: "Charge capacity", unit: "Ah" },
+      { symbol: "ΔSOC", meaning: "Upper SOC minus lower SOC as a decimal" },
+      { symbol: "SOH", meaning: "Remaining state-of-health factor" },
+      { symbol: "η", meaning: "Discharge efficiency" },
+      { symbol: "t", meaning: "Estimated constant-power or constant-current runtime", unit: "h" }
+    ],
+    conclusion: "Real runtime depends on voltage sag, cell chemistry, temperature, C-rate, BMS cutoff, PCS efficiency, auxiliary power, degradation, and warranty limits."
+  },
+  "energy-cost-calculator": {
+    title: "Electrical energy cost equations",
+    intro: "Operating energy is average input power multiplied by runtime. Cost is energy multiplied by the entered flat tariff.",
+    equations: [
+      { label: "Average power", expression: "Pavg = Prated × quantity × load factor" },
+      { label: "Energy", expression: "E = Pavg × t" },
+      { label: "Cost", expression: "Cost = E × tariff" }
+    ],
+    symbols: [
+      { symbol: "Pavg", meaning: "Average electrical input power", unit: "kW" },
+      { symbol: "Prated", meaning: "Rated input power per unit", unit: "kW" },
+      { symbol: "E", meaning: "Electrical energy consumption", unit: "kWh" },
+      { symbol: "t", meaning: "Operating time", unit: "h" }
+    ],
+    conclusion: "The calculation excludes demand charges, time-of-use pricing, reactive-energy penalties, taxes, and fixed fees unless they are added separately."
+  },
+  "terminal-heating-calculator": {
+    title: "Terminal contact-heating equations",
+    intro: "Contact resistance creates voltage drop and localized heat. Because current is squared, small resistance increases become important at high current.",
+    equations: [
+      { label: "Contact voltage drop", expression: "Vcontact = I × Rc" },
+      { label: "Contact power loss", expression: "Pheat = I² × Rc" },
+      { label: "Thermal sensitivity estimate", expression: "ΔT = Pheat × Rθ" }
+    ],
+    symbols: [
+      { symbol: "Rc", meaning: "Measured contact or joint resistance", unit: "Ω" },
+      { symbol: "I", meaning: "Current through the connection", unit: "A" },
+      { symbol: "Pheat", meaning: "Localized electrical loss", unit: "W" },
+      { symbol: "Rθ", meaning: "Validated thermal resistance of the connection to ambient", unit: "K/W" },
+      { symbol: "ΔT", meaning: "Estimated temperature rise", unit: "K" }
+    ],
+    conclusion: "Without validated thermal resistance, I²R accurately estimates electrical loss but cannot by itself predict exact terminal temperature."
+  },
+  "busbar-short-circuit-force-calculator": {
+    title: "Busbar short-circuit force equation",
+    intro: "A simplified long-conductor model estimates the peak electrodynamic force acting between parallel busbar current paths over one unsupported span.",
+    equations: [
+      { label: "Force per span", expression: "F = μ0/(2π) × ip²/a × l" },
+      { label: "Free-space simplification", expression: "F = 2 × 10⁻⁷ × ip² × l/a" },
+      { label: "Peak-current conversion", expression: "ip = kpeak × Ik,rms" }
+    ],
+    symbols: [
+      { symbol: "F", meaning: "Electrodynamic force on the modeled span", unit: "N" },
+      { symbol: "μ0", meaning: "Magnetic permeability of free space", unit: "H/m" },
+      { symbol: "ip", meaning: "Peak short-circuit current", unit: "A" },
+      { symbol: "a", meaning: "Center spacing between parallel conductor paths", unit: "m" },
+      { symbol: "l", meaning: "Unsupported conductor length", unit: "m" },
+      { symbol: "kpeak", meaning: "Project-derived RMS-to-peak factor" }
+    ],
+    conclusion: "The square-law relationship means doubling peak current creates about four times the force. Complete busbar and support verification remains an assembly-level engineering task."
   }
 };

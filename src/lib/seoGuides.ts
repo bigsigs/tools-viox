@@ -1065,5 +1065,69 @@ export const seoGuidesBySlug: Record<string, SeoGuide> = {
       { title: "Type 1, Type 2, and Type 3 duties", paragraphs: ["Type 1 addresses lightning-current duty at the installation origin, Type 2 addresses distribution-level induced and switching surges, and Type 3 provides coordinated local protection near sensitive equipment. A Type 1+2 product combines tested duties but still requires correct placement and coordination."] },
       { title: "Protection level and backup device", paragraphs: ["Effective protection includes the SPD Up value plus voltage contributed by connection leads. Confirm In, Imax, Iimp where applicable, thermal disconnection, status indication, Isccr or SCCR, the exact permitted backup fuse or breaker, conductor routing, pole arrangement, and manufacturer wiring diagram."] }
     ]
+  },
+  "mcb-inrush-compatibility-checker": {
+    sections: [
+      { title: "How to check MCB inrush compatibility", paragraphs: ["Select the breaker rated current and curve, then enter peak inrush current, pulse duration, available fault current, and breaking capacity. The checker compares the pulse with the generic magnetic band while keeping fault clearance as a separate requirement."], steps: ["Confirm MCB rated current from load and cable sizing.", "Obtain peak inrush and duration.", "Compare with the B, C, or D magnetic band.", "Verify available fault current and breaking capacity.", "Read the exact manufacturer time-current curve."] },
+      { title: "B16, C16, and D16 example", paragraphs: ["A 90 A inrush equals 5.625 × In for a 16 A breaker. It is above the B-curve upper threshold, inside the C-curve tolerance band, and below the D-curve lower threshold. That comparison describes magnetic-trip likelihood, not final circuit suitability."], callouts: ["Kinrush = 90 / 16 = 5.625", "B16: 48-80 A; C16: 80-160 A; D16: 160-320 A"] },
+      { title: "Ride-through versus fault clearance", paragraphs: ["A slower magnetic curve can reduce nuisance trips but requires more fault current for instantaneous operation. Long cables and high loop impedance can make a C or D curve fail the required disconnection condition even when it rides through startup."] },
+      { title: "Why exact trip time is not shown", paragraphs: ["Pulse shape, duration, prior thermal loading, ambient temperature, product tolerance, standard, and manufacturer design all affect operation. Use this tool to identify safe, uncertain, and likely-trip regions, then verify the exact device curve."] }
+    ]
+  },
+  "rcd-rcbo-selector": {
+    sections: [
+      { title: "How to select an RCD or RCBO", paragraphs: ["Define the load, waveform risk, circuit role, conductors, design current, cable ampacity, inrush, and prospective fault current. Select residual-current type and sensitivity separately from overcurrent curve and breaking capacity."], steps: ["Choose RCD/RCCB or RCBO function.", "Select Type A, F, B, or an approved EV solution.", "Choose sensitivity and poles.", "Check Ib ≤ In ≤ Iz.", "Verify curve, fault level, leakage, and neutral routing."] },
+      { title: "Application starting points", paragraphs: ["Type A is a common starting point for modern general circuits, Type F may suit selected single-phase inverter appliances, and Type B addresses smooth-DC risk where equipment and rules require it. EV charging may use Type A with verified 6 mA DC detection or another approved solution."], table: { headers: ["Application", "Starting direction"], rows: [["General final circuit", "Type A, 30 mA"], ["Inverter appliance", "Type F where specified"], ["EV/PV/VFD", "Manufacturer and code-specific Type A/F/B solution"], ["Upstream", "Selective 100 or 300 mA context"]] } },
+      { title: "Sensitivity and selectivity", paragraphs: ["Thirty milliamperes is widely used for additional personal protection on final circuits. One hundred or 300 mA devices are commonly upstream for discrimination or fire-risk protection and do not normally replace required 30 mA final-circuit protection."] },
+      { title: "Current, curve, poles, and breaking capacity", paragraphs: ["The rounded current rating must protect the conductor. Pole arrangement must pass every relevant live conductor through residual sensing. RCBO curve must tolerate normal inrush while still meeting fault-disconnection rules, and breaking capacity must exceed prospective fault current."] }
+    ]
+  },
+  "ats-selection-calculator": {
+    sections: [
+      { title: "How to size an ATS", paragraphs: ["Enter maximum transferred load current and the justified design factor, then identify supply conductors, neutral switching, integrated protection, alternate source, load ride-through, and available fault current."], steps: ["Calculate required continuous current.", "Choose PC or CB class.", "Determine 2P, 3P, or 4P switching.", "Match transfer architecture to load tolerance.", "Verify WCR/SCCR and upstream protection."] },
+      { title: "PC class versus CB class", paragraphs: ["PC class is primarily a transfer device that makes and withstands short-circuit current while coordinated upstream protection clears faults. CB class uses breaker-based switching and can provide fault interruption within the complete device rating."] },
+      { title: "Transfer time and critical loads", paragraphs: ["Mechanical transfer in hundreds of milliseconds can suit lighting, HVAC, pumps, and general distribution. PLCs and IT equipment may require local hold-up, UPS, or STS support. A mechanical ATS cannot bridge generator start time or provide no-break power alone."] },
+      { title: "Pole and short-circuit checks", paragraphs: ["Neutral switching depends on source bonding, separately derived source treatment, earthing, RCD behavior, and local requirements. The ATS WCR/SCCR must be valid at available fault current with the exact upstream protective device and clearing conditions."] }
+    ]
+  },
+  "cable-lug-selector": {
+    sections: [
+      { title: "How to select a cable lug", paragraphs: ["Start with the conductor marking and strand class, not outside diameter. Match the approved barrel, conductor and terminal metals, stud hole, palm pattern, environment, and compression or mechanical termination system."], steps: ["Confirm mm², AWG, or kcmil marking.", "Identify copper or aluminum conductor.", "Identify equipment terminal metal.", "Match stud and palm pattern.", "Select finish and approved tool or torque method."] },
+      { title: "AWG and metric sizes", paragraphs: ["AWG-to-mm² conversion is useful for comparison but does not make product series interchangeable. For example, 1/0 AWG is about 53.5 mm² and is only a near reference for 50 mm² cable."], callouts: ["1/0 AWG ≈ 53.5 mm²", "350 kcmil ≈ 177 mm²"] },
+      { title: "Copper, tinned, and bimetallic lugs", paragraphs: ["Bare copper can suit dry indoor copper-to-copper connections. Tinned copper is a common corrosion-resistant starting point for humid, outdoor, marine, and battery environments. Aluminum conductor connected to copper equipment normally needs an explicitly rated Al-Cu transition connector."] },
+      { title: "Crimp and palm verification", paragraphs: ["Compression lugs require the approved die, tool, crimp count, and inspection marks. Mechanical and shear-bolt lugs require conductor-material approval and installation torque. Two-hole palms require exact terminal-pad spacing and orientation."] }
+    ]
+  },
+  "battery-c-rate-runtime-calculator": {
+    sections: [
+      { title: "How to calculate battery runtime", paragraphs: ["Choose pack-level V/Ah/A inputs or project-level MW/MWh inputs. Then apply upper and lower SOC limits, state of health, and discharge efficiency to estimate usable delivered energy and runtime."], steps: ["Calculate rated energy.", "Apply SOC operating window.", "Apply SOH and efficiency.", "Divide usable energy by discharge power.", "Check BMS, PCS, temperature, and warranty limits."] },
+      { title: "Pack C-rate example", paragraphs: ["A 48 V, 200 Ah pack stores 9.6 kWh nominally. At 100 A the rate is 0.5C. With an 80% SOC window, 100% SOH, and 95% efficiency, delivered energy is about 7.3 kWh and constant-voltage runtime is about 1.52 hours."], callouts: ["C-rate = 100 / 200 = 0.5C", "Eusable = 9.6 × 0.8 × 1.0 × 0.95 = 7.30 kWh"] },
+      { title: "BESS P-rate and duration", paragraphs: ["A 50 MW / 200 MWh system has a 0.25P nameplate rate and four-hour nameplate duration. Operating SOC window, degradation, PCS loss, and auxiliaries reduce delivered duration."] },
+      { title: "Why actual runtime differs", paragraphs: ["Cell voltage changes during discharge, capacity depends on temperature and rate, BMS cutoffs limit the usable window, and converters have load-dependent losses. Use guaranteed usable-energy and power curves for final project commitments."] }
+    ]
+  },
+  "energy-cost-calculator": {
+    sections: [
+      { title: "How to calculate electricity cost", paragraphs: ["Use electrical input kW, equipment quantity, average load factor, daily runtime, operating days, months, and energy tariff. The calculator first finds average kW, then daily, monthly, and annual kWh and cost."], steps: ["Enter rated or measured input power.", "Apply quantity and average load factor.", "Enter the operating calendar.", "Enter the flat energy tariff.", "Add demand and time-of-use charges separately."] },
+      { title: "Energy cost example", paragraphs: ["One 7.5 kW load operating at 80% average load for 10 hours uses 60 kWh per day. At 0.12 per kWh, energy cost is 7.20 per operating day before demand charges and fees."], callouts: ["Pavg = 7.5 × 0.8 = 6 kW", "Cost = 6 × 10 × 0.12 = 7.20/day"] },
+      { title: "Rated power versus measured power", paragraphs: ["Nameplate motor output, equipment capacity, and electrical input are different values. Metered average input kW gives a better result than estimating load factor from rated output."] },
+      { title: "Charges not included", paragraphs: ["Industrial bills may include peak-demand charges, time-of-use rates, power-factor or reactive-energy penalties, capacity charges, taxes, and fixed fees. Model these separately before using the result for an investment decision."] }
+    ]
+  },
+  "terminal-heating-calculator": {
+    sections: [
+      { title: "How to calculate terminal heating", paragraphs: ["Enter current and measured connection resistance. The calculator uses I²R for contact loss and IR for voltage drop, then compares the result with a healthy reference at the same current."], steps: ["Measure current under stable load.", "Measure or estimate contact resistance consistently.", "Calculate voltage drop and I²R loss.", "Compare phases or a healthy reference.", "Validate temperature under real enclosure conditions."] },
+      { title: "High-current contact example", paragraphs: ["At 200 A, a 100 µΩ connection dissipates 4 W. A healthy 25 µΩ reference dissipates 1 W, so a fourfold resistance increase creates four times the heat at the same current."], callouts: ["P = 200² × 0.0001 = 4 W", "V = 200 × 0.0001 = 20 mV"] },
+      { title: "Resistance and thermal runaway", paragraphs: ["Loose hardware, poor crimping, oxide, contamination, and cycling increase contact resistance. Heat accelerates oxidation and relaxation, which can further increase resistance and produce a worsening failure cycle."] },
+      { title: "Why exact temperature is difficult", paragraphs: ["Electrical loss is calculable from I²R, but temperature also depends on terminal mass, conductor heat sinking, airflow, enclosure temperature, adjacent phases, duty cycle, and mounting. Use a validated thermal resistance or physical testing for temperature prediction."] }
+    ]
+  },
+  "busbar-short-circuit-force-calculator": {
+    sections: [
+      { title: "How to estimate busbar force", paragraphs: ["Enter RMS or peak fault current, the RMS-to-peak factor when needed, busbar center spacing, unsupported span, and support rating. The calculator applies the simplified long parallel-conductor force equation."], steps: ["Determine peak short-circuit current.", "Measure center-to-center spacing.", "Measure the critical support span.", "Calculate force per metre and per span.", "Compare with complete support and assembly verification."] },
+      { title: "Busbar force example", paragraphs: ["A 50 kA RMS fault with a 2.2 peak factor produces 110 kA peak. With 100 mm spacing and a 500 mm span, the simplified force is approximately 12.1 kN on that span."], callouts: ["ip = 50 × 2.2 = 110 kA", "F = 2×10⁻⁷ × 110000² × 0.5 / 0.1 = 12,100 N"] },
+      { title: "Square-law current effect", paragraphs: ["Force is proportional to peak current squared, proportional to unsupported length, and inversely proportional to spacing. Doubling peak current creates approximately four times the force; halving span approximately halves force."] },
+      { title: "Limits of the simplified model", paragraphs: ["Real three-phase busbars include multiple conductors, unequal current sharing, end effects, bar flexibility, fastener loads, insulator bending, enclosure structure, and dynamic response. Final withstand must be verified for the complete assembly under the applicable standard."] }
+    ]
   }
 };

@@ -854,6 +854,340 @@ export const tools: ToolDefinition[] = [
       { label: "How to read an SPD datasheet", href: "https://viox.com/how-to-read-spd-datasheet-uc-up-in-imax-iimp-type-backup-fuse/" }
     ],
     keywords: ["advanced spd selection calculator", "surge protection device sizing", "Uc SPD calculator", "Type 1 Type 2 SPD selector"]
+  },
+  {
+    slug: "mcb-inrush-compatibility-checker",
+    title: "MCB Inrush Compatibility Checker",
+    shortTitle: "MCB Inrush",
+    category: "circuit-protection",
+    description: "Compare equipment inrush current with IEC-style B, C, or D magnetic-trip bands and check whether available fault current supports instantaneous operation.",
+    intent: "Screen nuisance-trip risk without claiming an exact cross-brand trip time.",
+    fields: [
+      { id: "rating", label: "MCB rated current", type: "number", defaultValue: 16, unit: "A", min: 0 },
+      { id: "curve", label: "Selected curve", type: "select", defaultValue: "c", options: [
+        { value: "b", label: "B curve (3-5 × In)" },
+        { value: "c", label: "C curve (5-10 × In)" },
+        { value: "d", label: "D curve (10-20 × In)" }
+      ] },
+      { id: "inrush", label: "Peak inrush current", type: "number", defaultValue: 90, unit: "A", min: 0 },
+      { id: "duration", label: "Inrush duration", type: "number", defaultValue: 100, unit: "ms", min: 0 },
+      { id: "faultCurrent", label: "Available fault current", type: "number", defaultValue: 500, unit: "A", min: 0 },
+      { id: "breakingCapacity", label: "MCB breaking capacity", type: "number", defaultValue: 6, unit: "kA", min: 0 }
+    ],
+    formula: "Inrush multiple = peak inrush current / MCB rated current. The result is compared with B: 3-5 × In, C: 5-10 × In, or D: 10-20 × In. Available fault current is checked against the upper magnetic threshold and breaking capacity.",
+    assumptions: ["IEC-style B, C, and D magnetic bands", "Peak inrush and available fault current are known or reasonably estimated", "Thermal-memory and manufacturer-specific curve tolerances are not modeled"],
+    warnings: ["The checker cannot predict exact trip time across brands; use the selected manufacturer's time-current curve and equipment inrush waveform.", "A curve that rides through inrush may still fail required fault-disconnection time if loop impedance is too high."],
+    faqs: [
+      { question: "What happens inside the magnetic band?", answer: "Operation is uncertain because the band represents product tolerance. The breaker may trip magnetically, so the actual manufacturer curve and inrush waveform must be checked." },
+      { question: "Does a D curve always solve nuisance tripping?", answer: "No. It tolerates more inrush but needs substantially more fault current for guaranteed magnetic operation." },
+      { question: "Why is inrush duration included?", answer: "B/C/D thresholds describe the instantaneous region, but longer pulses can interact with thermal operation and product-specific curves." }
+    ],
+    relatedTools: ["circuit-breaker-size-calculator", "short-circuit-current-calculator", "motor-starter-selection-calculator"],
+    relatedProducts: [
+      { label: "VIOX MCB selection support", href: "https://viox.com/contact" },
+      { label: "B, C, and D curve guide", href: "https://viox.com/mcb-b-c-d-curves-explained-how-to-choose-based-on-inrush-current/" }
+    ],
+    keywords: ["mcb inrush calculator", "b c d curve checker", "breaker nuisance tripping calculator"]
+  },
+  {
+    slug: "rcd-rcbo-selector",
+    title: "RCD & RCBO Selection Calculator",
+    shortTitle: "RCD / RCBO",
+    category: "circuit-protection",
+    description: "Select a starting residual-current type, sensitivity, poles, rated current, overcurrent curve, and breaking capacity for common loads.",
+    intent: "Rule-based RCD or RCBO screening for EV, PV, VFD, heat-pump, appliance, wet-area, and distribution circuits.",
+    fields: [
+      { id: "application", label: "Application", type: "select", defaultValue: "general", options: [
+        { value: "general", label: "General sockets / modern loads" },
+        { value: "lighting", label: "Lighting circuit" },
+        { value: "appliance", label: "Inverter appliance / heat pump" },
+        { value: "ev", label: "EV charger" },
+        { value: "pv", label: "PV inverter AC side" },
+        { value: "vfd", label: "VFD / frequency converter" },
+        { value: "wet", label: "Wet / outdoor final circuit" },
+        { value: "upstream", label: "Upstream distribution protection" }
+      ] },
+      { id: "device", label: "Device function", type: "select", defaultValue: "rcbo", options: [
+        { value: "rcbo", label: "RCBO: residual + overcurrent" },
+        { value: "rcd", label: "RCD/RCCB: residual only" }
+      ] },
+      { id: "system", label: "Supply conductors", type: "select", defaultValue: "single", options: [
+        { value: "single", label: "Single-phase with neutral" },
+        { value: "three", label: "Three-phase without neutral" },
+        { value: "three-neutral", label: "Three-phase with neutral" }
+      ] },
+      { id: "loadCurrent", label: "Design current", type: "number", defaultValue: 26, unit: "A", min: 0 },
+      { id: "cableAmpacity", label: "Corrected cable ampacity", type: "number", defaultValue: 40, unit: "A", min: 0 },
+      { id: "inrushMultiple", label: "Inrush multiple", type: "number", defaultValue: 2, unit: "× In", min: 1, max: 30, step: 0.1, showWhen: { field: "device", values: ["rcbo"] } },
+      { id: "faultCurrent", label: "Prospective fault current", type: "number", defaultValue: 5, unit: "kA", min: 0, showWhen: { field: "device", values: ["rcbo"] } },
+      { id: "dcDetection", label: "Verified 6 mA DC detection", type: "select", defaultValue: "no", options: [
+        { value: "yes", label: "Built into equipment / RDC-DD" },
+        { value: "no", label: "Not provided or unknown" }
+      ], showWhen: { field: "application", values: ["ev"] } },
+      { id: "upstreamRole", label: "Upstream protection role", type: "select", defaultValue: "selective", options: [
+        { value: "selective", label: "Selective upstream protection" },
+        { value: "fire", label: "Fire-risk protection" }
+      ], showWhen: { field: "application", values: ["upstream"] } }
+    ],
+    formula: "The selector applies an application matrix for residual-current type and sensitivity, then checks Ib ≤ In ≤ Iz. RCBO curve uses inrush screening and breaking capacity is rounded above prospective fault current.",
+    assumptions: ["IEC-style final and distribution circuits", "Type and sensitivity are starting recommendations", "Equipment manufacturer instructions and local wiring rules take precedence"],
+    warnings: ["EV, PV, VFD, medical, TT, and special installations require product and jurisdiction-specific verification.", "Do not confuse Type B residual-current detection with a B-curve overcurrent trip characteristic."],
+    faqs: [
+      { question: "When can an EV charger use Type A?", answer: "A Type A device may be a starting option only when verified 6 mA DC residual-current detection is provided and the charger instructions and local rules permit it; otherwise Type B or an approved equivalent is commonly required." },
+      { question: "Why are 100 mA and 300 mA not normal final-circuit choices?", answer: "They are commonly used upstream for selectivity or fire-risk protection and do not normally replace 30 mA additional personal protection where required." },
+      { question: "Does an RCCB protect against overload?", answer: "No. An RCCB/RCD needs coordinated overcurrent protection. An RCBO combines residual-current and overcurrent functions." }
+    ],
+    relatedTools: ["mcb-inrush-compatibility-checker", "circuit-breaker-size-calculator", "ev-charger-load-calculator"],
+    relatedProducts: [
+      { label: "VIOX RCD and RCBO support", href: "https://viox.com/contact" },
+      { label: "RCBO selection guide", href: "https://viox.com/how-to-choose-an-rcbo-type-sensitivity-curve-poles-breaking-capacity/" }
+    ],
+    keywords: ["rcbo selector", "rcd type selector", "type a f b rcd calculator", "ev charger rcbo selection"]
+  },
+  {
+    slug: "ats-selection-calculator",
+    title: "ATS Selection Calculator",
+    shortTitle: "ATS Selection",
+    category: "circuit-protection",
+    description: "Select a preliminary ATS current rating, PC or CB class, pole arrangement, transfer-speed category, and UPS or STS requirement.",
+    intent: "ATS screening by load current, source type, integrated protection, connected-load ride-through, and available fault current.",
+    fields: [
+      { id: "loadCurrent", label: "Maximum load current", type: "number", defaultValue: 125, unit: "A", min: 0 },
+      { id: "designFactor", label: "ATS design factor", type: "number", defaultValue: 125, unit: "%", min: 100, max: 200 },
+      { id: "system", label: "Supply system", type: "select", defaultValue: "three-neutral", options: [
+        { value: "single", label: "Single-phase with neutral" },
+        { value: "three", label: "Three-phase without neutral" },
+        { value: "three-neutral", label: "Three-phase with neutral" }
+      ] },
+      { id: "neutralSwitching", label: "Neutral switching", type: "select", defaultValue: "required", options: [
+        { value: "required", label: "Required by earthing / source design" },
+        { value: "not-required", label: "Not required after engineering review" }
+      ] },
+      { id: "integratedProtection", label: "Integrated fault protection", type: "select", defaultValue: "no", options: [
+        { value: "no", label: "No, coordinated upstream protection" },
+        { value: "yes", label: "Yes, breaker-based protection required" }
+      ] },
+      { id: "source", label: "Alternate source", type: "select", defaultValue: "generator", options: [
+        { value: "generator", label: "Standby generator" },
+        { value: "live", label: "Second continuously available source" }
+      ] },
+      { id: "loadType", label: "Load ride-through need", type: "select", defaultValue: "general", options: [
+        { value: "general", label: "Lighting / HVAC / general distribution" },
+        { value: "motor", label: "Motors and pumps" },
+        { value: "control", label: "PLC / controls / sensitive electronics" },
+        { value: "it", label: "IT / data / critical electronics" },
+        { value: "nobreak", label: "No-break process or life-safety continuity" }
+      ] },
+      { id: "faultCurrent", label: "Available fault current", type: "number", defaultValue: 25, unit: "kA", min: 0 }
+    ],
+    formula: "Required ATS current = maximum load current × design factor. PC class is selected when upstream protection handles faults; CB class is selected when breaker-based protection is required. Pole and ride-through logic are rule-based.",
+    assumptions: ["Low-voltage open-transition ATS is the normal starting architecture", "Maximum load current already reflects realistic demand", "WCR/SCCR and protective-device coordination are checked from product data"],
+    warnings: ["Switching time is not total outage time; generator start and stabilization usually dominate restoration time.", "Closed transition, source paralleling, neutral switching, WCR/SCCR, and selective coordination require engineered approval."],
+    faqs: [
+      { question: "What is the difference between PC and CB class ATS?", answer: "PC class transfers and withstands short-circuit current but normally relies on upstream protection to clear it. CB class uses breaker-based switching and can provide fault interruption within its ratings." },
+      { question: "Can a mechanical ATS provide no-break power?", answer: "Not by itself during source loss. Critical loads normally need UPS, energy storage, or an STS between continuously available sources." },
+      { question: "Why might a four-pole ATS be required?", answer: "Neutral switching depends on source bonding, earthing arrangement, separately derived source rules, residual-current protection, and local requirements." }
+    ],
+    relatedTools: ["transformer-sizing-calculator", "short-circuit-current-calculator", "circuit-breaker-size-calculator"],
+    relatedProducts: [
+      { label: "VIOX ATS selection support", href: "https://viox.com/contact" },
+      { label: "PC vs CB class ATS guide", href: "https://viox.com/pc-class-vs-cb-class-ats-selection-guide/" }
+    ],
+    keywords: ["ats sizing calculator", "automatic transfer switch selector", "pc class cb class ats", "ats pole selection"]
+  },
+  {
+    slug: "cable-lug-selector",
+    title: "Cable Lug Selection Calculator",
+    shortTitle: "Cable Lug",
+    category: "cable-wiring",
+    description: "Select a preliminary cable-lug material, conductor marking, stud hole, palm style, finish, and connection method.",
+    intent: "Screen copper, tinned-copper, aluminum-rated, or bimetallic lugs before checking the manufacturer crimp system.",
+    fields: [
+      { id: "sizeSystem", label: "Conductor size system", type: "select", defaultValue: "metric", options: [
+        { value: "metric", label: "Metric mm²" },
+        { value: "awg", label: "AWG / kcmil" }
+      ] },
+      { id: "metricSize", label: "Metric conductor size", type: "select", defaultValue: "50", options: ["1.5","2.5","4","6","10","16","25","35","50","70","95","120","150","185","240","300"].map((value) => ({ value, label: `${value} mm²` })), showWhen: { field: "sizeSystem", values: ["metric"] } },
+      { id: "awgSize", label: "AWG conductor size", type: "select", defaultValue: "1/0", options: ["14","12","10","8","6","4","2","1","1/0","2/0","3/0","4/0","250","350","400"].map((value) => ({ value, label: Number(value) >= 250 ? `${value} kcmil` : `${value} AWG` })), showWhen: { field: "sizeSystem", values: ["awg"] } },
+      { id: "conductorMaterial", label: "Conductor material", type: "select", defaultValue: "copper", options: [
+        { value: "copper", label: "Copper" },
+        { value: "aluminum", label: "Aluminum" }
+      ] },
+      { id: "terminalMaterial", label: "Equipment terminal material", type: "select", defaultValue: "copper", options: [
+        { value: "copper", label: "Copper busbar / terminal" },
+        { value: "aluminum", label: "Aluminum busbar / terminal" }
+      ] },
+      { id: "stud", label: "Stud or bolt size", type: "select", defaultValue: "M10", options: ["M5","M6","M8","M10","M12","M14","M16"].map((value) => ({ value, label: value })) },
+      { id: "holes", label: "Palm fixing", type: "select", defaultValue: "one", options: [
+        { value: "one", label: "One-hole palm" },
+        { value: "two", label: "Two-hole anti-rotation palm" }
+      ] },
+      { id: "environment", label: "Environment", type: "select", defaultValue: "indoor", options: [
+        { value: "indoor", label: "Dry indoor panel" },
+        { value: "humid", label: "Humid / outdoor" },
+        { value: "marine", label: "Marine / corrosive" },
+        { value: "battery", label: "Battery / high-current DC" },
+        { value: "vibration", label: "High vibration" }
+      ] },
+      { id: "termination", label: "Termination method", type: "select", defaultValue: "compression", options: [
+        { value: "compression", label: "Compression crimp" },
+        { value: "mechanical", label: "Mechanical / shear-bolt" }
+      ] }
+    ],
+    formula: "AWG conductor area is converted to an approximate mm² reference. Material, terminal metal, environment, stud size, and anti-rotation requirement determine the starting lug construction.",
+    assumptions: ["Conductor size is taken from cable marking, not measured cable diameter", "AWG-to-mm² values are conversion references only", "The exact barrel and die come from the lug manufacturer"],
+    warnings: ["Do not install a standard copper lug directly on aluminum conductor unless it is explicitly rated for that use.", "A lug, conductor strand class, die, tool, crimp count, palm, bolt, torque, and terminal pad must be approved as one connection system."],
+    faqs: [
+      { question: "Is 1/0 AWG exactly the same as 50 mm²?", answer: "No. 1/0 AWG is approximately 53.5 mm². Use the exact conductor marking and the lug manufacturer's chart rather than treating the sizes as interchangeable." },
+      { question: "When should I choose tinned copper?", answer: "It is a common starting choice for humid, outdoor, marine, battery, or corrosion-prone environments, but it still requires correct crimping and compatible mating surfaces." },
+      { question: "Why use a two-hole lug?", answer: "Two-hole palms improve anti-rotation support for busbars, switchgear, grounding, and vibration-prone connections when the terminal pad matches the hole spacing." }
+    ],
+    relatedTools: ["cable-size-calculator", "awg-wire-size-calculator", "terminal-heating-calculator"],
+    relatedProducts: [
+      { label: "VIOX cable-lug support", href: "https://viox.com/contact" },
+      { label: "Copper lug selection guide", href: "https://viox.com/copper-lug-size-chart-types-awg-mm2-selection-guide/" }
+    ],
+    keywords: ["cable lug selector", "copper lug size calculator", "awg lug size", "bimetallic lug selection"]
+  },
+  {
+    slug: "battery-c-rate-runtime-calculator",
+    title: "Battery C-Rate & Runtime Calculator",
+    shortTitle: "Battery Runtime",
+    category: "power-conversion",
+    description: "Calculate battery C-rate, P-rate, nominal and usable energy, discharge current, and estimated runtime for packs or BESS projects.",
+    intent: "Compare cell/pack Ah calculations with project-level MW and MWh duration while accounting for SOC window, SOH, and efficiency.",
+    fields: [
+      { id: "level", label: "Calculation level", type: "select", defaultValue: "pack", options: [
+        { value: "pack", label: "Battery pack: V, Ah, A" },
+        { value: "project", label: "BESS project: MW, MWh" }
+      ] },
+      { id: "voltage", label: "Nominal pack voltage", type: "number", defaultValue: 48, unit: "V", min: 0, showWhen: { field: "level", values: ["pack"] } },
+      { id: "capacityAh", label: "Rated capacity", type: "number", defaultValue: 200, unit: "Ah", min: 0, showWhen: { field: "level", values: ["pack"] } },
+      { id: "current", label: "Discharge current", type: "number", defaultValue: 100, unit: "A", min: 0, showWhen: { field: "level", values: ["pack"] } },
+      { id: "energyMwh", label: "Rated energy", type: "number", defaultValue: 200, unit: "MWh", min: 0, showWhen: { field: "level", values: ["project"] } },
+      { id: "powerMw", label: "Discharge power", type: "number", defaultValue: 50, unit: "MW", min: 0, showWhen: { field: "level", values: ["project"] } },
+      { id: "socHigh", label: "Upper SOC limit", type: "number", defaultValue: 90, unit: "%", min: 0, max: 100 },
+      { id: "socLow", label: "Lower SOC limit", type: "number", defaultValue: 10, unit: "%", min: 0, max: 100 },
+      { id: "soh", label: "State of health", type: "number", defaultValue: 100, unit: "%", min: 1, max: 100 },
+      { id: "efficiency", label: "Discharge efficiency", type: "number", defaultValue: 95, unit: "%", min: 1, max: 100 }
+    ],
+    formula: "Pack energy = V × Ah. C-rate = A / Ah. Project P-rate = MW / MWh. Usable energy = rated energy × SOC window × SOH × efficiency; runtime = usable energy / discharge power.",
+    assumptions: ["Constant discharge current or power", "SOC, SOH, and efficiency are independent planning factors", "Voltage sag, auxiliary consumption, temperature, and BMS cutoff dynamics are not modeled"],
+    warnings: ["Battery runtime is not perfectly linear at all C-rates, temperatures, chemistries, or ages.", "Use BMS limits, cell data, warranty conditions, PCS efficiency curves, and guaranteed usable-energy definitions for final design."],
+    faqs: [
+      { question: "What does 1C mean?", answer: "A current equal to rated Ah capacity, such as 100 A from a 100 Ah battery. Idealized runtime is about one hour before operating-window and loss adjustments." },
+      { question: "What is the difference between C-rate and P-rate?", answer: "C-rate compares current with Ah capacity at cell or pack level. P-rate compares MW with MWh at project level." },
+      { question: "Why is usable energy below nameplate energy?", answer: "SOC limits, degradation, conversion loss, auxiliary loads, temperature, and warranty reserve reduce energy available to the load." }
+    ],
+    relatedTools: ["kw-kva-amp-calculator", "energy-cost-calculator", "dc-voltage-drop-calculator"],
+    relatedProducts: [
+      { label: "VIOX BESS protection support", href: "https://viox.com/contact" },
+      { label: "Battery energy and C-rate guide", href: "https://viox.com/kwh-vs-mwh-vs-mw-battery-energy-storage-c-rate-p-rate-soc-soh-dod/" }
+    ],
+    keywords: ["battery c rate calculator", "battery runtime calculator", "mwh duration calculator", "bess p rate"]
+  },
+  {
+    slug: "energy-cost-calculator",
+    title: "Electrical Energy Cost Calculator",
+    shortTitle: "Energy Cost",
+    category: "power-conversion",
+    description: "Calculate daily, monthly, and annual electricity consumption and operating cost from power, runtime, quantity, load factor, and tariff.",
+    intent: "Estimate operating energy and cost for motors, HVAC, lighting, chargers, and industrial equipment.",
+    fields: [
+      { id: "power", label: "Rated input power", type: "number", defaultValue: 7.5, unit: "kW", min: 0 },
+      { id: "quantity", label: "Equipment quantity", type: "number", defaultValue: 1, unit: "units", min: 1, step: 1 },
+      { id: "loadFactor", label: "Average load factor", type: "number", defaultValue: 80, unit: "%", min: 0.1, max: 100 },
+      { id: "hoursPerDay", label: "Operating time", type: "number", defaultValue: 10, unit: "h/day", min: 0.1, max: 24 },
+      { id: "daysPerMonth", label: "Operating days", type: "number", defaultValue: 26, unit: "days/month", min: 1, max: 31, step: 1 },
+      { id: "monthsPerYear", label: "Operating months", type: "number", defaultValue: 12, unit: "months/year", min: 1, max: 12, step: 1 },
+      { id: "tariff", label: "Energy tariff", type: "number", defaultValue: 0.12, unit: "/kWh", min: 0, step: 0.001 },
+      { id: "currency", label: "Currency", type: "select", defaultValue: "USD", options: ["USD","CNY","EUR","GBP","AUD"].map((value) => ({ value, label: value })) }
+    ],
+    formula: "Energy = rated kW × quantity × load factor × operating hours. Cost = energy × tariff. Monthly and annual values use entered operating days and months.",
+    assumptions: ["Average load factor represents the operating profile", "Tariff is a flat energy charge", "Demand charges, time-of-use pricing, taxes, and fixed fees are excluded"],
+    warnings: ["Use measured average input power when available; nameplate output power can understate electrical consumption.", "Industrial bills may include peak-demand, reactive-energy, capacity, and time-of-use charges not represented here."],
+    faqs: [
+      { question: "What is load factor here?", answer: "It is the average operating power divided by rated input power during running hours. A 7.5 kW machine at 80% load is modeled at 6 kW average." },
+      { question: "Does the result include demand charges?", answer: "No. It includes only kWh multiplied by a flat tariff." },
+      { question: "Why use input power?", answer: "The electricity meter records electrical input. Motor shaft output or useful thermal output does not include equipment losses." }
+    ],
+    relatedTools: ["battery-c-rate-runtime-calculator", "kw-kva-amp-calculator", "motor-current-calculator"],
+    relatedProducts: [
+      { label: "VIOX energy-management support", href: "https://viox.com/contact" },
+      { label: "Low-voltage electrical formulas", href: "https://viox.com/electrical-formulas-low-voltage-panel-design-maintenance/" }
+    ],
+    keywords: ["electricity cost calculator", "kwh cost calculator", "industrial energy cost", "motor operating cost"]
+  },
+  {
+    slug: "terminal-heating-calculator",
+    title: "Electrical Terminal Heating Calculator",
+    shortTitle: "Terminal Heating",
+    category: "panel-design",
+    description: "Calculate contact power loss, voltage drop, daily heat energy, and optional temperature-rise estimate from current and contact resistance.",
+    intent: "Quantify why a small increase in terminal or joint resistance creates dangerous I²R heating.",
+    fields: [
+      { id: "current", label: "Load current", type: "number", defaultValue: 200, unit: "A", min: 0 },
+      { id: "resistance", label: "Contact resistance", type: "number", defaultValue: 100, defaultUnit: "uohm", unitOptions: [
+        { value: "uohm", label: "µΩ" },
+        { value: "mohm", label: "mΩ" },
+        { value: "ohm", label: "Ω" }
+      ], min: 0 },
+      { id: "referenceResistance", label: "Healthy reference resistance", type: "number", defaultValue: 25, defaultUnit: "uohm", unitOptions: [
+        { value: "uohm", label: "µΩ" },
+        { value: "mohm", label: "mΩ" },
+        { value: "ohm", label: "Ω" }
+      ], min: 0 },
+      { id: "hours", label: "Loaded time", type: "number", defaultValue: 12, unit: "h/day", min: 0, max: 24 },
+      { id: "thermalResistance", label: "Estimated thermal resistance", type: "number", defaultValue: 8, unit: "K/W", min: 0, help: "Optional engineering estimate. Actual value depends on terminal geometry, conductor, enclosure, airflow, and mounting." },
+      { id: "ambient", label: "Ambient temperature", type: "number", defaultValue: 35, unit: "°C", min: -50, max: 150 }
+    ],
+    formula: "Contact loss P = I²R. Contact voltage drop V = IR. Daily heat energy = P × hours. Optional temperature rise = P × thermal resistance.",
+    assumptions: ["Current and contact resistance remain constant", "Resistance is the complete measured connection resistance", "Thermal resistance is an optional lumped estimate, not a tested terminal characteristic"],
+    warnings: ["Calculated temperature is not a certified terminal temperature; real heating depends on conductor heat sinking, cycling, airflow, enclosure, oxidation, and measurement method.", "Hot, discolored, loose, arcing, or damaged terminals require de-energized qualified inspection and corrective action."],
+    faqs: [
+      { question: "Why does terminal heating rise so quickly?", answer: "Power is proportional to current squared. Doubling current produces four times the heat at the same resistance." },
+      { question: "Can a tiny resistance matter?", answer: "Yes. At hundreds of amperes, tens or hundreds of micro-ohms can create several watts at one small contact area." },
+      { question: "Can this predict exact terminal temperature?", answer: "Only if a validated thermal resistance is known for the actual assembly. Otherwise the temperature result is a sensitivity estimate." }
+    ],
+    relatedTools: ["cable-lug-selector", "busbar-current-rating-calculator", "three-phase-voltage-unbalance-calculator"],
+    relatedProducts: [
+      { label: "VIOX connection support", href: "https://viox.com/contact" },
+      { label: "Low-voltage maintenance formulas", href: "https://viox.com/electrical-formulas-low-voltage-panel-design-maintenance/" }
+    ],
+    keywords: ["terminal heating calculator", "i2r heating calculator", "contact resistance heat", "electrical joint temperature rise"]
+  },
+  {
+    slug: "busbar-short-circuit-force-calculator",
+    title: "Busbar Short-Circuit Force Calculator",
+    shortTitle: "Busbar Force",
+    category: "panel-design",
+    description: "Estimate electrodynamic force between parallel busbars from peak short-circuit current, conductor spacing, and unsupported support span.",
+    intent: "Screen busbar-support mechanical duty before complete assembly verification and testing.",
+    fields: [
+      { id: "currentBasis", label: "Fault-current input", type: "select", defaultValue: "rms", options: [
+        { value: "rms", label: "RMS symmetrical short-circuit current" },
+        { value: "peak", label: "Peak short-circuit current" }
+      ] },
+      { id: "faultCurrent", label: "Short-circuit current", type: "number", defaultValue: 50, unit: "kA", min: 0 },
+      { id: "peakFactor", label: "RMS-to-peak factor", type: "number", defaultValue: 2.2, min: 1.414, max: 3, step: 0.01, showWhen: { field: "currentBasis", values: ["rms"] }, help: "Use the project or standard-derived peak factor when known; it depends on X/R ratio and system method." },
+      { id: "spacing", label: "Busbar center spacing", type: "number", defaultValue: 100, unit: "mm", min: 0 },
+      { id: "span", label: "Unsupported span", type: "number", defaultValue: 500, unit: "mm", min: 0 },
+      { id: "supportRating", label: "Support mechanical rating", type: "number", defaultValue: 15000, unit: "N", min: 0 }
+    ],
+    formula: "For long parallel conductors, F = μ0/(2π) × ip²/a × l = 2 × 10⁻⁷ × ip² × l/a, using amperes and metres.",
+    assumptions: ["Two long straight parallel conductor paths", "Uniform spacing and current distribution", "Peak current and unsupported length represent the critical section", "End effects, multi-phase geometry, bar flexibility, resonance, and enclosure structure are excluded"],
+    warnings: ["This simplified force is not IEC 61439 assembly verification or a complete mechanical stress calculation.", "Actual design must include phase geometry, number of bars, current sharing, support layout, fasteners, material stress, dynamic response, and tested withstand data."],
+    faqs: [
+      { question: "Why use peak current instead of RMS current?", answer: "Mechanical force follows instantaneous current squared, so the first asymmetrical peak is critical. RMS current must be converted using an appropriate peak factor." },
+      { question: "What happens if spacing is halved?", answer: "The simplified force doubles because force is inversely proportional to conductor spacing." },
+      { question: "What happens if fault current doubles?", answer: "Force increases approximately four times because it is proportional to peak current squared." }
+    ],
+    relatedTools: ["short-circuit-current-calculator", "busbar-current-rating-calculator", "terminal-heating-calculator"],
+    relatedProducts: [
+      { label: "VIOX busbar-support engineering", href: "https://viox.com/contact" },
+      { label: "Busbar insulator selection guide", href: "https://viox.com/busbar-insulator-selection-guide/" }
+    ],
+    keywords: ["busbar short circuit force calculator", "electrodynamic force busbar", "busbar support spacing", "peak fault current force"]
   }
 ];
 

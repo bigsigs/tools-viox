@@ -155,6 +155,22 @@ export function calculateTool(slug: string, values: Values): CalculationResult {
       return calculatePvCombiner(values);
     case "advanced-spd-selection-calculator":
       return calculateAdvancedSpd(values);
+    case "mcb-inrush-compatibility-checker":
+      return calculateMcbInrush(values);
+    case "rcd-rcbo-selector":
+      return calculateRcdRcbo(values);
+    case "ats-selection-calculator":
+      return calculateAtsSelection(values);
+    case "cable-lug-selector":
+      return calculateCableLug(values);
+    case "battery-c-rate-runtime-calculator":
+      return calculateBatteryRuntime(values);
+    case "energy-cost-calculator":
+      return calculateEnergyCost(values);
+    case "terminal-heating-calculator":
+      return calculateTerminalHeating(values);
+    case "busbar-short-circuit-force-calculator":
+      return calculateBusbarForce(values);
     default:
       throw new Error("Unknown calculator");
   }
@@ -445,6 +461,347 @@ function calculateAdvancedSpd(values: Values): CalculationResult {
       earthing === "tt" ? "For TT, verify the 3+1 or 1+1 N-PE component, follow-current behavior, and RCD coordination." : earthing === "it" ? "IT-system SPD selection is application-specific; verify insulation-monitoring behavior, earth-fault conditions, and manufacturer approval." : "Confirm neutral treatment, pole count, conductor protection, and installation diagram."
     ]
   };
+}
+
+function calculateMcbInrush(values: Values): CalculationResult {
+  const rating = positiveNumber(values.rating, "MCB rated current");
+  const curve = str(values.curve);
+  const inrush = positiveNumber(values.inrush, "Peak inrush current");
+  const duration = positiveNumber(values.duration, "Inrush duration");
+  const faultCurrent = positiveNumber(values.faultCurrent, "Available fault current");
+  const breakingCapacity = positiveNumber(values.breakingCapacity, "MCB breaking capacity");
+  const bands: Record<string, [number, number]> = { b: [3, 5], c: [5, 10], d: [10, 20] };
+  const band = bands[curve];
+  if (!band) throw new Error("Select a valid B, C, or D curve.");
+  const multiple = inrush / rating;
+  const faultMultiple = faultCurrent / rating;
+  const magneticStatus = multiple < band[0]
+    ? "Below magnetic band"
+    : multiple < band[1]
+      ? "Inside uncertain magnetic band"
+      : "Above magnetic band";
+  const guaranteedFaultMagnetic = faultMultiple >= band[1];
+  const breakingPass = faultCurrent / 1000 <= breakingCapacity;
+  const compatible = Object.entries(bands)
+    .filter(([, range]) => multiple < range[0] && faultMultiple >= range[1])
+    .map(([name]) => name.toUpperCase());
+  return {
+    primary: `${curve.toUpperCase()} curve: ${magneticStatus}`,
+    severity: !breakingPass || !guaranteedFaultMagnetic || multiple >= band[0] ? "warning" : duration > 1000 ? "caution" : "ok",
+    summary: `${fmt(inrush)} A inrush equals ${fmt(multiple)} × In. The selected ${curve.toUpperCase()} curve magnetic band is ${band[0]}-${band[1]} × In.`,
+    metrics: [
+      { label: "Selected magnetic range", value: `${fmt(rating * band[0])}-${fmt(rating * band[1])} A` },
+      { label: "Inrush multiple", value: `${fmt(multiple)} × In for ${fmt(duration)} ms` },
+      { label: "Fault-current multiple", value: `${fmt(faultMultiple)} × In` },
+      { label: "Guaranteed magnetic threshold", value: guaranteedFaultMagnetic ? "Available fault current reaches upper threshold" : "Not demonstrated" },
+      { label: "Breaking-capacity check", value: breakingPass ? `${fmt(breakingCapacity)} kA ≥ ${fmt(faultCurrent / 1000)} kA` : "Breaking capacity is too low" },
+      { label: "Screened compatible curves", value: compatible.length ? compatible.join(", ") : "None from generic B/C/D bands" }
+    ],
+    recommendations: [
+      multiple < band[0] ? "The pulse is below the generic magnetic band, but verify thermal response and the actual manufacturer curve at the stated duration." : multiple < band[1] ? "The pulse lies inside the tolerance band; nuisance tripping is possible and cannot be resolved without the exact product curve." : "The pulse is above the upper magnetic threshold, so magnetic tripping is expected from the generic band.",
+      guaranteedFaultMagnetic ? "Available fault current reaches the conservative upper magnetic threshold; still verify required disconnection time and loop impedance." : "Do not solve inrush by selecting a slower curve until fault-loop impedance and required disconnection time are verified.",
+      breakingPass ? "Breaking capacity exceeds the entered prospective fault current." : "Select a device or coordinated assembly with breaking capacity at least equal to prospective fault current."
+    ]
+  };
+}
+
+function calculateRcdRcbo(values: Values): CalculationResult {
+  const application = str(values.application);
+  const device = str(values.device);
+  const system = str(values.system);
+  const loadCurrent = positiveNumber(values.loadCurrent, "Design current");
+  const cableAmpacity = positiveNumber(values.cableAmpacity, "Corrected cable ampacity");
+  const rating = nextSize(loadCurrent, breakerSizes.filter((size) => size <= 125));
+  const ratingPasses = rating >= loadCurrent && rating <= cableAmpacity;
+  let residualType = "Type A";
+  let sensitivity = "30 mA";
+  if (application === "appliance") residualType = "Type F starting point";
+  if (application === "pv" || application === "vfd") residualType = "Type B unless equipment instructions permit another type";
+  if (application === "ev") residualType = str(values.dcDetection) === "yes" ? "Type A with verified 6 mA DC detection" : "Type B / approved EV solution";
+  if (application === "upstream") sensitivity = str(values.upstreamRole) === "fire" ? "300 mA selective where required" : "100 mA selective starting point";
+  const poles = system === "single" ? "1P+N or 2P" : system === "three" ? "3P" : "3P+N or 4P";
+  const inrush = device === "rcbo" ? positiveNumber(values.inrushMultiple, "Inrush multiple") : 1;
+  const curve = inrush < 3 ? "B curve" : inrush < 5 ? "C curve" : inrush < 10 ? "D curve" : "Manufacturer curve required";
+  const faultCurrent = device === "rcbo" ? positiveNumber(values.faultCurrent, "Prospective fault current") : 0;
+  const breakingRatings = [6, 10, 16, 25, 36];
+  const breaking = device === "rcbo" ? nextSize(faultCurrent, breakingRatings) : 0;
+  const breakingExceeded = device === "rcbo" && faultCurrent > breakingRatings[breakingRatings.length - 1];
+  return {
+    primary: `${residualType}, ${sensitivity}`,
+    severity: !ratingPasses || breakingExceeded || application === "pv" || application === "vfd" || application === "ev" ? "caution" : "ok",
+    summary: `${device === "rcbo" ? "RCBO" : "RCD/RCCB"} starting selection: ${poles}, ${ratingPasses ? `${rating} A` : "no listed rating within cable ampacity"}${device === "rcbo" ? `, ${curve}` : ""}.`,
+    metrics: [
+      { label: "Residual-current type", value: residualType },
+      { label: "Sensitivity", value: sensitivity },
+      { label: "Pole arrangement", value: poles },
+      { label: "Rated-current check", value: ratingPasses ? `${fmt(loadCurrent)} A ≤ ${rating} A ≤ ${fmt(cableAmpacity)} A` : "Ib ≤ In ≤ Iz is not satisfied" },
+      { label: "Overcurrent curve", value: device === "rcbo" ? curve : "Separate OCPD required" },
+      { label: "Breaking capacity", value: device === "rcbo" ? breakingExceeded ? ">36 kA engineered selection required" : `${breaking} kA minimum reference` : "Check separate MCB/MCCB/fuse" }
+    ],
+    recommendations: [
+      "Verify residual-current waveform requirements in the equipment installation manual and locally adopted wiring rules.",
+      application === "ev" ? "Confirm charger-integrated RDC-DD/6 mA DC detection, earthing, upstream RCD coordination, and the approved EV charging protection architecture." : application === "pv" || application === "vfd" ? "Confirm smooth-DC and mixed-frequency leakage behavior; do not assume Type B is required or sufficient without manufacturer guidance." : "Account for normal accumulated leakage and separate circuits where one trip would remove unrelated loads.",
+      device === "rcd" ? "Provide coordinated overload and short-circuit protection because an RCD/RCCB does not perform that function." : "Verify MCB curve, breaking capacity, loop impedance, conductor protection, and neutral routing.",
+      ratingPasses ? "The rounded current rating remains within entered cable ampacity." : "Revise load, cable ampacity, or device rating; do not oversize protection beyond the conductor."
+    ]
+  };
+}
+
+function calculateAtsSelection(values: Values): CalculationResult {
+  const loadCurrent = positiveNumber(values.loadCurrent, "Maximum load current");
+  const factor = positiveNumber(values.designFactor, "ATS design factor") / 100;
+  const required = loadCurrent * factor;
+  const rating = nextSize(required, breakerSizes);
+  const exceedsRange = required > breakerSizes[breakerSizes.length - 1];
+  const system = str(values.system);
+  const neutralSwitching = str(values.neutralSwitching);
+  const integrated = str(values.integratedProtection) === "yes";
+  const source = str(values.source);
+  const loadType = str(values.loadType);
+  const faultCurrent = positiveNumber(values.faultCurrent, "Available fault current");
+  const atsClass = integrated ? "CB class ATS" : "PC class ATS";
+  const poles = system === "single"
+    ? neutralSwitching === "required" ? "2P" : "1P+N / project-specific"
+    : system === "three"
+      ? "3P"
+      : neutralSwitching === "required" ? "4P" : "3P+N / project-specific";
+  let transfer = "Mechanical ATS; hundreds of milliseconds can suit general loads";
+  let rideThrough = "No additional ride-through indicated for a non-critical load";
+  if (loadType === "motor") {
+    transfer = "Mechanical ATS with motor restart or delayed-transition review";
+    rideThrough = "Check residual voltage, retransfer, restart sequence, and load shedding";
+  } else if (loadType === "control") {
+    transfer = "Fast mechanical transfer may be considered, but test load tolerance";
+    rideThrough = "Use control-power hold-up or UPS if a 50 ms interruption is unacceptable";
+  } else if (loadType === "it") {
+    transfer = "UPS-supported ATS or STS architecture";
+    rideThrough = "UPS is normally required; ATS switching speed alone is not continuity";
+  } else if (loadType === "nobreak") {
+    transfer = "Engineered UPS/STS/energy-storage architecture";
+    rideThrough = "A mechanical ATS alone cannot provide no-break transfer during source loss";
+  }
+  if (source === "generator" && (loadType === "control" || loadType === "it" || loadType === "nobreak")) {
+    rideThrough += "; bridge generator start and stabilization time";
+  }
+  return {
+    primary: exceedsRange ? "Engineered rating above 4000 A" : `${rating} A ${atsClass}`,
+    severity: loadType === "it" || loadType === "nobreak" || faultCurrent > 65 ? "warning" : "caution",
+    summary: `Required current basis is ${fmt(required)} A. Use ${poles} switching and verify at least ${fmt(faultCurrent)} kA WCR/SCCR under the documented protective-device conditions.`,
+    metrics: [
+      { label: "Required current", value: `${fmt(loadCurrent)} A × ${fmt(factor * 100)}% = ${fmt(required)} A` },
+      { label: "ATS class", value: atsClass },
+      { label: "Pole arrangement", value: poles },
+      { label: "Transfer architecture", value: transfer },
+      { label: "Ride-through requirement", value: rideThrough },
+      { label: "Short-circuit rating", value: `WCR/SCCR ≥ ${fmt(faultCurrent)} kA with specified upstream protection` }
+    ],
+    recommendations: [
+      integrated ? "Verify breaker breaking capacity, trip-unit settings, selectivity, and the complete CB-class ATS rating." : "Coordinate the PC-class ATS with the exact upstream fuse or breaker required by its WCR/SCCR marking.",
+      "Confirm source voltage, frequency, phase sequence, transition type, interlocking, controller sensing, retransfer delay, and generator interface.",
+      neutralSwitching === "required" ? "Verify four-pole/two-pole switched-neutral requirements from source bonding, earthing, residual-current protection, and local rules." : "Document why the neutral is not switched and verify no objectionable parallel neutral path.",
+      rideThrough
+    ]
+  };
+}
+
+function calculateCableLug(values: Values): CalculationResult {
+  const sizeSystem = str(values.sizeSystem);
+  const metricSize = sizeSystem === "metric" ? positiveNumber(values.metricSize, "Metric conductor size") : lugAwgArea(str(values.awgSize));
+  const sizeLabel = sizeSystem === "metric" ? `${str(values.metricSize)} mm²` : `${str(values.awgSize)} ${Number(values.awgSize) >= 250 ? "kcmil" : "AWG"}`;
+  const conductor = str(values.conductorMaterial);
+  const terminal = str(values.terminalMaterial);
+  const environment = str(values.environment);
+  const holes = str(values.holes);
+  const termination = str(values.termination);
+  let material = conductor === "copper" ? "Copper lug" : terminal === "copper" ? "Bimetallic Al-Cu lug" : "Aluminum-rated lug";
+  const finish = conductor === "copper" && environment !== "indoor" ? "Tinned copper finish" : conductor === "copper" ? "Bare or tinned copper per environment" : "Manufacturer-approved plated transition surfaces";
+  if (termination === "mechanical") material = conductor === "aluminum" && terminal === "copper" ? "Al-Cu rated mechanical/shear-bolt lug" : `${material.replace(" lug", "")} mechanical lug`;
+  return {
+    primary: `${material}, ${sizeLabel}, ${str(values.stud)}`,
+    severity: conductor !== terminal || environment === "marine" || environment === "vibration" ? "caution" : "ok",
+    summary: `${holes === "two" ? "Two-hole anti-rotation" : "One-hole"} ${termination} termination; approximate conductor area is ${fmt(metricSize)} mm².`,
+    metrics: [
+      { label: "Conductor marking", value: sizeLabel },
+      { label: "Approximate area", value: `${fmt(metricSize)} mm²` },
+      { label: "Lug construction", value: material },
+      { label: "Palm and hole", value: `${holes === "two" ? "Two-hole" : "One-hole"}, ${str(values.stud)}` },
+      { label: "Surface selection", value: finish },
+      { label: "Termination", value: termination === "compression" ? "Compression; matched die and tool required" : "Mechanical/shear-bolt; torque instructions required" }
+    ],
+    recommendations: [
+      "Match the exact conductor size, strand class, barrel, palm width, stud hole, terminal pad, and manufacturer drawing.",
+      termination === "compression" ? "Use the approved crimp tool, die index, crimp count, orientation, inspection method, and pull/quality requirements." : "Use the specified bolt sequence and torque; verify the connector is marked for conductor material and class.",
+      conductor !== terminal ? "Use a connector explicitly rated for the dissimilar-metal transition and control galvanic corrosion, oxide, and thermal expansion." : "Prepare mating surfaces and tighten hardware according to the equipment and lug instructions.",
+      holes === "two" ? "Confirm terminal-pad hole spacing and orientation; two-hole patterns are not universal." : environment === "vibration" ? "A one-hole lug can rotate under vibration; evaluate a two-hole anti-rotation palm." : "Check anti-rotation needs and cable mechanical support."
+    ]
+  };
+}
+
+function calculateBatteryRuntime(values: Values): CalculationResult {
+  const level = str(values.level);
+  const socHigh = nonNegativeNumber(values.socHigh, "Upper SOC limit") / 100;
+  const socLow = nonNegativeNumber(values.socLow, "Lower SOC limit") / 100;
+  if (socHigh > 1 || socLow > 1 || socHigh <= socLow) throw new Error("Upper SOC must be greater than lower SOC and both must be 0-100%.");
+  const soh = positiveNumber(values.soh, "State of health") / 100;
+  const efficiency = positiveNumber(values.efficiency, "Discharge efficiency") / 100;
+  const window = socHigh - socLow;
+  if (level === "project") {
+    const energy = positiveNumber(values.energyMwh, "Rated energy");
+    const power = positiveNumber(values.powerMw, "Discharge power");
+    const usable = energy * window * soh * efficiency;
+    const runtime = usable / power;
+    const pRate = power / energy;
+    return {
+      primary: fmt(runtime),
+      unit: "hours",
+      severity: runtime < 0.5 || pRate > 2 ? "caution" : "ok",
+      summary: `${fmt(energy)} MWh at ${fmt(power)} MW provides ${fmt(runtime)} h after SOC window, SOH, and efficiency adjustments.`,
+      metrics: [
+        { label: "Nameplate duration", value: `${fmt(energy / power)} h` },
+        { label: "Usable delivered energy", value: `${fmt(usable)} MWh` },
+        { label: "P-rate", value: `${fmt(pRate)}P` },
+        { label: "SOC window / DOD", value: `${fmt(window * 100)}%` },
+        { label: "SOH and efficiency", value: `${fmt(soh * 100)}% / ${fmt(efficiency * 100)}%` }
+      ],
+      recommendations: ["Confirm guaranteed usable energy, PCS power limit, auxiliary load, temperature, degradation reserve, and warranty operating window.", "Use a time-varying dispatch model when power is not constant."]
+    };
+  }
+  const voltage = positiveNumber(values.voltage, "Nominal pack voltage");
+  const capacity = positiveNumber(values.capacityAh, "Rated capacity");
+  const current = positiveNumber(values.current, "Discharge current");
+  const nominalKwh = voltage * capacity / 1000;
+  const powerKw = voltage * current / 1000;
+  const usableKwh = nominalKwh * window * soh * efficiency;
+  const runtime = usableKwh / powerKw;
+  const cRate = current / capacity;
+  return {
+    primary: fmt(runtime),
+    unit: "hours",
+    severity: cRate > 1 ? "caution" : "ok",
+    summary: `${fmt(voltage)} V, ${fmt(capacity)} Ah at ${fmt(current)} A provides ${fmt(runtime)} h after operating-window and loss adjustments.`,
+    metrics: [
+      { label: "Nominal energy", value: `${fmt(nominalKwh)} kWh` },
+      { label: "Usable delivered energy", value: `${fmt(usableKwh)} kWh` },
+      { label: "C-rate", value: `${fmt(cRate)}C` },
+      { label: "Approximate power", value: `${fmt(powerKw)} kW` },
+      { label: "Ideal Ah-only duration", value: `${fmt(capacity / current)} h` }
+    ],
+    recommendations: ["Check cell and BMS continuous current, voltage cutoff, temperature, wiring, fuse, contactor, and DC breaking requirements.", "High C-rate, low temperature, aging, and voltage sag can reduce delivered capacity below this constant-voltage estimate."]
+  };
+}
+
+function calculateEnergyCost(values: Values): CalculationResult {
+  const power = positiveNumber(values.power, "Rated input power");
+  const quantity = positiveInteger(values.quantity, "Equipment quantity");
+  const loadFactor = positiveNumber(values.loadFactor, "Average load factor") / 100;
+  const hours = positiveNumber(values.hoursPerDay, "Operating time");
+  const days = positiveInteger(values.daysPerMonth, "Operating days per month");
+  const months = positiveInteger(values.monthsPerYear, "Operating months per year");
+  const tariff = nonNegativeNumber(values.tariff, "Energy tariff");
+  const currency = str(values.currency);
+  const averageKw = power * quantity * loadFactor;
+  const dailyKwh = averageKw * hours;
+  const monthlyKwh = dailyKwh * days;
+  const annualKwh = monthlyKwh * months;
+  const dailyCost = dailyKwh * tariff;
+  const monthlyCost = monthlyKwh * tariff;
+  const annualCost = annualKwh * tariff;
+  return {
+    primary: fmt(monthlyCost),
+    unit: `${currency}/month`,
+    severity: "ok",
+    summary: `${fmt(quantity)} unit(s) average ${fmt(averageKw)} kW and use approximately ${fmt(monthlyKwh)} kWh in an operating month.`,
+    metrics: [
+      { label: "Average operating power", value: `${fmt(averageKw)} kW` },
+      { label: "Daily energy / cost", value: `${fmt(dailyKwh)} kWh / ${currency} ${fmt(dailyCost)}` },
+      { label: "Monthly energy / cost", value: `${fmt(monthlyKwh)} kWh / ${currency} ${fmt(monthlyCost)}` },
+      { label: "Annual energy / cost", value: `${fmt(annualKwh)} kWh / ${currency} ${fmt(annualCost)}` },
+      { label: "Operating calendar", value: `${fmt(hours)} h/day, ${days} days/month, ${months} months/year` }
+    ],
+    recommendations: ["Replace rated power and estimated load factor with measured average input kW for a better result.", "Add time-of-use tariff, peak-demand charges, power-factor penalties, taxes, and fixed fees separately when they apply."]
+  };
+}
+
+function calculateTerminalHeating(values: Values): CalculationResult {
+  const current = positiveNumber(values.current, "Load current");
+  const resistance = resistanceToOhms(positiveNumber(values.resistance, "Contact resistance"), str(values.resistanceUnit || "uohm"));
+  const reference = resistanceToOhms(positiveNumber(values.referenceResistance, "Reference resistance"), str(values.referenceResistanceUnit || "uohm"));
+  const hours = nonNegativeNumber(values.hours, "Loaded time");
+  const thermalResistance = nonNegativeNumber(values.thermalResistance, "Thermal resistance");
+  const ambient = finiteNumber(values.ambient, "Ambient temperature");
+  const loss = current * current * resistance;
+  const referenceLoss = current * current * reference;
+  const voltageDrop = current * resistance;
+  const dailyWh = loss * hours;
+  const tempRise = loss * thermalResistance;
+  return {
+    primary: fmt(loss),
+    unit: "W per connection",
+    severity: resistance / reference >= 4 || ambient + tempRise > 90 ? "warning" : resistance / reference >= 2 ? "caution" : "ok",
+    summary: `${fmt(current)} A through ${formatResistance(resistance)} produces ${fmt(loss)} W localized contact loss.`,
+    metrics: [
+      { label: "Contact voltage drop", value: `${fmt(voltageDrop * 1000)} mV` },
+      { label: "Daily heat energy", value: `${fmt(dailyWh)} Wh/day` },
+      { label: "Healthy-reference loss", value: `${fmt(referenceLoss)} W` },
+      { label: "Resistance / heat multiplier", value: `${fmt(resistance / reference)}× at the same current` },
+      { label: "Estimated temperature rise", value: thermalResistance > 0 ? `${fmt(tempRise)} K; ${fmt(ambient + tempRise)} °C estimated` : "Not calculated" }
+    ],
+    recommendations: [
+      "Compare de-energized micro-ohm measurements using the same lead method, temperature, conductor position, and contact pressure.",
+      thermalResistance > 0 ? "Treat temperature as a sensitivity estimate only; validate with actual thermal testing or thermography under stable load." : "Enter a validated thermal resistance only when assembly data supports it.",
+      resistance > reference ? "Investigate torque, crimp quality, oxidation, contamination, contact pressure, conductor damage, and thermal cycling." : "The entered resistance is at or below the reference; still verify terminal temperature and manufacturer limits."
+    ]
+  };
+}
+
+function calculateBusbarForce(values: Values): CalculationResult {
+  const basis = str(values.currentBasis);
+  const faultKa = positiveNumber(values.faultCurrent, "Short-circuit current");
+  const peakFactor = basis === "rms" ? positiveNumber(values.peakFactor, "RMS-to-peak factor") : 1;
+  const peakA = faultKa * 1000 * peakFactor;
+  const spacingM = positiveNumber(values.spacing, "Busbar spacing") / 1000;
+  const spanM = positiveNumber(values.span, "Unsupported span") / 1000;
+  const supportRating = positiveNumber(values.supportRating, "Support mechanical rating");
+  const forcePerMeter = 2e-7 * peakA * peakA / spacingM;
+  const force = forcePerMeter * spanM;
+  const utilization = force / supportRating * 100;
+  return {
+    primary: fmt(force),
+    unit: "N per critical span",
+    severity: utilization > 100 ? "warning" : utilization > 70 ? "caution" : "ok",
+    summary: `${fmt(peakA / 1000)} kA peak current produces approximately ${fmt(force)} N on a ${fmt(spanM * 1000)} mm parallel-busbar span.`,
+    metrics: [
+      { label: "Peak current used", value: `${fmt(peakA / 1000)} kA` },
+      { label: "Force per metre", value: `${fmt(forcePerMeter)} N/m` },
+      { label: "Span force", value: `${fmt(force)} N / ${fmt(force / 9.80665)} kgf equivalent` },
+      { label: "Support-rating utilization", value: `${fmt(utilization)}% of entered ${fmt(supportRating)} N` },
+      { label: "Geometry", value: `${fmt(spacingM * 1000)} mm spacing, ${fmt(spanM * 1000)} mm span` }
+    ],
+    recommendations: [
+      utilization <= 70 ? "The simplified span force is below 70% of the entered support rating, but complete assembly verification is still required." : utilization <= 100 ? "The simplified force is close to the entered support rating; increase margin and perform detailed mechanical verification." : "The simplified force exceeds the entered support rating; reduce span, increase spacing, strengthen supports, or redesign the busbar system.",
+      "Verify peak current from the applicable short-circuit method and X/R ratio; do not assume a universal RMS-to-peak factor.",
+      "Include three-phase geometry, multiple bars per phase, current sharing, bar stress and deflection, insulator bending strength, fasteners, enclosure structure, resonance, and IEC 61439 verification."
+    ]
+  };
+}
+
+function lugAwgArea(size: string) {
+  const areas: Record<string, number> = { "14": 2.08, "12": 3.31, "10": 5.26, "8": 8.37, "6": 13.3, "4": 21.2, "2": 33.6, "1": 42.4, "1/0": 53.5, "2/0": 67.4, "3/0": 85, "4/0": 107, "250": 127, "350": 177, "400": 203 };
+  const area = areas[size];
+  if (!area) throw new Error("Select a valid AWG or kcmil conductor size.");
+  return area;
+}
+
+function resistanceToOhms(value: number, unit: string) {
+  if (unit === "uohm") return value / 1_000_000;
+  if (unit === "mohm") return value / 1000;
+  return value;
+}
+
+function formatResistance(ohms: number) {
+  if (ohms < 0.001) return `${fmt(ohms * 1_000_000)} µΩ`;
+  if (ohms < 1) return `${fmt(ohms * 1000)} mΩ`;
+  return `${fmt(ohms)} Ω`;
 }
 
 function calculateSpd(values: Values): CalculationResult {

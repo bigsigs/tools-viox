@@ -37,6 +37,107 @@ describe("calculateTool", () => {
     expect(result.metrics.find((item) => item.label === "Entered fuse factor")?.value).toBe("160%");
   });
 
+  it("classifies MCB inrush inside the selected magnetic band", () => {
+    const result = calculateTool("mcb-inrush-compatibility-checker", {
+      rating: 16, curve: "c", inrush: 90, duration: 100,
+      faultCurrent: 500, breakingCapacity: 6
+    });
+    expect(result.primary).toBe("C curve: Inside uncertain magnetic band");
+    expect(result.metrics.find((item) => item.label === "Inrush multiple")?.value).toContain("5.63 × In");
+  });
+
+  it("selects an EV residual-current solution based on 6 mA DC detection", () => {
+    const withoutDetection = calculateTool("rcd-rcbo-selector", {
+      application: "ev", device: "rcbo", system: "single",
+      loadCurrent: 26, cableAmpacity: 40, inrushMultiple: 2,
+      faultCurrent: 5, dcDetection: "no"
+    });
+    const withDetection = calculateTool("rcd-rcbo-selector", {
+      application: "ev", device: "rcbo", system: "single",
+      loadCurrent: 26, cableAmpacity: 40, inrushMultiple: 2,
+      faultCurrent: 5, dcDetection: "yes"
+    });
+    expect(withoutDetection.primary).toContain("Type B");
+    expect(withDetection.primary).toContain("Type A with verified 6 mA DC detection");
+  });
+
+  it("sizes a PC-class four-pole ATS with current margin", () => {
+    const result = calculateTool("ats-selection-calculator", {
+      loadCurrent: 125, designFactor: 125, system: "three-neutral",
+      neutralSwitching: "required", integratedProtection: "no",
+      source: "generator", loadType: "general", faultCurrent: 25
+    });
+    expect(result.primary).toBe("160 A PC class ATS");
+    expect(result.metrics.find((item) => item.label === "Pole arrangement")?.value).toBe("4P");
+  });
+
+  it("converts 1/0 AWG while selecting a copper cable lug", () => {
+    const result = calculateTool("cable-lug-selector", {
+      sizeSystem: "awg", awgSize: "1/0", metricSize: "50",
+      conductorMaterial: "copper", terminalMaterial: "copper",
+      stud: "M10", holes: "one", environment: "indoor",
+      termination: "compression"
+    });
+    expect(result.primary).toContain("1/0 AWG");
+    expect(result.metrics.find((item) => item.label === "Approximate area")?.value).toBe("53.5 mm²");
+  });
+
+  it("calculates pack C-rate, usable energy, and runtime", () => {
+    const result = calculateTool("battery-c-rate-runtime-calculator", {
+      level: "pack", voltage: 48, capacityAh: 200, current: 100,
+      energyMwh: 200, powerMw: 50, socHigh: 90, socLow: 10,
+      soh: 100, efficiency: 95
+    });
+    expect(result.primary).toBe("1.52");
+    expect(result.metrics.find((item) => item.label === "C-rate")?.value).toBe("0.50C");
+    expect(result.metrics.find((item) => item.label === "Usable delivered energy")?.value).toBe("7.30 kWh");
+  });
+
+  it("calculates BESS P-rate and adjusted runtime", () => {
+    const result = calculateTool("battery-c-rate-runtime-calculator", {
+      level: "project", voltage: 48, capacityAh: 200, current: 100,
+      energyMwh: 200, powerMw: 50, socHigh: 90, socLow: 10,
+      soh: 100, efficiency: 95
+    });
+    expect(result.primary).toBe("3.04");
+    expect(result.metrics.find((item) => item.label === "P-rate")?.value).toBe("0.25P");
+  });
+
+  it("calculates daily, monthly, and annual energy cost", () => {
+    const result = calculateTool("energy-cost-calculator", {
+      power: 7.5, quantity: 1, loadFactor: 80, hoursPerDay: 10,
+      daysPerMonth: 26, monthsPerYear: 12, tariff: 0.12, currency: "USD"
+    });
+    expect(result.primary).toBe("187");
+    expect(result.metrics.find((item) => item.label === "Daily energy / cost")?.value).toBe("60.0 kWh / USD 7.20");
+  });
+
+  it("calculates I squared R terminal heating", () => {
+    const result = calculateTool("terminal-heating-calculator", {
+      current: 200, resistance: 100, resistanceUnit: "uohm",
+      referenceResistance: 25, referenceResistanceUnit: "uohm",
+      hours: 12, thermalResistance: 8, ambient: 35
+    });
+    expect(result.primary).toBe("4.00");
+    expect(result.metrics.find((item) => item.label === "Contact voltage drop")?.value).toBe("20.0 mV");
+  });
+
+  it("calculates busbar electrodynamic force from RMS fault current", () => {
+    const result = calculateTool("busbar-short-circuit-force-calculator", {
+      currentBasis: "rms", faultCurrent: 50, peakFactor: 2.2,
+      spacing: 100, span: 500, supportRating: 15000
+    });
+    expect(result.primary).toBe("12100");
+    expect(result.metrics.find((item) => item.label === "Peak current used")?.value).toBe("110 kA");
+  });
+
+  it("rejects an invalid battery SOC window", () => {
+    expect(() => calculateTool("battery-c-rate-runtime-calculator", {
+      level: "pack", voltage: 48, capacityAh: 200, current: 100,
+      socHigh: 10, socLow: 90, soh: 100, efficiency: 95
+    })).toThrow("Upper SOC");
+  });
+
   it("rejects fractional conduit cable quantities", () => {
     expect(() => calculateTool("conduit-fill-calculator", {
       conduitType: "emt", tradeSize: "1", runType: "normal",
