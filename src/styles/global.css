@@ -1236,14 +1236,14 @@ select {
 }
 
 .embed-body {
-  background: #fff;
+  background: transparent;
 }
 
 .embed-shell {
   width: 100%;
   max-width: 1120px;
   margin: 0 auto;
-  padding: 14px;
+  padding: 12px;
   background: #fff;
 }
 
@@ -1265,9 +1265,8 @@ select {
 
 .embed-shell .input-panel,
 .embed-shell .result-panel {
-  border: 0;
+  border-color: var(--line);
   background: #fff;
-  box-shadow: none;
 }
 
 .embed-footer {
@@ -1276,9 +1275,11 @@ select {
   justify-content: space-between;
   gap: 18px;
   margin-top: 12px;
-  padding: 10px 2px 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 12px;
   color: var(--muted);
-  background: #fff;
+  background: var(--soft);
   font-size: 12px;
 }
 
