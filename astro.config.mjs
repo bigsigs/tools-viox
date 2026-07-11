@@ -5,5 +5,5 @@ import sitemap from "@astrojs/sitemap";
 export default defineConfig({
   site: "https://tools.viox.com",
   output: "static",
-  integrations: [react(), sitemap()]
+  integrations: [react(), sitemap({ filter: (page) => !page.includes("/embed/") })]
 });

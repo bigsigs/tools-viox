@@ -21,7 +21,7 @@ const schema = [
 ];
 ---
 
-<Layout title={`${category.title} | VIOX Electrical Tools`} description={category.description} canonical={canonical} schema={schema}>
+<Layout title={category.seoTitle} description={category.seoDescription} canonical={canonical} schema={schema}>
   <main>
     <section class="category-hero">
       <span class="eyebrow">{category.deck}</span>
@@ -33,6 +33,11 @@ const schema = [
       <div class="tool-grid">
         {categoryTools.map((tool) => <ToolCard tool={tool} />)}
       </div>
+    </section>
+
+    <section class="category-overview" aria-labelledby={`${category.slug}-overview-title`}>
+      <h2 id={`${category.slug}-overview-title`}>{category.overviewTitle}</h2>
+      {category.overview.map((paragraph) => <p>{paragraph}</p>)}
     </section>
   </main>
 </Layout>

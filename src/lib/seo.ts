@@ -3,7 +3,7 @@ import type { ToolDefinition } from "./types";
 export const site = {
   name: "VIOX Electrical Tools",
   origin: "https://tools.viox.com",
-  description: "VIOX Electrical Tools provides browser-based reference calculators for low-voltage protection, cable sizing, voltage drop, motor current, EV charging, and surge protection selection work.",
+  description: "Use 30 free electrical calculators for voltage drop, cable sizing, MCB, MCCB, SPD, fuses, motors, EV charging, busbars, ATS, and panel design.",
   logo: "https://viox.com/wp-content/uploads/2021/05/VIOX-NEW-LOGO.png"
 };
 
@@ -71,6 +71,62 @@ const toolSeoMeta: Record<string, { title: string; description: string }> = {
   "busbar-current-rating-calculator": {
     title: "Busbar Current Rating Calculator | VIOX",
     description: "Estimate copper or aluminum busbar current from width, thickness, current density, material factor, and installation derating."
+  },
+  "fuse-sizing-calculator": {
+    title: "Fuse Size Calculator: gG, aM & gPV | VIOX",
+    description: "Estimate a preliminary gG, aM, or gPV fuse size and check load current, cable or module limits, starting duty, voltage, and breaking capacity."
+  },
+  "power-factor-correction-calculator": {
+    title: "Power Factor Correction Calculator (kVAR) | VIOX",
+    description: "Calculate capacitor-bank kVAR, corrected line current, apparent-power reduction, and annual reactive-energy reduction from load and target power factor."
+  },
+  "motor-starter-selection-calculator": {
+    title: "Motor Starter Selection Calculator | VIOX",
+    description: "Estimate motor current and select a starting contactor, overload relay range, starter method, and short-circuit protection path from motor and load data."
+  },
+  "three-phase-voltage-unbalance-calculator": {
+    title: "Three Phase Voltage Unbalance Calculator | VIOX",
+    description: "Calculate maximum three-phase voltage unbalance from three line-to-line readings and screen a starting phase-monitoring relay configuration."
+  },
+  "pv-combiner-box-sizing-calculator": {
+    title: "PV Combiner Box Sizing Calculator | VIOX",
+    description: "Estimate PV string voltage, combined current, string fuse basis, output protection, SPD voltage screen, and enclosure requirements for a combiner box."
+  },
+  "advanced-spd-selection-calculator": {
+    title: "Advanced SPD Selection Calculator: Uc & Up | VIOX",
+    description: "Screen SPD Type, connection arrangement, Uc or Ucpv, protection level, lead allowance, short-circuit duty, and backup protection requirements."
+  },
+  "mcb-inrush-compatibility-checker": {
+    title: "MCB Inrush Current & Trip Curve Checker | VIOX",
+    description: "Compare equipment inrush with B, C, and D magnetic-trip bands, check nuisance-trip risk, fault-current threshold, and MCB breaking capacity."
+  },
+  "rcd-rcbo-selector": {
+    title: "RCD & RCBO Selection Calculator | VIOX",
+    description: "Select a starting RCD or RCBO type, sensitivity, poles, rated current, overcurrent curve, and breaking capacity for EV, VFD, PV, and general loads."
+  },
+  "ats-selection-calculator": {
+    title: "ATS Selection & Sizing Calculator | VIOX",
+    description: "Estimate ATS current rating, PC or CB class, 2P, 3P, or 4P arrangement, transfer architecture, load ride-through, and fault-rating requirements."
+  },
+  "cable-lug-selector": {
+    title: "Cable Lug Size & Type Selector | VIOX",
+    description: "Choose a starting cable lug by mm², AWG or kcmil size, conductor and terminal metals, stud hole, palm pattern, environment, and termination method."
+  },
+  "battery-c-rate-runtime-calculator": {
+    title: "Battery C-Rate & Runtime Calculator | VIOX",
+    description: "Calculate battery C-rate or BESS P-rate, usable energy, SOC window, DOD, SOH, efficiency, and estimated runtime from Ah, Wh, MW, or MWh inputs."
+  },
+  "energy-cost-calculator": {
+    title: "Energy Cost Calculator: kWh Cost | VIOX",
+    description: "Calculate daily, monthly, and annual electricity use and cost from equipment power, quantity, load factor, operating hours, calendar, and energy tariff."
+  },
+  "terminal-heating-calculator": {
+    title: "Terminal Heating Calculator: I²R Loss | VIOX",
+    description: "Calculate terminal contact power loss, voltage drop, daily heat energy, resistance increase, and an optional temperature-rise sensitivity estimate."
+  },
+  "busbar-short-circuit-force-calculator": {
+    title: "Busbar Short-Circuit Force Calculator | VIOX",
+    description: "Estimate peak electrodynamic force between parallel busbars from short-circuit current, peak factor, conductor spacing, support span, and support rating."
   }
 };
 
