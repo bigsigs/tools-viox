@@ -32,6 +32,10 @@ const toolSeoMeta: Record<string, { title: string; description: string }> = {
     title: "AWG Wire Size Calculator: Ampacity & Drop | VIOX",
     description: "Find the smallest listed AWG wire size that passes reference ampacity, continuous-load, conductor bundling, and voltage-drop checks."
   },
+  "mm2-to-awg-converter": {
+    title: "Free mm² to AWG and AWG to mm² Converter + Chart | VIOX",
+    description: "Free mm² to AWG and AWG to mm² converter with a full chart. Compare exact area, nearest gauge, not-smaller size, diameter, and conversion error."
+  },
   "circuit-breaker-size-calculator": {
     title: "Circuit Breaker Size Calculator | VIOX",
     description: "Estimate a standard breaker current rating from load power, voltage, phase, power factor, and sizing factor for preliminary MCB or MCCB selection."

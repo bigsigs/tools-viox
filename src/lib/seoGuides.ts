@@ -17,6 +17,40 @@ export type SeoGuide = {
   sections: SeoGuideSection[];
 };
 
+const awgSeoReference = Array.from({ length: 44 }, (_, index) => {
+  const gauge = 40 - index;
+  const label = gauge > 0 ? String(gauge) : `${1 - gauge}/0`;
+  const area = 0.012668 * Math.pow(92, (36 - gauge) / 19.5);
+  const diameter = 0.127 * Math.pow(92, (36 - gauge) / 39);
+  return { gauge, label, area, diameter };
+});
+
+const metricSeoSizes = [0.5, 0.75, 1, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50, 70, 95, 120];
+
+function seoSize(value: number) {
+  if (value < 0.1) return value.toFixed(4);
+  if (value < 1) return value.toFixed(3);
+  if (value < 10) return value.toFixed(2);
+  return value.toFixed(1);
+}
+
+const metricToAwgRows = metricSeoSizes.map((metric) => {
+  const nearest = awgSeoReference.reduce((best, item) => Math.abs(item.area - metric) < Math.abs(best.area - metric) ? item : best);
+  const notSmaller = awgSeoReference.find((item) => item.area >= metric);
+  return [
+    `${seoSize(metric)} mm²`,
+    `${nearest.label} AWG`,
+    `${seoSize(nearest.area)} mm²`,
+    notSmaller ? `${notSmaller.label} AWG` : "Above 4/0 AWG"
+  ];
+});
+
+const awgToMetricRows = awgSeoReference.map((item) => [
+  `${item.label} AWG`,
+  `${seoSize(item.area)} mm²`,
+  `${seoSize(item.diameter)} mm`
+]);
+
 export const seoGuidesBySlug: Record<string, SeoGuide> = {
   "voltage-drop-calculator": {
     sections: [
@@ -402,6 +436,65 @@ export const seoGuidesBySlug: Record<string, SeoGuide> = {
           { label: "Conduit Fill Calculator", href: "/conduit-fill-calculator/" },
           { label: "DC Voltage Drop Calculator", href: "/dc-voltage-drop-calculator/" },
           { label: "Circuit Breaker Size Calculator", href: "/circuit-breaker-size-calculator/" }
+        ]
+      }
+    ]
+  },
+  "mm2-to-awg-converter": {
+    sections: [
+      {
+        title: "How to convert mm² to AWG",
+        paragraphs: [
+          "Enter the conductor cross-sectional area in square millimeters. The calculator applies the AWG geometric equation, identifies the closest listed AWG area, and separately identifies the first AWG size whose nominal area is not smaller than the input."
+        ],
+        steps: [
+          "Choose mm² to AWG.",
+          "Enter the marked metric conductor area.",
+          "Read the theoretical gauge and nearest listed AWG.",
+          "Use the not-smaller result when conductor area must not decrease.",
+          "Confirm the actual cable, lug, terminal, and crimp range."
+        ]
+      },
+      {
+        title: "mm² to AWG conversion chart",
+        paragraphs: [
+          "Metric and AWG sizes do not align exactly. For example, 4 mm² is mathematically closest to 11 AWG at about 4.17 mm², while 12 AWG is only about 3.31 mm². A familiar market pairing is not necessarily the closest cross-sectional-area conversion."
+        ],
+        table: {
+          headers: ["Metric size", "Nearest AWG by area", "AWG nominal area", "Not-smaller AWG"],
+          rows: metricToAwgRows
+        }
+      },
+      {
+        title: "How to convert AWG to mm²",
+        paragraphs: [
+          "Select an AWG size from 40 AWG through 4/0 AWG. The result shows its nominal solid-wire area, nominal solid-wire diameter, closest common metric area, and the first metric nominal size that is not smaller."
+        ],
+        callouts: [
+          "12 AWG ≈ 3.31 mm²",
+          "1/0 AWG ≈ 53.5 mm²",
+          "4/0 AWG ≈ 107.2 mm²"
+        ]
+      },
+      {
+        title: "AWG to mm² conversion chart",
+        paragraphs: [
+          "This reference table covers every calculator selection from 40 AWG through 4/0 AWG. Diameter is the nominal solid-wire reference, not the outside diameter of a stranded or insulated cable."
+        ],
+        table: {
+          headers: ["AWG size", "Cross-sectional area", "Solid-wire diameter"],
+          rows: awgToMetricRows
+        }
+      },
+      {
+        title: "Conversion is not ampacity selection",
+        paragraphs: [
+          "Equal or similar cross-sectional area does not prove equal ampacity, voltage-drop performance, terminal compatibility, or code compliance. Conductor material, strand class, insulation temperature, installation method, ambient temperature, grouping, and terminal ratings still control the final selection."
+        ],
+        links: [
+          { label: "AWG Wire Size Calculator", href: "/awg-wire-size-calculator/" },
+          { label: "Cable Lug Selector", href: "/cable-lug-selector/" },
+          { label: "Voltage Drop Calculator", href: "/voltage-drop-calculator/" }
         ]
       }
     ]

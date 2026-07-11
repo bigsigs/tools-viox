@@ -36,6 +36,11 @@ const optionalConduitCableOptions = [
 
 const awgOptions = ["18", "16", "14", "12", "10", "8", "6", "4", "3", "2", "1", "1/0", "2/0", "3/0", "4/0"].map((size) => ({ value: size, label: `${size} AWG` }));
 
+const conversionAwgOptions = [
+  ...Array.from({ length: 40 }, (_, index) => String(40 - index)),
+  "1/0", "2/0", "3/0", "4/0"
+].map((size) => ({ value: size, label: `${size} AWG` }));
+
 const currentUnitOptions = [
   { value: "A", label: "A" },
   { value: "mA", label: "mA" },
@@ -273,11 +278,41 @@ export const tools: ToolDefinition[] = [
       { question: "Why can voltage drop force a larger wire than ampacity?", answer: "Long routes can pass current capacity but lose too much voltage before the load, especially on low-voltage circuits." },
       { question: "Why does continuous load change the result?", answer: "Continuous loads are commonly sized at 125%, so the conductor must have more ampacity headroom." }
     ],
-    relatedTools: ["dc-voltage-drop-calculator", "conduit-fill-calculator", "circuit-breaker-size-calculator"],
+    relatedTools: ["mm2-to-awg-converter", "dc-voltage-drop-calculator", "conduit-fill-calculator"],
     relatedProducts: [
       { label: "VIOX selection support", href: "https://viox.com/contact" }
     ],
     keywords: ["awg wire size calculator", "wire gauge calculator", "nec wire size", "awg voltage drop"]
+  },
+  {
+    slug: "mm2-to-awg-converter",
+    title: "mm² to AWG & AWG to mm² Converter",
+    shortTitle: "mm² / AWG",
+    category: "cable-wiring",
+    description: "Convert conductor cross-sectional area between metric mm² and American Wire Gauge, with nearest and not-smaller standard-size references.",
+    intent: "Quick bidirectional conductor-size comparison for cable, lug, gland, terminal, and datasheet work.",
+    fields: [
+      { id: "direction", label: "Conversion direction", type: "select", defaultValue: "mm2-to-awg", options: [
+        { value: "mm2-to-awg", label: "mm² → AWG" },
+        { value: "awg-to-mm2", label: "AWG → mm²" }
+      ] },
+      { id: "metricArea", label: "Metric conductor area", type: "number", defaultValue: 4, unit: "mm²", min: 0.001, step: 0.01, showWhen: { field: "direction", values: ["mm2-to-awg"] } },
+      { id: "awgSize", label: "AWG size", type: "select", defaultValue: "12", options: conversionAwgOptions, showWhen: { field: "direction", values: ["awg-to-mm2"] } }
+    ],
+    formula: "AWG diameter follows a 92:1 geometric progression from 36 AWG at 0.0050 inch to 4/0 AWG at 0.4600 inch. Cross-sectional area is calculated from the nominal solid-wire diameter; the reverse equation gives the theoretical gauge for any entered mm² value.",
+    assumptions: ["AWG range is 40 AWG through 4/0 AWG", "Calculated diameter is the nominal solid round conductor reference", "Metric comparison uses common IEC-style nominal cross-sectional areas"],
+    warnings: ["A numerical conversion does not make metric and AWG cables, lugs, terminals, or crimp dies interchangeable.", "Stranded conductor outside diameter depends on strand class, compaction, insulation, and manufacturer construction; it cannot be inferred from conductor area alone."],
+    faqs: [
+      { question: "Why are the nearest and not-smaller sizes sometimes different?", answer: "The nearest gauge minimizes cross-sectional-area error, but it can be slightly smaller than the entered conductor. The not-smaller result is the first listed size whose nominal area is at least the entered area." },
+      { question: "Is 4 mm² the same as 12 AWG?", answer: "No. The nominal area of 12 AWG is about 3.31 mm², while 11 AWG is about 4.17 mm². Product availability and local conventions may still pair sizes differently, so use the actual cable marking." },
+      { question: "Can this converter determine cable ampacity?", answer: "No. Ampacity depends on conductor material, insulation, temperature, installation method, grouping, terminals, and the applicable wiring standard." }
+    ],
+    relatedTools: ["awg-wire-size-calculator", "cable-lug-selector", "voltage-drop-calculator"],
+    relatedProducts: [
+      { label: "VIOX cable and terminal support", href: "https://viox.com/contact" },
+      { label: "Cable lug size and selection guide", href: "https://viox.com/copper-lug-size-chart-types-awg-mm2-selection-guide/" }
+    ],
+    keywords: ["mm2 to awg converter", "awg to mm2 calculator", "wire gauge conversion", "cable size conversion", "mm² to AWG"]
   },
   {
     slug: "circuit-breaker-size-calculator",

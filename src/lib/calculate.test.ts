@@ -46,6 +46,44 @@ describe("calculateTool", () => {
     expect(result.metrics.find((item) => item.label === "Inrush multiple")?.value).toContain("5.63 × In");
   });
 
+  it("converts metric conductor area to nearest and not-smaller AWG sizes", () => {
+    const result = calculateTool("mm2-to-awg-converter", {
+      direction: "mm2-to-awg", metricArea: 4, awgSize: "12"
+    });
+    expect(result.primary).toBe("11 AWG");
+    expect(result.metrics.find((item) => item.label === "Nearest nominal AWG area")?.value).toBe("11 AWG / 4.17 mm²");
+    expect(result.metrics.find((item) => item.label === "Not-smaller AWG")?.value).toBe("11 AWG / 4.17 mm²");
+  });
+
+  it("converts aught AWG notation to nominal square millimeters", () => {
+    const result = calculateTool("mm2-to-awg-converter", {
+      direction: "awg-to-mm2", metricArea: 4, awgSize: "1/0"
+    });
+    expect(result.primary).toBe("53.5");
+    expect(result.unit).toBe("mm²");
+    expect(result.metrics.find((item) => item.label === "Not-smaller metric size")?.value).toBe("70.0 mm²");
+  });
+
+  it("matches the defined AWG endpoint areas", () => {
+    const awg36 = calculateTool("mm2-to-awg-converter", {
+      direction: "awg-to-mm2", metricArea: 4, awgSize: "36"
+    });
+    const awg4o = calculateTool("mm2-to-awg-converter", {
+      direction: "awg-to-mm2", metricArea: 4, awgSize: "4/0"
+    });
+    expect(awg36.primary).toBe("0.0127");
+    expect(awg4o.primary).toBe("107.2");
+  });
+
+  it("does not mislabel metric conductors above the 4/0 AWG range", () => {
+    const result = calculateTool("mm2-to-awg-converter", {
+      direction: "mm2-to-awg", metricArea: 120, awgSize: "12"
+    });
+    expect(result.primary).toBe("Larger than 4/0 AWG");
+    expect(result.metrics.find((item) => item.label === "Not-smaller AWG")?.value).toBe("Above 4/0 AWG range");
+    expect(result.metrics.find((item) => item.label === "Equivalent circular area")?.value).toBe("236.8 kcmil");
+  });
+
   it("selects an EV residual-current solution based on 6 mA DC detection", () => {
     const withoutDetection = calculateTool("rcd-rcbo-selector", {
       application: "ev", device: "rcbo", system: "single",

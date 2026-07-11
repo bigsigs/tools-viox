@@ -261,6 +261,44 @@ export const equationsBySlug: Record<string, ToolEquation> = {
     ],
     conclusion: "The internal ampacity table is simplified for planning; final conductor sizing must follow the applicable NEC, IEC, BS, or local standard."
   },
+  "mm2-to-awg-converter": {
+    title: "mm² and AWG conversion equations",
+    intro: "American Wire Gauge is a geometric diameter scale. The conversion first calculates nominal solid-wire diameter, then derives circular cross-sectional area; the inverse equation estimates the theoretical AWG number for an entered metric area.",
+    equations: [
+      {
+        label: "AWG nominal diameter",
+        expression: "d = 0.127 × 92^((36-n)/39)",
+        mathml: `<math display="block" aria-label="d equals 0.127 times 92 raised to the power of 36 minus n over 39">
+          <mi>d</mi><mo>=</mo><mn>0.127</mn><mo>×</mo>
+          <msup><mn>92</mn><mfrac><mrow><mn>36</mn><mo>−</mo><mi>n</mi></mrow><mn>39</mn></mfrac></msup>
+        </math>`
+      },
+      {
+        label: "AWG to square millimeters",
+        expression: "A = πd²/4 = 0.012668 × 92^((36-n)/19.5)",
+        mathml: `<math display="block" aria-label="A equals pi d squared over four equals 0.012668 times 92 raised to the power of 36 minus n over 19.5">
+          <mi>A</mi><mo>=</mo><mfrac><mrow><mi>π</mi><msup><mi>d</mi><mn>2</mn></msup></mrow><mn>4</mn></mfrac>
+          <mo>=</mo><mn>0.012668</mn><mo>×</mo>
+          <msup><mn>92</mn><mfrac><mrow><mn>36</mn><mo>−</mo><mi>n</mi></mrow><mn>19.5</mn></mfrac></msup>
+        </math>`
+      },
+      {
+        label: "Square millimeters to theoretical AWG",
+        expression: "n = 36 - 19.5 × ln(A/0.012668) / ln(92)",
+        mathml: `<math display="block" aria-label="n equals 36 minus 19.5 times natural log of A over 0.012668 divided by natural log of 92">
+          <mi>n</mi><mo>=</mo><mn>36</mn><mo>−</mo><mn>19.5</mn><mo>×</mo>
+          <mfrac><mrow><mi>ln</mi><mo>(</mo><mfrac><mi>A</mi><mn>0.012668</mn></mfrac><mo>)</mo></mrow><mrow><mi>ln</mi><mo>(</mo><mn>92</mn><mo>)</mo></mrow></mfrac>
+        </math>`
+      }
+    ],
+    symbols: [
+      { symbol: "n", meaning: "AWG gauge number; 1/0, 2/0, 3/0, and 4/0 correspond to 0, -1, -2, and -3" },
+      { symbol: "d", meaning: "Nominal diameter of the equivalent solid round wire", unit: "mm" },
+      { symbol: "A", meaning: "Nominal conductor cross-sectional area", unit: "mm²" },
+      { symbol: "ln", meaning: "Natural logarithm used to invert the AWG area equation" }
+    ],
+    conclusion: "Metric nominal sizes and AWG sizes are independent series. The nearest numerical area may be smaller than the entered size, so the calculator also reports a not-smaller reference."
+  },
   "circuit-breaker-size-calculator": {
     title: "Circuit breaker sizing equation",
     intro: "This calculator estimates the load current, applies a sizing factor, and rounds up to the next common breaker rating.",

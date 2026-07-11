@@ -111,6 +111,14 @@ const awgConductors = [
   { size: "4/0 AWG", key: "4/0", copperOhmPer1000Ft: 0.049, copperAmpacity: 195, aluminumAmpacity: 150 }
 ];
 
+const awgConversionTable = Array.from({ length: 44 }, (_, index) => {
+  const gauge = 40 - index;
+  const area = 0.012668 * Math.pow(92, (36 - gauge) / 19.5);
+  return { gauge, label: awgGaugeLabel(gauge), area };
+});
+
+const metricConductorSizes = [0.5, 0.75, 1, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50, 70, 95, 120, 150, 185, 240, 300, 400, 500, 630, 800, 1000, 1200, 1600, 2000, 2500];
+
 export function calculateTool(slug: string, values: Values): CalculationResult {
   switch (slug) {
     case "spd-calculator":
@@ -125,6 +133,8 @@ export function calculateTool(slug: string, values: Values): CalculationResult {
       return calculateDcVoltageDrop(values);
     case "awg-wire-size-calculator":
       return calculateAwgWireSize(values);
+    case "mm2-to-awg-converter":
+      return calculateMm2Awg(values);
     case "circuit-breaker-size-calculator":
       return calculateBreakerSize(values);
     case "transformer-sizing-calculator":
@@ -1069,6 +1079,68 @@ function calculateAwgWireSize(values: Values): CalculationResult {
   };
 }
 
+function calculateMm2Awg(values: Values): CalculationResult {
+  const direction = str(values.direction);
+
+  if (direction === "mm2-to-awg") {
+    const area = positiveNumber(values.metricArea, "Metric conductor area");
+    const nearest = awgConversionTable.reduce((best, item) => Math.abs(item.area - area) < Math.abs(best.area - area) ? item : best);
+    const notSmaller = awgConversionTable.find((item) => item.area >= area);
+    const theoreticalGauge = 36 - 19.5 * Math.log(area / 0.012668) / Math.log(92);
+    const minimum = awgConversionTable[0];
+    const maximum = awgConversionTable[awgConversionTable.length - 1];
+    const belowRange = area < minimum.area;
+    const aboveRange = area > maximum.area;
+    const primary = belowRange ? "Smaller than 40 AWG" : aboveRange ? "Larger than 4/0 AWG" : `${nearest.label} AWG`;
+
+    return {
+      primary,
+      severity: belowRange || aboveRange ? "caution" : "ok",
+      summary: `${formatArea(area)} mm² is mathematically closest to ${nearest.label} AWG at ${formatArea(nearest.area)} mm².`,
+      metrics: [
+        { label: "Theoretical gauge", value: `${theoreticalGauge.toFixed(2)} AWG` },
+        { label: "Nearest nominal AWG area", value: `${nearest.label} AWG / ${formatArea(nearest.area)} mm²` },
+        { label: "Nearest area difference", value: signedPercent((nearest.area - area) / area * 100) },
+        { label: "Not-smaller AWG", value: notSmaller ? `${notSmaller.label} AWG / ${formatArea(notSmaller.area)} mm²` : "Above 4/0 AWG range" },
+        { label: "Equivalent circular area", value: `${formatArea(area / 0.506707479)} kcmil` }
+      ],
+      recommendations: [
+        nearest.area < area && notSmaller ? `The closest gauge is smaller than the entered area; use at least ${notSmaller.label} AWG when cross-sectional area must not decrease.` : "The nearest listed gauge is not smaller than the entered cross-sectional area.",
+        "Use the actual conductor marking and the cable, terminal, lug, and crimp-die manufacturer's approved size range before ordering."
+      ]
+    };
+  }
+
+  if (direction === "awg-to-mm2") {
+    const gauge = parseAwgGauge(str(values.awgSize));
+    const match = awgConversionTable.find((item) => item.gauge === gauge);
+    if (!match) throw new Error("Select an AWG size from 40 AWG through 4/0 AWG.");
+    const diameter = Math.sqrt(4 * match.area / Math.PI);
+    const nearestMetric = metricConductorSizes.reduce((best, item) => Math.abs(item - match.area) < Math.abs(best - match.area) ? item : best);
+    const notSmallerMetric = metricConductorSizes.find((item) => item >= match.area);
+
+    return {
+      primary: formatArea(match.area),
+      unit: "mm²",
+      severity: "ok",
+      summary: `${match.label} AWG has a nominal solid-wire cross-sectional area of approximately ${formatArea(match.area)} mm².`,
+      metrics: [
+        { label: "AWG size", value: `${match.label} AWG` },
+        { label: "Nominal solid-wire diameter", value: `${formatLength(diameter)} mm` },
+        { label: "Nearest metric nominal size", value: `${formatArea(nearestMetric)} mm²` },
+        { label: "Nearest metric difference", value: signedPercent((nearestMetric - match.area) / match.area * 100) },
+        { label: "Not-smaller metric size", value: notSmallerMetric ? `${formatArea(notSmallerMetric)} mm²` : "Above 2500 mm² range" }
+      ],
+      recommendations: [
+        nearestMetric < match.area && notSmallerMetric ? `The nearest metric size is smaller by area; use at least ${formatArea(notSmallerMetric)} mm² when cross-sectional area must not decrease.` : "The nearest common metric size is not smaller than the AWG nominal area.",
+        "Do not use the solid-wire diameter as cable outside diameter; strand construction and insulation determine the finished cable diameter."
+      ]
+    };
+  }
+
+  throw new Error("Select a valid conversion direction.");
+}
+
 function calculateBreakerSize(values: Values): CalculationResult {
   const phase = str(values.phase);
   const kw = positiveNumber(values.power, "Load power");
@@ -1465,6 +1537,36 @@ function finiteNumber(value: unknown, label: string) {
 
 function str(value: unknown) {
   return String(value ?? "");
+}
+
+function awgGaugeLabel(gauge: number) {
+  return gauge > 0 ? String(gauge) : `${1 - gauge}/0`;
+}
+
+function parseAwgGauge(value: string) {
+  if (/^[1-4]\/0$/.test(value)) return 1 - Number(value[0]);
+  return Number(value);
+}
+
+function formatArea(value: number) {
+  if (value < 0.01) return value.toFixed(4);
+  if (value < 0.1) return value.toFixed(4);
+  if (value < 1) return value.toFixed(3);
+  if (value < 10) return value.toFixed(2);
+  if (value < 100) return value.toFixed(1);
+  if (value < 1000) return value.toFixed(1);
+  return value.toFixed(0);
+}
+
+function formatLength(value: number) {
+  if (value < 0.1) return value.toFixed(3);
+  if (value < 1) return value.toFixed(2);
+  return value.toFixed(2);
+}
+
+function signedPercent(value: number) {
+  const prefix = value > 0 ? "+" : "";
+  return `${prefix}${value.toFixed(2)}%`;
 }
 
 function fmt(value: number) {
