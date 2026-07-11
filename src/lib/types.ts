@@ -5,7 +5,9 @@ export type ToolCategory =
   | "motor-control"
   | "ev-charging"
   | "power-conversion"
-  | "panel-design";
+  | "panel-design"
+  | "basic-conversion"
+  | "solar-storage";
 
 export type ToolFieldOption = {
   label: string;

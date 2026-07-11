@@ -10,6 +10,26 @@ export const categories: Record<ToolCategory, {
   overviewTitle: string;
   overview: string[];
 }> = {
+  "basic-conversion": {
+    slug: "basic-conversion",
+    title: "Basic Electrical & Conversion Tools",
+    deck: "Ohm's law, watts, amps, volts, and unit conversions",
+    description: "Fast calculators for everyday electrical formulas, resistance networks, charging time, and engineering unit conversions.",
+    seoTitle: "Ohm's Law, Watts to Amps & Electrical Converters | VIOX",
+    seoDescription: "Use free Ohm's law, watts-to-amps, resistor, battery charging-time, power, energy, and electrical unit conversion calculators online.",
+    overviewTitle: "Solve everyday electrical quantities quickly",
+    overview: ["These tools turn common voltage, current, resistance, power, energy, and charging relationships into quick browser calculations.", "Confirm units before using a result in cable, breaker, battery, or equipment selection, and continue with the related engineering calculator where required."]
+  },
+  "solar-storage": {
+    slug: "solar-storage",
+    title: "Solar & Energy Storage Tools",
+    deck: "PV strings, off-grid systems, batteries, and DC protection",
+    description: "Calculators for PV string voltage, off-grid solar and battery sizing, combiner boxes, and storage planning.",
+    seoTitle: "Solar PV String & Battery Storage Calculators | VIOX",
+    seoDescription: "Calculate PV string length, off-grid solar array size, battery capacity, inverter power, combiner protection, and storage runtime.",
+    overviewTitle: "Connect the PV module, battery, inverter, and protection chain",
+    overview: ["Solar design starts with temperature-corrected module voltage and daily energy demand, then moves through strings, MPPT limits, batteries, inverters, DC protection, combiner boxes, and SPDs.", "Final equipment selection must use the exact module and inverter datasheets, battery operating limits, local solar rules, and manufacturer coordination data."]
+  },
   "surge-protection": {
     slug: "surge-protection",
     title: "Surge Protection Tools",

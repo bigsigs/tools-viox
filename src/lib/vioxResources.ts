@@ -1,4 +1,5 @@
 import type { ToolLink } from "./types";
+import { expansionResources } from "./expansionResources";
 
 type VioxResourceSet = {
   articles: ToolLink[];
@@ -128,5 +129,6 @@ export const vioxResourcesByTool: Record<string, VioxResourceSet> = {
   "busbar-short-circuit-force-calculator": {
     articles: [{ label: "Busbar insulator selection guide", href: "https://viox.com/busbar-insulator-selection-guide/" }],
     products: [{ label: "VIOX busbar insulators", href: "https://viox.com/busbar-insulator/" }]
-  }
+  },
+  ...expansionResources
 };

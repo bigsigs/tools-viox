@@ -1,4 +1,5 @@
 import type { ToolEquation } from "./types";
+import { expansionEquations } from "./expansionEquations";
 
 export const equationsBySlug: Record<string, ToolEquation> = {
   "spd-calculator": {
@@ -1018,5 +1019,6 @@ export const equationsBySlug: Record<string, ToolEquation> = {
       { symbol: "kpeak", meaning: "Project-derived RMS-to-peak factor" }
     ],
     conclusion: "The square-law relationship means doubling peak current creates about four times the force. Complete busbar and support verification remains an assembly-level engineering task."
-  }
+  },
+  ...expansionEquations
 };

@@ -1,4 +1,5 @@
 import type { ToolDefinition } from "./types";
+import { expansionTools } from "./expansionTools";
 
 const phaseOptions = [
   { value: "dc", label: "DC" },
@@ -421,7 +422,7 @@ export const tools: ToolDefinition[] = [
     slug: "kw-kva-amp-calculator",
     title: "kW, kVA and Amp Calculator",
     shortTitle: "kW/kVA/Amp",
-    category: "power-conversion",
+    category: "basic-conversion",
     description: "Convert between kW, kVA, and current for DC, single-phase AC, and three-phase AC systems.",
     intent: "Fast electrical power conversion before equipment sizing.",
     fields: [
@@ -448,7 +449,7 @@ export const tools: ToolDefinition[] = [
     slug: "three-phase-current-calculator",
     title: "Three Phase Current Calculator",
     shortTitle: "3-Phase Current",
-    category: "power-conversion",
+    category: "basic-conversion",
     description: "Calculate three-phase current from kW or kVA, line voltage, power factor, and efficiency.",
     intent: "Current estimate for balanced three-phase loads.",
     fields: [
@@ -791,7 +792,7 @@ export const tools: ToolDefinition[] = [
     slug: "pv-combiner-box-sizing-calculator",
     title: "PV Combiner Box Sizing Calculator",
     shortTitle: "PV Combiner Box",
-    category: "panel-design",
+    category: "solar-storage",
     description: "Size key PV combiner-box ratings from module Voc, Isc, temperature coefficient, series modules, parallel strings, cable ampacity, and lightning exposure.",
     intent: "Coordinate preliminary gPV fuse, output current, isolator or breaker, DC SPD, voltage class, and enclosure requirements.",
     fields: [
@@ -1088,7 +1089,7 @@ export const tools: ToolDefinition[] = [
     slug: "battery-c-rate-runtime-calculator",
     title: "Battery C-Rate & Runtime Calculator",
     shortTitle: "Battery Runtime",
-    category: "power-conversion",
+    category: "solar-storage",
     description: "Calculate battery C-rate, P-rate, nominal and usable energy, discharge current, and estimated runtime for packs or BESS projects.",
     intent: "Compare cell/pack Ah calculations with project-level MW and MWh duration while accounting for SOC window, SOH, and efficiency.",
     fields: [
@@ -1223,7 +1224,8 @@ export const tools: ToolDefinition[] = [
       { label: "Busbar insulator selection guide", href: "https://viox.com/busbar-insulator-selection-guide/" }
     ],
     keywords: ["busbar short circuit force calculator", "electrodynamic force busbar", "busbar support spacing", "peak fault current force"]
-  }
+  },
+  ...expansionTools
 ];
 
 export const toolsBySlug = Object.fromEntries(tools.map((tool) => [tool.slug, tool])) as Record<string, ToolDefinition>;

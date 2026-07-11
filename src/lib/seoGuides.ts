@@ -17,6 +17,8 @@ export type SeoGuide = {
   sections: SeoGuideSection[];
 };
 
+import { expansionSeoGuides } from "./expansionSeoGuides";
+
 const awgSeoReference = Array.from({ length: 44 }, (_, index) => {
   const gauge = 40 - index;
   const label = gauge > 0 ? String(gauge) : `${1 - gauge}/0`;
@@ -1222,5 +1224,6 @@ export const seoGuidesBySlug: Record<string, SeoGuide> = {
       { title: "Square-law current effect", paragraphs: ["Force is proportional to peak current squared, proportional to unsupported length, and inversely proportional to spacing. Doubling peak current creates approximately four times the force; halving span approximately halves force."] },
       { title: "Limits of the simplified model", paragraphs: ["Real three-phase busbars include multiple conductors, unequal current sharing, end effects, bar flexibility, fastener loads, insulator bending, enclosure structure, and dynamic response. Final withstand must be verified for the complete assembly under the applicable standard."] }
     ]
-  }
+  },
+  ...expansionSeoGuides
 };

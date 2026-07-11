@@ -1,4 +1,5 @@
 import type { CalculationResult } from "./types";
+import { calculateExpansionTool } from "./expansionCalculate";
 
 type Values = Record<string, string | number>;
 
@@ -182,7 +183,7 @@ export function calculateTool(slug: string, values: Values): CalculationResult {
     case "busbar-short-circuit-force-calculator":
       return calculateBusbarForce(values);
     default:
-      throw new Error("Unknown calculator");
+      return calculateExpansionTool(slug, values);
   }
 }
 

@@ -3,7 +3,7 @@ import type { ToolDefinition } from "./types";
 export const site = {
   name: "VIOX Electrical Tools",
   origin: "https://tools.viox.com",
-  description: "Use 30 free electrical calculators for voltage drop, cable sizing, MCB, MCCB, SPD, fuses, motors, EV charging, busbars, ATS, and panel design.",
+  description: "Use 50 free electrical calculators for voltage, cable, MCB, MCCB, SPD, motors, solar, batteries, EV charging, busbars, and panel design.",
   logo: "https://viox.com/wp-content/uploads/2021/05/VIOX-NEW-LOGO.png"
 };
 
@@ -131,11 +131,14 @@ const toolSeoMeta: Record<string, { title: string; description: string }> = {
 };
 
 export function toolTitle(tool: ToolDefinition) {
-  return toolSeoMeta[tool.slug]?.title ?? `${tool.title} | VIOX Electrical Tools`;
+  return toolSeoMeta[tool.slug]?.title ?? `${tool.shortTitle ?? tool.title} Calculator & Guide | VIOX`;
 }
 
 export function toolDescription(tool: ToolDefinition) {
-  return toolSeoMeta[tool.slug]?.description ?? tool.description;
+  if (toolSeoMeta[tool.slug]?.description) return toolSeoMeta[tool.slug].description;
+  const text = `${tool.description} ${tool.intent}`;
+  if (text.length <= 165) return text;
+  return `${text.slice(0, 161).replace(/\s+\S*$/, "")}...`;
 }
 
 export function toolUrl(tool: ToolDefinition) {
