@@ -82,6 +82,7 @@ select {
 .calculator-shell,
 .detail-grid,
 .category-hero,
+.category-overview,
 .cta-strip {
   width: min(var(--max), calc(100% - 40px));
   margin-inline: auto;
