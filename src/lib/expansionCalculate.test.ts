@@ -112,4 +112,19 @@ describe("20-calculator expansion reference cases", () => {
     const star = Number.parseFloat(metric("motor-starting-voltage-drop-calculator", "Starting current", { method: "star-delta" }) ?? "0");
     expect(star).toBeCloseTo(dol / 3, 0);
   });
+
+  it("sizes a VFD from output current and exposes VIOX panel coordination checks", () => {
+    const result = calculateTool("vfd-sizing-protection-calculator", defaults("vfd-sizing-protection-calculator"));
+    expect(result.primary).toBe("≥ 68.97 A output");
+    expect(metric("vfd-sizing-protection-calculator", "Input protection reference")).toMatch(/A; exact VFD manual governs/);
+    expect(metric("vfd-sizing-protection-calculator", "Estimated VFD panel heat")).toMatch(/W$/);
+  });
+
+  it("exposes both IEEE 1584 arcing-current scenarios without assigning PPE", () => {
+    const result = calculateTool("arc-flash-incident-energy-calculator", defaults("arc-flash-incident-energy-calculator"));
+    expect(result.primary).toMatch(/cal\/cm²$/);
+    expect(metric("arc-flash-incident-energy-calculator", "Reduced arcing current")).toMatch(/kA$/);
+    expect(metric("arc-flash-incident-energy-calculator", "Worst-case boundary")).toMatch(/mm$/);
+    expect(result.summary).toContain("not a PPE category");
+  });
 });

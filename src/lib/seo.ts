@@ -3,7 +3,7 @@ import type { ToolDefinition } from "./types";
 export const site = {
   name: "VIOX Electrical Tools",
   origin: "https://tools.viox.com",
-  description: "Use 50 free electrical calculators for voltage, cable, MCB, MCCB, SPD, motors, solar, batteries, EV charging, busbars, and panel design.",
+  description: "Use 52 free electrical calculators for voltage, cable, MCB, MCCB, SPD, motors, VFDs, arc flash, solar, batteries, EV charging, and panel design.",
   logo: "https://viox.com/wp-content/uploads/2021/05/VIOX-NEW-LOGO.png"
 };
 

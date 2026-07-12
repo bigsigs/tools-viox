@@ -23,5 +23,7 @@ export const expansionResources: Resources = {
   "maximum-demand-calculator": resource("Circuit breaker load calculation guide", "https://viox.com/homeowners-guide-to-circuit-breaker-sizing-and-load-calculation/", "VIOX molded case circuit breakers", "https://viox.com/mccb/"),
   "protective-conductor-size-calculator": resource("IEC cable sizing formulas guide", "https://viox.com/iec-60204-1-cable-sizing-formulas-voltage-drop-trunking-capacity-tables/", "VIOX cable lugs and terminals", "https://viox.com/cable-lug/"),
   "cable-short-circuit-thermal-calculator": resource("Short-circuit current calculation guide", "https://viox.com/how-to-calculate-short-circuit-current-for-mcb/", "VIOX cable connection products", "https://viox.com/cable-lug/"),
-  "motor-starting-voltage-drop-calculator": resource("Motor starter types and selection guide", "https://viox.com/types-of-motor-starters-selection-guide/", "VIOX motor contactors and starters", "https://viox.com/ac-contactor/")
+  "motor-starting-voltage-drop-calculator": resource("Motor starter types and selection guide", "https://viox.com/types-of-motor-starters-selection-guide/", "VIOX motor contactors and starters", "https://viox.com/ac-contactor/"),
+  "vfd-sizing-protection-calculator": resource("VFD circuit protection and selection support", "https://viox.com/how-to-select-contactors-and-circuit-breakers-based-on-motor-power/", "VIOX MCCB and contactor products", "https://viox.com/mccb/"),
+  "arc-flash-incident-energy-calculator": resource("Short-circuit current calculation guide", "https://viox.com/how-to-calculate-short-circuit-current-for-mcb/", "VIOX MCCB and ACB protection products", "https://viox.com/mccb/")
 };

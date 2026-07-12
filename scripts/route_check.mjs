@@ -19,9 +19,9 @@ const missingEmbeds = toolSlugs.filter((slug) => !embedSlugs.includes(slug));
 const unexpectedCategories = categorySlugs.filter((slug) => !expectedCategories.has(slug));
 const missingCategories = [...expectedCategories].filter((slug) => !categorySlugs.includes(slug));
 
-if (toolSlugs.length !== 50 || embedSlugs.length !== 50 || categorySlugs.length !== 9 || missingHtml.length || missingEmbeds.length || unexpectedCategories.length || missingCategories.length) {
+if (toolSlugs.length !== 52 || embedSlugs.length !== 52 || categorySlugs.length !== 9 || missingHtml.length || missingEmbeds.length || unexpectedCategories.length || missingCategories.length) {
   console.error("Route verification failed:", { toolCount: toolSlugs.length, embedCount: embedSlugs.length, categoryCount: categorySlugs.length, missingHtml, missingEmbeds, unexpectedCategories, missingCategories });
   process.exit(1);
 }
 
-console.log("Route check passed: 50 calculators, 50 embeds, and 9 category pages found.");
+console.log("Route check passed: 52 calculators, 52 embeds, and 9 category pages found.");
