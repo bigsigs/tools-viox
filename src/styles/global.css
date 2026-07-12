@@ -976,6 +976,22 @@ select {
 .swap-units:hover { border-color: var(--red); background: rgba(215, 25, 32, 0.045); }
 .phase-current-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .pf-mode-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.nema-mode-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.nema-simple-mode, .industrial-sizing-engine { display: grid; gap: 16px; }
+.rating-visual { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 20px; border: 1px solid #dbe3ec; background: #f8fafc; border-radius: 6px; }
+.rating-chip { min-width: 108px; padding: 13px 16px; border: 2px solid #e6253c; color: #18181b; background: #fff; border-radius: 6px; font-size: 20px; font-weight: 800; text-align: center; }
+.rating-chip.ip { border-color: #2563eb; }
+.rating-arrow { color: #64748b; font-size: 13px; text-align: center; }
+.nema-inline-note { margin: 0; color: #64748b; font-size: 13px; line-height: 1.6; }
+.ip-reverse-warning { display: grid; gap: 5px; padding: 14px 16px; border-left: 3px solid #e6253c; background: #fff5f5; color: #3f3f46; }
+.ip-reverse-warning strong { font-size: 14px; }
+.ip-reverse-warning span { color: #64748b; font-size: 12px; line-height: 1.55; }
+.ip-builder { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 18px; border: 1px solid #dbe3ec; background: #f8fafc; border-radius: 6px; }
+.ip-builder > span { font-size: 30px; font-weight: 800; }
+.ip-builder select { width: 74px; min-height: 58px; font-size: 26px; font-weight: 800; text-align: center; }
+.nema-condition-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.engine-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb; }
+.engine-heading span { color: #64748b; font-size: 12px; }
 .pf-analysis-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 
 .vfd-basic-grid,
@@ -1992,6 +2008,7 @@ select {
   .bidirectional-converter,
   .phase-current-fields,
   .pf-analysis-grid,
+  .nema-condition-grid,
   .vfd-basic-grid,
   .vfd-advanced-grid { grid-template-columns: 1fr; }
 
@@ -2061,4 +2078,6 @@ select {
   .recent-list {
     grid-template-columns: 1fr;
   }
+  .nema-mode-tabs { grid-template-columns: 1fr; }
+  .rating-visual { flex-wrap: wrap; }
 }

@@ -267,6 +267,36 @@ export default function CalculatorIsland({ slug }: Props) {
               </div>
             </details>
           </>
+        ) : slug === "nema-ip-rating-converter" ? (
+          <>
+            <div className="converter-tabs nema-mode-tabs" role="tablist" aria-label="NEMA and IP tool mode">
+              <button type="button" role="tab" aria-selected={String(values.mode) === "nema-to-ip"} className={String(values.mode) === "nema-to-ip" ? "active" : ""} onClick={() => update("mode", "nema-to-ip")}>NEMA to IP</button>
+              <button type="button" role="tab" aria-selected={String(values.mode) === "ip-to-nema"} className={String(values.mode) === "ip-to-nema" ? "active" : ""} onClick={() => update("mode", "ip-to-nema")}>IP to NEMA</button>
+              <button type="button" role="tab" aria-selected={String(values.mode) === "industrial"} className={String(values.mode) === "industrial" ? "active" : ""} onClick={() => update("mode", "industrial")}>Industrial sizing</button>
+            </div>
+            {String(values.mode) === "nema-to-ip" ? <div className="nema-simple-mode">
+              <label className="field"><span>Select NEMA enclosure Type</span><select value={String(values.nemaType)} onChange={(event) => update("nemaType", event.target.value)}>{tool.fields.find((field) => field.id === "nemaType")?.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+              <div className="rating-visual"><span className="rating-chip">NEMA {String(values.nemaType).toUpperCase()}</span><span className="rating-arrow">meets or exceeds</span><span className="rating-chip ip">{({ "1":"IP20", "2":"IP22", "3":"IP55", "3r":"IP24", "3s":"IP55", "3x":"IP55", "3rx":"IP24", "3sx":"IP55", "4":"IP66", "4x":"IP66", "5":"IP53", "6":"IP67", "6p":"IP68", "12":"IP54", "12k":"IP54", "13":"IP54" } as Record<string,string>)[String(values.nemaType)]}</span></div>
+              <p className="nema-inline-note">One-way ingress cross-reference. The IP rating does not convert back into this NEMA Type.</p>
+            </div> : null}
+            {String(values.mode) === "ip-to-nema" ? <div className="nema-simple-mode">
+              <div className="ip-builder"><span>IP</span><select aria-label="IP solids digit" value={String(values.solidDigit)} onChange={(event) => update("solidDigit", event.target.value)}>{[0,1,2,3,4,5,6].map((digit) => <option key={digit} value={digit}>{digit}</option>)}</select><select aria-label="IP water digit" value={String(values.waterDigit)} onChange={(event) => update("waterDigit", event.target.value)}>{[0,1,2,3,4,5,6,7,8,9].map((digit) => <option key={digit} value={digit}>{digit}</option>)}</select></div>
+              <div className="ip-reverse-warning"><strong>No direct NEMA conversion</strong><span>NEMA's official correlation table cannot be used from IP to NEMA. Decode the IP rating here, then use Industrial Sizing for a separate environment-based screen.</span></div>
+            </div> : null}
+            {String(values.mode) === "industrial" ? <div className="industrial-sizing-engine">
+              <div className="engine-heading"><strong>Industrial environment</strong><span>Complete each exposure group</span></div>
+              <div className="nema-condition-grid">
+                <label className="field"><span>Location</span><select value={String(values.location)} onChange={(event) => update("location", event.target.value)}><option value="indoor">Indoor</option><option value="sheltered">Sheltered outdoor</option><option value="outdoor">Full outdoor</option><option value="coastal">Coastal / marine</option></select></label>
+                <label className="field"><span>Water</span><select value={String(values.waterExposure)} onChange={(event) => update("waterExposure", event.target.value)}><option value="none">Dry</option><option value="drip">Drip / condensation</option><option value="rain">Rain / splash</option><option value="hose">Hose washdown</option><option value="high-pressure">High-pressure wash</option><option value="temporary">Temporary immersion</option><option value="prolonged">Prolonged immersion</option></select></label>
+                <label className="field"><span>Dust</span><select value={String(values.dust)} onChange={(event) => update("dust", event.target.value)}><option value="low">Low / clean</option><option value="settling">Settling dust / lint</option><option value="heavy">Circulating / windblown</option><option value="conductive">Conductive dust</option></select></label>
+                <label className="field"><span>Corrosion</span><select value={String(values.corrosion)} onChange={(event) => update("corrosion", event.target.value)}><option value="no">No special requirement</option><option value="yes">Chemical / salt exposure</option></select></label>
+                <label className="field"><span>Oil / coolant</span><select value={String(values.oilCoolant)} onChange={(event) => update("oilCoolant", event.target.value)}><option value="no">None</option><option value="drip">Dripping</option><option value="spray">Spraying</option></select></label>
+                <label className="field"><span>External ice</span><select value={String(values.iceOperation)} onChange={(event) => update("iceOperation", event.target.value)}><option value="none">None</option><option value="formation">Formation considered</option><option value="operable">Mechanisms operate ice-laden</option></select></label>
+                <label className="field"><span>Condensation</span><select value={String(values.condensation)} onChange={(event) => update("condensation", event.target.value)}><option value="no">Low risk</option><option value="yes">Control required</option></select></label>
+                <label className="field"><span>Hazardous location</span><select value={String(values.hazardous)} onChange={(event) => update("hazardous", event.target.value)}><option value="no">No</option><option value="yes">Yes – separate certification</option></select></label>
+              </div>
+            </div> : null}
+          </>
         ) : slug === "power-factor-correction-calculator" ? (
           <>
             <div className="converter-tabs pf-mode-tabs" role="tablist" aria-label="Power factor mode">

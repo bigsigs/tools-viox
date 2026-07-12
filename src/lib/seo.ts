@@ -3,7 +3,7 @@ import type { ToolDefinition } from "./types";
 export const site = {
   name: "VIOX Electrical Tools",
   origin: "https://tools.viox.com",
-  description: "Use 52 free electrical calculators for voltage, cable, MCB, MCCB, SPD, motors, VFDs, arc flash, solar, batteries, EV charging, and panel design.",
+  description: "Use 57 free electrical calculators for voltage, cable, enclosures, lighting, MCB, MCCB, SPD, motors, VFDs, solar, batteries, EV charging, and panel design.",
   logo: "https://viox.com/wp-content/uploads/2021/05/VIOX-NEW-LOGO.png"
 };
 
@@ -79,6 +79,26 @@ const toolSeoMeta: Record<string, { title: string; description: string }> = {
   "power-factor-correction-calculator": {
     title: "Power Factor Calculator: P, Q, S & kVAR | VIOX",
     description: "Calculate power factor, phase angle, real, reactive and apparent power, line current, or the capacitor-bank kVAR required for power factor correction."
+  },
+  "lighting-calculator": {
+    title: "Lighting Calculator: Lux, Lumens & LED Fixtures | VIOX",
+    description: "Calculate required lumens, LED fixture quantity, maintained lux, lighting watts, current, and preliminary circuit count from room size and lighting factors."
+  },
+  "cable-tray-fill-calculator": {
+    title: "Cable Tray Fill & Sizing Calculator | VIOX",
+    description: "Calculate cable tray area fill, reserve capacity, single-layer width, remaining cable capacity, load per metre, and preliminary tray width."
+  },
+  "stationary-battery-sizing-calculator": {
+    title: "Stationary Battery & DC System Sizing Calculator | VIOX",
+    description: "Estimate stationary battery Ah, series cells, parallel strings, peak C-rate, bank kWh, charger current, and DC protection current from a load duty cycle."
+  },
+  "residential-electrical-load-calculator": {
+    title: "Residential Electrical Load & Service Size Calculator | VIOX",
+    description: "Estimate dwelling demand, service amps, standard service size, remaining capacity, HVAC contribution, and EV charger impact using transparent load methods."
+  },
+  "nema-ip-rating-converter": {
+    title: "NEMA to IP Rating Converter & Enclosure Selector | VIOX",
+    description: "Cross-reference NEMA enclosure Types to IP ratings, decode IP digits, and select a starting enclosure Type for water, dust, corrosion, oil, ice, and immersion."
   },
   "motor-starter-selection-calculator": {
     title: "Motor Starter Selection Calculator | VIOX",

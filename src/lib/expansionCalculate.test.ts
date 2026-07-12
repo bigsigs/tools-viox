@@ -170,4 +170,91 @@ describe("20-calculator expansion reference cases", () => {
     expect(metric("arc-flash-incident-energy-calculator", "Worst-case boundary")).toMatch(/mm$/);
     expect(result.summary).toContain("not a PPE category");
   });
+
+  it("sizes lighting fixtures with utilization and maintenance factors", () => {
+    const result = calculateTool("lighting-calculator", defaults("lighting-calculator"));
+    expect(result.primary).toBe("18 fixtures");
+    expect(metric("lighting-calculator", "Required fixture lumens")).toBe("71429 lm");
+    expect(metric("lighting-calculator", "Estimated maintained illuminance")).toBe("504.0 lx");
+    expect(metric("lighting-calculator", "Connected lighting load")).toBe("648.0 W");
+  });
+
+  it("supports direct area and custom illuminance", () => {
+    const result = calculateTool("lighting-calculator", { ...defaults("lighting-calculator"), application: "custom", customLux: 300, areaMode: "area", area: 50 });
+    expect(result.primary).toBe("7 fixtures");
+    expect(metric("lighting-calculator", "Illuminated area", { application: "custom", customLux: 300, areaMode: "area", area: 50 })).toBe("50.00 m²");
+  });
+
+  it("calculates cable tray area fill with future reserve", () => {
+    const result = calculateTool("cable-tray-fill-calculator", defaults("cable-tray-fill-calculator"));
+    expect(result.primary).toBe("Pass");
+    expect(metric("cable-tray-fill-calculator", "Total cable area")).toBe("7012 mm²");
+    expect(metric("cable-tray-fill-calculator", "Design capacity after reserve")).toBe("7200 mm²");
+    expect(metric("cable-tray-fill-calculator", "Cable load")).toBe("10.80 kg/m");
+  });
+
+  it("checks single-layer cable diameter against usable tray width", () => {
+    const result = calculateTool("cable-tray-fill-calculator", { ...defaults("cable-tray-fill-calculator"), method: "single-layer", trayWidth: 400 });
+    expect(result.primary).toBe("Pass");
+    expect(metric("cable-tray-fill-calculator", "Required single-layer width", { method: "single-layer", trayWidth: 400 })).toBe("336.0 mm");
+  });
+
+  it("rejects fractional cable quantities in cable trays", () => {
+    expect(() => calculateTool("cable-tray-fill-calculator", { ...defaults("cable-tray-fill-calculator"), qty1: 2.5 })).toThrow("whole number");
+  });
+
+  it("screens a stationary battery duty cycle and charger current", () => {
+    const result = calculateTool("stationary-battery-sizing-calculator", defaults("stationary-battery-sizing-calculator"));
+    expect(result.primary).toBe("269.0 Ah required");
+    expect(metric("stationary-battery-sizing-calculator", "Series cells or blocks")).toBe("55");
+    expect(metric("stationary-battery-sizing-calculator", "Parallel strings")).toBe("2");
+    expect(metric("stationary-battery-sizing-calculator", "Peak DC load")).toBe("115.0 A");
+    expect(metric("stationary-battery-sizing-calculator", "Preliminary charger current")).toBe("41.90 A");
+  });
+
+  it("supports preliminary constant-load battery sizing", () => {
+    const result = calculateTool("stationary-battery-sizing-calculator", { ...defaults("stationary-battery-sizing-calculator"), mode: "basic" });
+    expect(result.primary).toBe("143.3 Ah required");
+    expect(metric("stationary-battery-sizing-calculator", "Peak DC load", { mode: "basic" })).toBe("17.05 A");
+  });
+
+  it("screens NEC optional-method residential demand with EVSE", () => {
+    const result = calculateTool("residential-electrical-load-calculator", defaults("residential-electrical-load-calculator"));
+    expect(result.primary).toBe("155.8 A demand");
+    expect(metric("residential-electrical-load-calculator", "Demand after margin")).toBe("37.40 kVA");
+    expect(metric("residential-electrical-load-calculator", "EVSE contribution")).toBe("9.600 kVA");
+    expect(metric("residential-electrical-load-calculator", "Next listed service reference")).toBe("175 A");
+  });
+
+  it("supports user-factor general residential planning", () => {
+    const result = calculateTool("residential-electrical-load-calculator", { ...defaults("residential-electrical-load-calculator"), method: "planning", voltage: 230 });
+    expect(result.primary).toBe("157.8 A demand");
+    expect(result.summary).toContain("user-entered planning assumptions");
+  });
+
+  it("enforces whole minimum residential branch-circuit counts", () => {
+    expect(() => calculateTool("residential-electrical-load-calculator", { ...defaults("residential-electrical-load-calculator"), smallApplianceCircuits: 1 })).toThrow("at least 2");
+    expect(() => calculateTool("residential-electrical-load-calculator", { ...defaults("residential-electrical-load-calculator"), laundryCircuits: 1.5 })).toThrow("whole number");
+  });
+
+  it("selects Type 4X for corrosive outdoor hose washdown", () => {
+    const result = calculateTool("nema-ip-rating-converter", { ...defaults("nema-ip-rating-converter"), mode: "industrial" });
+    expect(result.primary).toBe("NEMA Type 4X");
+    expect(metric("nema-ip-rating-converter", "Ingress cross-reference", { mode: "industrial" })).toBe("IP66");
+    expect(metric("nema-ip-rating-converter", "Corrosion requirement", { mode: "industrial" })).toBe("Required");
+  });
+
+  it("keeps Type 3R separate from the Type 3 dust cross-reference", () => {
+    const result = calculateTool("nema-ip-rating-converter", { ...defaults("nema-ip-rating-converter"), mode: "nema-to-ip", nemaType: "3r" });
+    expect(result.primary).toBe("Type 3R → IP24");
+    expect(result.summary).toContain("not an equivalent certification");
+  });
+
+  it("refuses to convert IP68 into a NEMA Type", () => {
+    const result = calculateTool("nema-ip-rating-converter", { ...defaults("nema-ip-rating-converter"), mode: "ip-to-nema", solidDigit: "6", waterDigit: "8" });
+    expect(result.primary).toBe("No direct NEMA conversion");
+    expect(metric("nema-ip-rating-converter", "NEMA Type", { mode: "ip-to-nema", solidDigit: "6", waterDigit: "8" })).toBe("Cannot be derived from IP");
+    expect(result.summary).toContain("does not determine a NEMA enclosure Type");
+    expect(result.recommendations[0]).toContain("depth");
+  });
 });
