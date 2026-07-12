@@ -4,6 +4,16 @@ type Resources = Record<string, { articles: ToolLink[]; products: ToolLink[] }>;
 const resource = (articleLabel: string, article: string, productLabel: string, product: string) => ({ articles: [{ label: articleLabel, href: article }], products: [{ label: productLabel, href: product }] });
 
 export const expansionResources: Resources = {
+  "rc-circuit-time-constant-calculator": resource("Low-voltage electrical formulas guide", "https://viox.com/electrical-formulas-low-voltage-panel-design-maintenance/", "VIOX timing and control products", "https://viox.com/products/"),
+  "rlc-impedance-resonance-calculator": resource("Low-voltage electrical formulas guide", "https://viox.com/electrical-formulas-low-voltage-panel-design-maintenance/", "VIOX control and protection products", "https://viox.com/products/"),
+  "current-divider-calculator": resource("Low-voltage electrical formulas guide", "https://viox.com/electrical-formulas-low-voltage-panel-design-maintenance/", "VIOX terminal blocks", "https://viox.com/terminal-block/"),
+  "capacitor-reactance-energy-calculator": resource("Power factor and reactive power guide", "https://viox.com/the-technical-nuances-of-single-phase-and-three-phase-power-systems/", "VIOX contactors and protection", "https://viox.com/products/"),
+  "inductor-reactance-energy-calculator": resource("Low-voltage panel electrical formulas", "https://viox.com/electrical-formulas-low-voltage-panel-design-maintenance/", "VIOX control products", "https://viox.com/products/"),
+  "current-shunt-calculator": resource("Battery power and energy guide", "https://viox.com/kwh-vs-mwh-vs-mw-battery-energy-storage-c-rate-p-rate-soc-soh-dod/", "VIOX DC circuit breakers", "https://viox.com/dc-mcb/"),
+  "emergency-lighting-battery-calculator": resource("Circuit breaker load calculation guide", "https://viox.com/homeowners-guide-to-circuit-breaker-sizing-and-load-calculation/", "VIOX lighting circuit protection", "https://viox.com/mcb/"),
+  "lighting-circuit-load-calculator": resource("Circuit breaker sizing and load guide", "https://viox.com/homeowners-guide-to-circuit-breaker-sizing-and-load-calculation/", "VIOX miniature circuit breakers", "https://viox.com/mcb/"),
+  "branch-circuit-count-calculator": resource("Residential circuit breaker and load guide", "https://viox.com/homeowners-guide-to-circuit-breaker-sizing-and-load-calculation/", "VIOX RCBO products", "https://viox.com/rcbo/"),
+  "electrical-panel-load-spare-capacity-calculator": resource("Circuit breaker load and service calculation guide", "https://viox.com/homeowners-guide-to-circuit-breaker-sizing-and-load-calculation/", "VIOX molded case circuit breakers", "https://viox.com/mccb/"),
   "transformer-impedance-calculator": resource("Transformer kVA rating and impedance guide", "https://viox.com/transformer-kva-rating-explained/", "VIOX molded case circuit breakers", "https://viox.com/mccb/"),
   "generator-sizing-calculator": resource("ATS selection and transfer class guide", "https://viox.com/pc-class-vs-cb-class-ats-selection-guide/", "VIOX automatic transfer switches", "https://viox.com/ats/"),
   "harmonic-thd-calculator": resource("Single-phase and three-phase power systems", "https://viox.com/the-technical-nuances-of-single-phase-and-three-phase-power-systems/", "VIOX contactors and protection", "https://viox.com/products/"),

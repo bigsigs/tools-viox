@@ -394,4 +394,47 @@ describe("20-calculator expansion reference cases", () => {
   it("uses 125 percent of the largest motor in the MCC feeder screen", () => {
     expect(metric("motor-control-panel-load-calculator", "125% largest motor contribution")).toBe("125.0 A");
   });
+
+  it("calculates a 100 ms RC time constant", () => {
+    expect(metric("rc-circuit-time-constant-calculator", "Time constant τ")).toBe("0.100 s");
+  });
+
+  it("matches the published series RLC operating-point example", () => {
+    expect(Number.parseFloat(metric("rlc-impedance-resonance-calculator", "Impedance magnitude")!)).toBeCloseTo(12.61, 1);
+  });
+
+  it("splits 10 A between 100 and 200 ohm branches", () => {
+    expect(Number.parseFloat(metric("current-divider-calculator", "Branch 1 current")!)).toBeCloseTo(6.667, 2);
+    expect(Number.parseFloat(metric("current-divider-calculator", "Branch 2 current")!)).toBeCloseTo(3.333, 2);
+  });
+
+  it("calculates 100 uF capacitor reactance at 50 Hz", () => {
+    expect(Number.parseFloat(calculateTool("capacitor-reactance-energy-calculator", defaults("capacitor-reactance-energy-calculator")).primary)).toBeCloseTo(31.83, 1);
+  });
+
+  it("calculates 50 mH inductive reactance at 50 Hz", () => {
+    expect(Number.parseFloat(calculateTool("inductor-reactance-energy-calculator", defaults("inductor-reactance-energy-calculator")).primary)).toBeCloseTo(15.71, 1);
+  });
+
+  it("calculates a 100 A 75 mV shunt resistance", () => {
+    expect(metric("current-shunt-calculator", "Shunt resistance")).toBe("750.0 µΩ");
+  });
+
+  it("corrects emergency battery energy for all entered factors", () => {
+    expect(Number.parseFloat(metric("emergency-lighting-battery-calculator", "Required battery capacity")!)).toBeGreaterThan(20);
+  });
+
+  it("calculates lighting circuit quantity from planned breaker loading", () => {
+    expect(metric("lighting-circuit-load-calculator", "Preliminary circuit quantity")).toBe("1");
+  });
+
+  it("adds dedicated circuits to the general branch count", () => {
+    const total = Number.parseInt(metric("branch-circuit-count-calculator", "Total planning count")!, 10);
+    const general = Number.parseInt(metric("branch-circuit-count-calculator", "General-load circuits")!, 10);
+    expect(total).toBe(general + 5);
+  });
+
+  it("calculates panel utilization before and after added load", () => {
+    expect(Number.parseFloat(metric("electrical-panel-load-spare-capacity-calculator", "Utilization after addition")!)).toBeGreaterThan(Number.parseFloat(metric("electrical-panel-load-spare-capacity-calculator", "Current utilization")!));
+  });
 });

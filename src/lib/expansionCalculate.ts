@@ -8,6 +8,16 @@ const fuseSizes = [2, 4, 6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 160, 2
 
 export function calculateExpansionTool(slug: string, v: Values): CalculationResult {
   switch (slug) {
+    case "rc-circuit-time-constant-calculator": return rcCircuit(v);
+    case "rlc-impedance-resonance-calculator": return rlcCircuit(v);
+    case "current-divider-calculator": return currentDivider(v);
+    case "capacitor-reactance-energy-calculator": return capacitorCalc(v);
+    case "inductor-reactance-energy-calculator": return inductorCalc(v);
+    case "current-shunt-calculator": return currentShunt(v);
+    case "emergency-lighting-battery-calculator": return emergencyLighting(v);
+    case "lighting-circuit-load-calculator": return lightingCircuit(v);
+    case "branch-circuit-count-calculator": return branchCircuitCount(v);
+    case "electrical-panel-load-spare-capacity-calculator": return panelLoadCapacity(v);
     case "transformer-impedance-calculator": return transformerImpedance(v);
     case "generator-sizing-calculator": return generatorSizing(v);
     case "harmonic-thd-calculator": return harmonicThd(v);
@@ -52,6 +62,59 @@ export function calculateExpansionTool(slug: string, v: Values): CalculationResu
     case "nema-ip-rating-converter": return nemaIp(v);
     default: throw new Error("Unknown calculator");
   }
+}
+
+function rcCircuit(v: Values): CalculationResult {
+  const r=pos(v.resistance,"Resistance")*1000, c=pos(v.capacitance,"Capacitance")*1e-6, vs=nonneg(v.voltage,"Voltage"), t=nonneg(v.time,"Time"), hz=pos(v.frequency,"Frequency"), tau=r*c, fc=1/(2*Math.PI*tau), charge=vs*(1-Math.exp(-t/tau)), discharge=vs*Math.exp(-t/tau), xc=1/(2*Math.PI*hz*c), z=Math.hypot(r,xc), gain=1/Math.sqrt(1+(hz/fc)**2), phase=-Math.atan(hz/fc)*180/Math.PI;
+  return result(`${f(tau*1000)} ms`, "ok", `The RC time constant is ${f(tau*1000)} ms and the first-order cutoff frequency is ${f(fc)} Hz.`, [["Time constant τ",`${f(tau)} s`],["Cutoff frequency",`${f(fc)} Hz`],["Charging voltage at entered time",`${f(charge)} V`],["Discharging voltage at entered time",`${f(discharge)} V`],["Capacitive reactance",`${f(xc)} Ω`],["Series impedance magnitude",`${f(z)} Ω`],["Low-pass gain",f(gain)],["Low-pass phase",`${f(phase)}°`]], ["Verify capacitor tolerance, leakage, ESR, voltage and temperature rating.", "Use manufacturer application data for snubbers, relay delays and mains-connected networks.", "A first-order model excludes source and load impedance unless included in R."]);
+}
+
+function rlcCircuit(v: Values): CalculationResult {
+  const mode=s(v.mode), voltage=pos(v.voltage,"Voltage"), hz=pos(v.frequency,"Frequency"), r=pos(v.resistance,"Resistance"), l=pos(v.inductance,"Inductance")/1000, c=pos(v.capacitance,"Capacitance")*1e-6, xl=2*Math.PI*hz*l, xc=1/(2*Math.PI*hz*c), f0=1/(2*Math.PI*Math.sqrt(l*c)); let zMag:number, angle:number, current:number, pf:number, q:number;
+  if(mode==="series"){const x=xl-xc; zMag=Math.hypot(r,x); angle=Math.atan2(x,r)*180/Math.PI; current=voltage/zMag; pf=r/zMag; q=Math.sqrt(l/c)/r;} else {const g=1/r,b=1/xc-1/xl,y=Math.hypot(g,b);zMag=1/y; angle=-Math.atan2(b,g)*180/Math.PI;current=voltage*y;pf=Math.abs(Math.cos(angle*Math.PI/180));q=r*Math.sqrt(c/l);}
+  return result(`${f(zMag)} Ω`, Math.abs(hz-f0)/f0<0.05?"caution":"ok", `${readable(mode)} RLC impedance is ${f(zMag)} Ω at ${f(hz)} Hz with ${f(angle)}° phase angle.`, [["Inductive reactance",`${f(xl)} Ω`],["Capacitive reactance",`${f(xc)} Ω`],["Impedance magnitude",`${f(zMag)} Ω`],["Line current",`${f(current)} A`],["Phase angle",`${f(angle)}°`],["Power factor magnitude",f(pf)],["Ideal resonance frequency",`${f(f0)} Hz`],["Idealized Q factor",f(q)]], ["Near resonance, real current and component voltage depend strongly on ESR, winding resistance and source impedance.", "Verify capacitor RMS current and voltage plus inductor saturation, core loss and temperature.", "Use a frequency sweep or circuit simulation when broadband behavior matters."]);
+}
+
+function currentDivider(v: Values): CalculationResult {
+  const total=pos(v.totalCurrent,"Total current"), rs=[v.r1,v.r2,v.r3,v.r4,v.r5,v.r6].map(Number).filter(x=>Number.isFinite(x)&&x>0); if(rs.length<2) throw new Error("Enter at least two positive branch resistances."); const req=1/rs.reduce((a,x)=>a+1/x,0), voltage=total*req, currents=rs.map(x=>total*req/x), powers=currents.map((x,i)=>x*x*rs[i]), sum=currents.reduce((a,x)=>a+x,0), metrics:[string,string][]=[["Equivalent resistance",`${f(req)} Ω`],["Common branch voltage",`${f(voltage)} V`],["KCL current sum",`${f(sum)} A`],["KCL error",`${f(Math.abs(sum-total))} A`]]; currents.forEach((x,i)=>{metrics.push([`Branch ${i+1} current`,`${f(x)} A`]);metrics.push([`Branch ${i+1} power`,`${f(powers[i])} W`]);});
+  return result(`${f(currents[0])} A in R1`, "ok", `${f(total)} A splits across ${rs.length} resistive branches; the lower-resistance branches carry more current.`, metrics, ["Use complex impedance and phasor current division for reactive AC branches.", "Check each resistor voltage, power, pulse and temperature rating.", "This is not a current-sharing model for parallel cables or semiconductor devices."]);
+}
+
+function capacitorCalc(v: Values): CalculationResult {
+  const c=pos(v.capacitance,"Capacitance")*1e-6,c2=pos(v.c2,"Second capacitance")*1e-6,hz=pos(v.frequency,"Frequency"),voltage=nonneg(v.voltage,"Voltage"),xc=1/(2*Math.PI*hz*c),current=voltage/xc,energy=.5*c*voltage*voltage,charge=c*voltage,eq=s(v.connection)==="parallel"?c+c2:c*c2/(c+c2),kvar=voltage*current/1000;
+  return result(`${f(xc)} Ω`, "ok", `${f(c*1e6)} µF has ${f(xc)} Ω reactance at ${f(hz)} Hz and stores ${f(energy)} J at ${f(voltage)} V.`, [["Capacitive reactance",`${f(xc)} Ω`],["Ideal RMS current",`${f(current)} A`],["Ideal reactive power",`${f(kvar)} kvar`],["Stored energy",`${f(energy)} J`],["Stored charge",`${f(charge)} C`],["Two-capacitor equivalent",`${f(eq*1e6)} µF`]], ["Stored energy requires a verified discharge path and safe discharge time.", "Verify voltage derating, tolerance, ESR, ripple current, temperature and lifetime.", "Power-factor capacitors require harmonic resonance and switching-duty checks."]);
+}
+
+function inductorCalc(v: Values): CalculationResult {
+  const l=pos(v.inductance,"Inductance")/1000,l2=pos(v.l2,"Second inductance")/1000,hz=pos(v.frequency,"Frequency"),voltage=nonneg(v.voltage,"Voltage"),enteredI=nonneg(v.current,"Current"),r=pos(v.resistance,"Resistance"),xl=2*Math.PI*hz*l,z=Math.hypot(r,xl),acI=voltage/z,energy=.5*l*enteredI*enteredI,tau=l/r,eq=s(v.connection)==="series"?l+l2:l*l2/(l+l2);
+  return result(`${f(xl)} Ω`, "ok", `${f(l*1000)} mH has ${f(xl)} Ω ideal reactance at ${f(hz)} Hz and stores ${f(energy)} J at ${f(enteredI)} A.`, [["Inductive reactance",`${f(xl)} Ω`],["R-L impedance magnitude",`${f(z)} Ω`],["Idealized AC current",`${f(acI)} A`],["Stored magnetic energy",`${f(energy)} J`],["R-L time constant",`${f(tau*1000)} ms`],["Two-inductor equivalent",`${f(eq*1000)} mH`]], ["Verify saturation current, incremental inductance and core loss at the actual waveform.", "Include winding temperature rise, insulation and switching overvoltage.", "Parallel/series result assumes no mutual coupling."]);
+}
+
+function currentShunt(v: Values): CalculationResult {
+  const rated=pos(v.ratedCurrent,"Rated current"),drop=pos(v.ratedDrop,"Rated drop")/1000,actual=nonneg(v.actualCurrent,"Actual current"),meter=pos(v.meterFullScale,"Meter full scale")/1000,limit=bounded(v.continuousFactor,"Continuous limit",1,100)/100,r=drop/rated,pRated=rated*rated*r,pActual=actual*actual*r,vActual=actual*r,indicated=vActual/meter*rated,util=actual/(rated*limit)*100;
+  return result(`${f(r*1e6)} µΩ`, util>100?"warning":"ok", `A ${f(rated)} A / ${f(drop*1000)} mV shunt requires ${f(r*1e6)} µΩ and dissipates ${f(pRated)} W at rated current.`, [["Shunt resistance",`${f(r*1e6)} µΩ`],["Rated power loss",`${f(pRated)} W`],["Actual shunt voltage",`${f(vActual*1000)} mV`],["Actual power loss",`${f(pActual)} W`],["Indicated current with entered meter",`${f(indicated)} A`],["Continuous-limit utilization",`${f(util)}%`]], ["Use Kelvin sense leads and observe polarity.", "Confirm accuracy class, temperature coefficient, overload and cooling requirements.", "Provide meter isolation appropriate to the shunt circuit potential."]);
+}
+
+function emergencyLighting(v: Values): CalculationResult {
+  const p=pos(v.fixturePower,"Fixture power"),n=integerAtLeast(v.quantity,"Quantity",1),hours=pos(v.duration,"Duration"),vb=pos(v.batteryVoltage,"Battery voltage"),eff=bounded(v.efficiency,"Efficiency",1,100)/100,dod=bounded(v.dod,"Depth of discharge",1,100)/100,aging=bounded(v.aging,"Aging factor",1,100)/100,temp=bounded(v.temperature,"Temperature factor",1,100)/100,margin=1+nonneg(v.margin,"Margin")/100,load=p*n,loadWh=load*hours,battWh=loadWh*margin/(eff*dod*aging*temp),ah=battWh/vb,dcI=load/(vb*eff);
+  return result(`${f(ah)} Ah at ${f(vb)} V`, "caution", `${n} fixtures require ${f(loadWh)} Wh at the load and ${f(battWh)} Wh nominal battery capacity after entered factors.`, [["Emergency connected load",`${f(load)} W`],["Required load energy",`${f(loadWh)} Wh`],["Corrected battery energy",`${f(battWh)} Wh`],["Required battery capacity",`${f(ah)} Ah`],["Estimated DC operating current",`${f(dcI)} A`],["Required duration",`${f(hours)} h`]], ["Verify maintained emergency illuminance, spacing, escape-route coverage and local duration rules separately.", "Use listed emergency drivers/luminaires and manufacturer discharge data at minimum temperature and end of life.", "Include testing, monitoring, recharge, battery protection and isolation requirements."]);
+}
+
+function lightingCircuit(v: Values): CalculationResult {
+  const p=pos(v.fixturePower,"Fixture power"),n=integerAtLeast(v.quantity,"Quantity",1),voltage=pos(v.voltage,"Voltage"),pf=bounded(v.powerFactor,"Power factor",.1,1),breaker=pos(v.breaker,"Breaker"),loading=bounded(v.maxLoading,"Loading",1,100)/100,inrush=nonneg(v.inrushPerFixture,"Inrush"),sim=bounded(v.simultaneousInrush,"Simultaneous inrush",0,100)/100,hours=nonneg(v.hours,"Hours"),watts=p*n,va=watts/pf,current=va/voltage,capacity=breaker*loading,circuits=Math.ceil(current/capacity),per=Math.ceil(n/circuits),peak=inrush*n*sim,energy=watts*hours/1000;
+  return result(`${circuits} circuit${circuits===1?"":"s"}`, peak>breaker*10?"caution":"ok", `${n} fixtures total ${f(watts)} W / ${f(va)} VA and draw ${f(current)} A steady state.`, [["Connected active power",`${f(watts)} W`],["Apparent power",`${f(va)} VA`],["Steady-state current",`${f(current)} A`],["Planned capacity per circuit",`${f(capacity)} A`],["Preliminary circuit quantity",`${circuits}`],["Approximate fixtures per circuit",`${per}`],["Entered simultaneous peak inrush",`${f(peak)} A`],["Daily energy",`${f(energy)} kWh/day`]], ["Use driver manufacturer maximum-device tables or inrush magnitude and duration with breaker curves.", "Verify conductor size, voltage drop, harmonics, neutral current and switching-device duty.", "Separate normal, emergency, maintained and control circuits as required."]);
+}
+
+function branchCircuitCount(v: Values): CalculationResult {
+  const mode=s(v.mode),area=pos(v.area,"Area"),voltage=pos(v.voltage,"Voltage"),rating=pos(v.rating,"Rating"),loading=bounded(v.loading,"Loading",1,100)/100,dedicated=integerNonneg(v.dedicated,"Dedicated circuits"); let generalVa:number,mandatory=0,method:string;
+  if(mode==="nec-dwelling"){generalVa=area*10.7639104*3; mandatory=integerAtLeast(v.smallAppliance,"Small-appliance circuits",2)+integerAtLeast(v.laundry,"Laundry circuits",1)+integerAtLeast(v.bathroom,"Bathroom circuits",1);method="NEC dwelling screening";}else{generalVa=area*pos(v.loadDensity,"Load density");method="User-entered load-density planning";}
+  const vaPer=voltage*rating*loading,general=Math.ceil(generalVa/vaPer),total=general+mandatory+dedicated;
+  return result(`${total} circuits`, "caution", `${method} gives ${general} general-load circuits plus ${mandatory} entered mandatory and ${dedicated} other dedicated circuits.`, [["General load basis",`${f(generalVa)} VA`],["Planned VA per general circuit",`${f(vaPer)} VA`],["General-load circuits",`${general}`],["Entered mandatory circuits",`${mandatory}`],["Other dedicated circuits",`${dedicated}`],["Total planning count",`${total}`]], ["Build the final panel schedule from the actual room, receptacle, appliance, HVAC, lighting and equipment plan.", "Apply the adopted code's dedicated-circuit, AFCI/GFCI, load, phase-balance and spare-way requirements.", "NEC mode is a screening aid only and requires the adopted edition and local amendments."]);
+}
+
+function panelLoadCapacity(v: Values): CalculationResult {
+  const three=s(v.phase)==="three",voltage=pos(v.voltage,"Voltage"),main=pos(v.mainRating,"Main rating"),connected=pos(v.connectedKw,"Connected load"),demand=bounded(v.demandFactor,"Demand factor",0,100)/100,pf=bounded(v.powerFactor,"Power factor",.1,1),future=nonneg(v.futureKw,"Future load"),pDemand=connected*demand,current=pDemand*1000/(voltage*pf*(three?Math.sqrt(3):1)),futureI=future*1000/(voltage*pf*(three?Math.sqrt(3):1)),after=current+futureI,spare=main-current,spareAfter=main-after,util=current/main*100,utilAfter=after/main*100, phases=[nonneg(v.phaseA,"Phase A"),nonneg(v.phaseB,"Phase B"),nonneg(v.phaseC,"Phase C")],avg=phases.reduce((a,x)=>a+x,0)/3,unbalance=three&&avg>0?Math.max(...phases.map(x=>Math.abs(x-avg)))/avg*100:0,spareKva=Math.max(0,spare)*voltage*(three?Math.sqrt(3):1)/1000;
+  return result(`${f(utilAfter)}% after addition`, utilAfter>100?"warning":utilAfter>80?"caution":"ok", `Calculated demand is ${f(current)} A now and ${f(after)} A after the entered ${f(future)} kW addition.`, [["Calculated demand power",`${f(pDemand)} kW`],["Current demand",`${f(current)} A`],["Current utilization",`${f(util)}%`],["Current spare amperes",`${f(spare)} A`],["Approximate spare apparent power",`${f(spareKva)} kVA`],["Added-load current",`${f(futureI)} A`],["Current after addition",`${f(after)} A`],["Spare after addition",`${f(spareAfter)} A`],["Utilization after addition",`${f(utilAfter)}%`],["Measured phase-current unbalance",three?`${f(unbalance)}%`:"Not applicable"]], ["Confirm demand using the method accepted by the utility, authority and project designer.", "Verify feeder and busbar ampacity, main-device rating, continuous loads, fault duty, neutral, harmonics and phase balance.", "A positive spare-current result does not by itself approve the added load."]);
 }
 
 function transformerImpedance(v: Values): CalculationResult {
