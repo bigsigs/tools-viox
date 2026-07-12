@@ -87,6 +87,29 @@ const schema = [
               ))}
             </dl>
             {equation.conclusion ? <p class="equation-note">{equation.conclusion}</p> : null}
+            {tool.slug === "ohms-law-calculator" ? (
+              <section class="formula-wheel" aria-labelledby="ohms-law-formula-wheel-title">
+                <div>
+                  <h3 id="ohms-law-formula-wheel-title">Ohm's Law Formula Wheel</h3>
+                  <p>
+                    This formula wheel is a visual reference for the relationships between power (P), current (I), voltage (V), and resistance (R). It represents the same algebra used by the calculator above. Find the quantity you want to calculate in the center, then choose the equation in that section that contains your two known values.
+                  </p>
+                </div>
+                <figure>
+                  <a href="/images/ohms-law-formula-wheel.webp" aria-label="Open the full-size Ohm's Law formula wheel">
+                    <img
+                      src="/images/ohms-law-formula-wheel.webp"
+                      alt="Ohm's Law formula wheel showing equations for power, current, voltage, and resistance"
+                      width="778"
+                      height="682"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </a>
+                  <figcaption>Choose P, I, V, or R, then read the matching equation for the two values you already know.</figcaption>
+                </figure>
+              </section>
+            ) : null}
           </section>
         ) : (
           <p>{tool.formula}</p>

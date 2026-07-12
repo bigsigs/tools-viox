@@ -935,6 +935,81 @@ select {
   gap: 13px;
 }
 
+.ohms-instruction {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ohms-quantity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.ohms-quantity {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px;
+  background: var(--soft);
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.ohms-quantity.selected {
+  border-color: var(--red);
+  background: rgba(215, 25, 32, 0.045);
+}
+
+.ohms-quantity > button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 0;
+  padding: 0;
+  color: var(--ink);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ohms-quantity > button b {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  color: var(--muted);
+  background: var(--paper);
+  font-size: 17px;
+}
+
+.ohms-quantity.selected > button b {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.ohms-quantity > button span {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ohms-quantity .unit-input input:disabled {
+  color: var(--muted);
+  background: #eef0f3;
+  cursor: not-allowed;
+  filter: blur(4px);
+  opacity: 0.38;
+  user-select: none;
+}
+
+.ohms-calculator .result-primary strong {
+  font-size: 34px;
+  line-height: 1.15;
+}
+
 .field {
   display: grid;
   gap: 6px;
@@ -1291,6 +1366,54 @@ select {
   padding-top: 14px;
   color: var(--muted);
   font-weight: 700;
+}
+
+.formula-wheel {
+  display: grid;
+  gap: 18px;
+  border-top: 1px solid var(--line);
+  padding-top: 22px;
+}
+
+.formula-wheel h3 {
+  margin: 0 0 8px;
+  color: var(--ink);
+  font-size: 20px;
+  letter-spacing: 0;
+}
+
+.formula-wheel p {
+  margin: 0;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.formula-wheel figure {
+  width: min(100%, 620px);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.formula-wheel a {
+  display: block;
+  border-radius: var(--radius);
+}
+
+.formula-wheel img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+.formula-wheel figcaption {
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .seo-guide {

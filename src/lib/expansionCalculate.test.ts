@@ -13,8 +13,24 @@ function metric(slug: string, label: string, overrides: Record<string, string | 
 
 describe("20-calculator expansion reference cases", () => {
   it("solves Ohm's law from voltage and current", () => {
-    expect(metric("ohms-law-calculator", "Resistance", { solveFrom: "vi", valueA: 12, valueB: 2 })).toBe("6.000 Ω");
-    expect(metric("ohms-law-calculator", "Power", { solveFrom: "vi", valueA: 12, valueB: 2 })).toBe("24.00 W");
+    expect(metric("ohms-law-calculator", "Resistance", { solveFrom: "vi", voltage: 12, current: 2, resistance: 1, power: 1 })).toBe("6.000 Ω");
+    expect(metric("ohms-law-calculator", "Power", { solveFrom: "vi", voltage: 12, current: 2, resistance: 1, power: 1 })).toBe("24.00 W");
+  });
+
+  it.each([
+    ["vr", { voltage: 12, resistance: 6 }, "2.000 A · 24.00 W"],
+    ["vp", { voltage: 12, power: 24 }, "2.000 A · 6.000 Ω"],
+    ["ir", { current: 2, resistance: 6 }, "12.00 V · 24.00 W"],
+    ["ip", { current: 2, power: 24 }, "12.00 V · 6.000 Ω"],
+    ["rp", { resistance: 6, power: 24 }, "12.00 V · 2.000 A"]
+  ])("solves the %s Ohm's law input pair", (solveFrom, overrides, expected) => {
+    const result = calculateTool("ohms-law-calculator", { ...defaults("ohms-law-calculator"), solveFrom, ...overrides });
+    expect(result.primary).toBe(expected);
+  });
+
+  it("requires exactly two selected Ohm's law quantities", () => {
+    expect(() => calculateTool("ohms-law-calculator", { ...defaults("ohms-law-calculator"), solveFrom: "v" })).toThrow("Select two known quantities");
+    expect(() => calculateTool("ohms-law-calculator", { ...defaults("ohms-law-calculator"), solveFrom: "" })).toThrow("Select two known quantities");
   });
 
   it("converts 3000 W at 230 V to single-phase current", () => {

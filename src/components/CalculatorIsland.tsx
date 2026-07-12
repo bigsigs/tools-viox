@@ -57,11 +57,49 @@ export default function CalculatorIsland({ slug }: Props) {
     setCopied(true);
   }
 
+  function selectOhmsQuantity(symbol: string) {
+    const selected = String(values.solveFrom);
+    const order = ["v", "i", "r", "p"];
+    const next = selected.includes(symbol)
+      ? selected.replace(symbol, "")
+      : [...(selected.length < 2 ? selected : selected.slice(-1)), symbol]
+          .sort((a, b) => order.indexOf(a) - order.indexOf(b))
+          .join("");
+    update("solveFrom", next);
+  }
+
+  const ohmsQuantities = [
+    { id: "voltage", symbol: "V", key: "v", label: "Voltage", unit: "V" },
+    { id: "current", symbol: "I", key: "i", label: "Current", unit: "A" },
+    { id: "resistance", symbol: "R", key: "r", label: "Resistance", unit: "Ω" },
+    { id: "power", symbol: "P", key: "p", label: "Power", unit: "W" }
+  ];
+
   return (
-    <div className="calculator-grid">
+    <div className={`calculator-grid ${slug === "ohms-law-calculator" ? "ohms-calculator" : ""}`}>
       <form className="input-panel" onSubmit={(event) => event.preventDefault()}>
         <div className="panel-label">Inputs</div>
-        {tool.fields.filter((field) => !field.showWhen || field.showWhen.values.includes(String(values[field.showWhen.field]))).map((field) => (
+        {slug === "ohms-law-calculator" ? (
+          <>
+            <p className="ohms-instruction">Choose two known quantities, then enter their values.</p>
+            <div className="ohms-quantity-grid">
+              {ohmsQuantities.map((quantity) => {
+                const selected = String(values.solveFrom).includes(quantity.key);
+                return (
+                  <div className={`ohms-quantity ${selected ? "selected" : ""}`} key={quantity.id}>
+                    <button type="button" aria-pressed={selected} onClick={() => selectOhmsQuantity(quantity.key)}>
+                      <b>{quantity.symbol}</b><span>{quantity.label}</span>
+                    </button>
+                    <div className="unit-input">
+                      <input type="number" inputMode="decimal" min="0" step="any" disabled={!selected} aria-label={`${quantity.label}${selected ? " known value" : " not selected"}`} value={String(values[quantity.id])} onChange={(event) => update(quantity.id, event.target.value)} />
+                      <span className="unit-addon">{quantity.unit}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        ) : tool.fields.filter((field) => !field.showWhen || field.showWhen.values.includes(String(values[field.showWhen.field]))).map((field) => (
           <label className="field" key={field.id}>
             <span>
               {field.label}

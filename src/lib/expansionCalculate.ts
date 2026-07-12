@@ -35,7 +35,13 @@ export function calculateExpansionTool(slug: string, v: Values): CalculationResu
 }
 
 function ohms(v: Values): CalculationResult {
-  const mode = s(v.solveFrom), a = pos(v.valueA, "First value"), b = pos(v.valueB, "Second value");
+  const mode = s(v.solveFrom);
+  if (mode.length !== 2) throw new Error("Select two known quantities to calculate the other two.");
+  const fields: Record<string, [string | number, string]> = {
+    v: [v.voltage, "Voltage"], i: [v.current, "Current"], r: [v.resistance, "Resistance"], p: [v.power, "Power"]
+  };
+  const inputBySymbol = Object.fromEntries([...mode].map((symbol) => [symbol, pos(fields[symbol][0], fields[symbol][1])])) as Record<string, number>;
+  const a = inputBySymbol[mode[0]], b = inputBySymbol[mode[1]];
   let V = 0, I = 0, R = 0, P = 0;
   if (mode === "vi") [V, I] = [a, b];
   if (mode === "vr") [V, R] = [a, b];
@@ -49,7 +55,9 @@ function ohms(v: Values): CalculationResult {
   if (mode === "ir") { V = I * R; P = V * I; }
   if (mode === "ip") { V = P / I; R = V / I; }
   if (mode === "rp") { I = Math.sqrt(P / R); V = I * R; }
-  return result(`${f(V)} V`, "ok", `The operating point is ${f(V)} V, ${f(I)} A, ${f(R)} Ω, and ${f(P)} W.`, [["Voltage", `${f(V)} V`], ["Current", `${f(I)} A`], ["Resistance", `${f(R)} Ω`], ["Power", `${f(P)} W`]], ["Check component voltage, current, and power ratings."]);
+  const quantities: Record<string, string> = { v: `${f(V)} V`, i: `${f(I)} A`, r: `${f(R)} Ω`, p: `${f(P)} W` };
+  const calculated = ["v", "i", "r", "p"].filter((symbol) => !mode.includes(symbol));
+  return result(calculated.map((symbol) => quantities[symbol]).join(" · "), "ok", `Calculated from the selected ${mode.toUpperCase().split("").join(" and ")} values.`, [["Voltage", quantities.v], ["Current", quantities.i], ["Resistance", quantities.r], ["Power", quantities.p]], ["Check component voltage, current, and power ratings."]);
 }
 
 function phaseFactor(phase: string, pf: number) { return phase === "dc" ? 1 : phase === "three" ? Math.sqrt(3) * pf : pf; }
