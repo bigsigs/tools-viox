@@ -7,6 +7,80 @@ const faq = (name: string) => [{ question: `Can this ${name} replace a final des
 
 export const expansionTools: ToolDefinition[] = [
   {
+    slug: "three-phase-power-calculator", title: "Three-Phase Power Calculator", shortTitle: "Three-Phase Power", category: "power-conversion",
+    description: "Calculate balanced three-phase active power, apparent power, reactive power, current, phase angle, and power-factor improvement effects.", intent: "Translate measured line voltage, line current, and power factor into the complete three-phase power triangle for equipment and protection planning.",
+    fields: [
+      { id: "mode", label: "Calculation mode", type: "select", defaultValue: "measured", options: [{ value: "measured", label: "Voltage + current + PF → power" }, { value: "kw-current", label: "kW + voltage + PF → current" }, { value: "kva-current", label: "kVA + voltage → current" }] },
+      { id: "voltage", label: "Line-to-line voltage", type: "number", defaultValue: 400, unit: "V", min: 0 },
+      { id: "current", label: "Line current", type: "number", defaultValue: 100, unit: "A", min: 0, showWhen: { field: "mode", values: ["measured"] } },
+      { id: "activePower", label: "Active power", type: "number", defaultValue: 55, unit: "kW", min: 0, showWhen: { field: "mode", values: ["kw-current"] } },
+      { id: "apparentPower", label: "Apparent power", type: "number", defaultValue: 70, unit: "kVA", min: 0, showWhen: { field: "mode", values: ["kva-current"] } },
+      { id: "powerFactor", label: "Power factor", type: "number", defaultValue: 0.9, min: 0.01, max: 1, step: 0.01 },
+      { id: "loadType", label: "Reactive load type", type: "select", defaultValue: "inductive", options: [{ value: "inductive", label: "Inductive — lagging PF" }, { value: "capacitive", label: "Capacitive — leading PF" }] },
+      { id: "targetPf", label: "Target power factor", type: "number", defaultValue: 0.95, min: 0.01, max: 1, step: 0.01 }
+    ],
+    formula: "S = √3 × VLL × I / 1000; P = S × PF; Q = ±√(S² − P²); I = 1000P/(√3 × VLL × PF) or I = 1000S/(√3 × VLL).",
+    assumptions: ["Balanced three-phase sinusoidal system", "Voltage is line-to-line RMS", "Current is line current RMS", "Power factor represents the total displacement/true PF used for the calculation"],
+    warnings: ["Unbalanced loads require per-phase measurement or calculation.", "Harmonics, waveform distortion, motor efficiency, transients, and neutral current are outside the basic power-triangle equations.", "Capacitor-bank selection requires harmonic, resonance, switching, voltage, and manufacturer checks."],
+    faqs: [{ question: "Why does kVA not use power factor?", answer: "Apparent power is based directly on RMS voltage and current. Power factor converts apparent power into active kW." }, { question: "What does negative kvar mean?", answer: "This calculator uses negative reactive power to identify a leading, capacitive load and positive reactive power for a lagging, inductive load." }],
+    relatedTools: ["power-factor-correction-calculator", "three-phase-current-calculator", "circuit-breaker-size-calculator"], relatedProducts: [{ label: "VIOX contactors and protection", href: "https://viox.com/products/" }], keywords: ["three phase power calculator", "3 phase kW calculator", "three phase kVA calculator", "calculate kvar from amps", "three phase power formula"]
+  },
+  {
+    slug: "battery-capacity-converter", title: "Battery Capacity Converter", shortTitle: "Battery Capacity", category: "solar-storage",
+    description: "Convert battery Ah, mAh, Wh, and kWh while accounting for voltage, series and parallel configuration, depth of discharge, and efficiency.", intent: "Translate battery nameplate capacity into pack energy and estimated usable energy for storage, DC, EV, UPS, and portable-power planning.",
+    fields: [
+      { id: "mode", label: "Conversion direction", type: "select", defaultValue: "capacity-to-energy", options: [{ value: "capacity-to-energy", label: "Ah / mAh → Wh / kWh" }, { value: "energy-to-capacity", label: "Wh / kWh → Ah / mAh" }] },
+      { id: "capacity", label: "Capacity per cell or parallel unit", type: "number", defaultValue: 100, min: 0, showWhen: { field: "mode", values: ["capacity-to-energy"] } },
+      { id: "capacityUnit", label: "Capacity unit", type: "select", defaultValue: "ah", options: [{ value: "ah", label: "Ah" }, { value: "mah", label: "mAh" }], showWhen: { field: "mode", values: ["capacity-to-energy"] } },
+      { id: "energy", label: "Battery energy", type: "number", defaultValue: 5, min: 0, showWhen: { field: "mode", values: ["energy-to-capacity"] } },
+      { id: "energyUnit", label: "Energy unit", type: "select", defaultValue: "kwh", options: [{ value: "wh", label: "Wh" }, { value: "kwh", label: "kWh" }], showWhen: { field: "mode", values: ["energy-to-capacity"] } },
+      { id: "voltage", label: "Voltage per cell or series unit", type: "number", defaultValue: 3.2, unit: "V", min: 0, showWhen: { field: "mode", values: ["capacity-to-energy"] } },
+      { id: "packVoltage", label: "Pack voltage", type: "number", defaultValue: 48, unit: "V", min: 0, showWhen: { field: "mode", values: ["energy-to-capacity"] } },
+      { id: "series", label: "Units in series", type: "number", defaultValue: 16, min: 1, step: 1, showWhen: { field: "mode", values: ["capacity-to-energy"] } },
+      { id: "parallel", label: "Parallel strings", type: "number", defaultValue: 1, min: 1, step: 1, showWhen: { field: "mode", values: ["capacity-to-energy"] } },
+      { id: "dod", label: "Usable depth of discharge", type: "number", defaultValue: 80, unit: "%", min: 1, max: 100 },
+      { id: "efficiency", label: "Discharge-system efficiency", type: "number", defaultValue: 90, unit: "%", min: 1, max: 100 }
+    ],
+    formula: "Pack V = unit V × series count; pack Ah = unit Ah × parallel strings; nominal Wh = pack V × pack Ah; usable delivered Wh = nominal Wh × DOD × efficiency.", assumptions: ["Nameplate voltage and capacity describe the same battery state and discharge-rate basis", "Series connection raises voltage but not Ah", "Parallel connection raises Ah but not voltage", "DOD and efficiency are planning factors"], warnings: ["Actual capacity depends on chemistry, temperature, age, discharge rate, BMS limits, cell balance, and manufacturer test conditions.", "Do not use energy conversion alone to size battery protection, conductors, contactors, chargers, or fault-current withstand."],
+    faqs: [{ question: "Does connecting batteries in series increase Ah?", answer: "No. Series connection increases pack voltage while Ah remains that of one series unit. Parallel strings increase Ah." }, { question: "Why is usable energy lower than nominal energy?", answer: "Depth-of-discharge and efficiency limits reduce the energy available to the load." }],
+    relatedTools: ["battery-c-rate-runtime-calculator", "battery-charging-time-calculator", "stationary-battery-sizing-calculator"], relatedProducts: [{ label: "VIOX DC circuit breakers", href: "https://viox.com/dc-mcb/" }], keywords: ["battery capacity converter", "Ah to Wh calculator", "mAh to Wh", "Wh to Ah", "battery kWh calculator", "series parallel battery calculator"]
+  },
+  {
+    slug: "power-energy-time-calculator", title: "Power, Energy & Time Calculator", shortTitle: "Power / Energy / Time", category: "basic-conversion",
+    description: "Enter any two of power, energy, and operating time to calculate the third with automatic electrical-unit conversion.", intent: "Connect equipment power ratings to energy use, runtime, battery demand, and operating duration without confusing power and energy.",
+    fields: [
+      { id: "solve", label: "Calculate", type: "select", defaultValue: "energy", options: [{ value: "energy", label: "Energy from power and time" }, { value: "power", label: "Power from energy and time" }, { value: "time", label: "Time from energy and power" }] },
+      { id: "power", label: "Power", type: "number", defaultValue: 2, min: 0 },
+      { id: "powerUnit", label: "Power unit", type: "select", defaultValue: "kw", options: [{ value: "w", label: "W" }, { value: "kw", label: "kW" }, { value: "mw", label: "MW" }] },
+      { id: "energy", label: "Energy", type: "number", defaultValue: 10, min: 0 },
+      { id: "energyUnit", label: "Energy unit", type: "select", defaultValue: "kwh", options: [{ value: "j", label: "J" }, { value: "kj", label: "kJ" }, { value: "mj", label: "MJ" }, { value: "wh", label: "Wh" }, { value: "kwh", label: "kWh" }, { value: "mwh", label: "MWh" }] },
+      { id: "time", label: "Operating time", type: "number", defaultValue: 5, min: 0 },
+      { id: "timeUnit", label: "Time unit", type: "select", defaultValue: "h", options: [{ value: "s", label: "seconds" }, { value: "min", label: "minutes" }, { value: "h", label: "hours" }, { value: "day", label: "days" }] }
+    ],
+    formula: "Energy = Power × Time. All inputs are converted internally through watts, joules, and seconds before the requested display units are applied.", assumptions: ["Power is the average real power over the entered duration", "Power remains constant unless the entered value already represents a time average", "1 Wh = 3600 J"], warnings: ["Peak power and average power are different; use the correct value for runtime or energy planning.", "Battery and utility input energy may be higher after efficiency, standby, and conversion losses."],
+    faqs: [{ question: "Can kW be converted directly to kWh?", answer: "Only when a duration is known. Multiply average kW by hours to obtain kWh." }, { question: "Why are joules and watt-hours both energy units?", answer: "They measure the same quantity on different scales: one watt-hour equals 3600 joules." }],
+    relatedTools: ["energy-cost-calculator", "battery-capacity-converter", "electrical-unit-converter"], relatedProducts: [{ label: "VIOX electrical protection products", href: "https://viox.com/products/" }], keywords: ["power energy time calculator", "watts to joules", "kW to kWh", "kWh to kW", "energy runtime calculator", "watt hours calculator"]
+  },
+  {
+    slug: "voltage-divider-calculator", title: "Voltage Divider Calculator with Load", shortTitle: "Voltage Divider", category: "basic-conversion",
+    description: "Calculate a two-resistor voltage divider, solve for either resistor, or include load resistance to quantify output error and resistor power.", intent: "Design signal scaling for ADC, PLC, relay, sensor, and low-power control inputs.",
+    fields: [
+      { id: "mode", label: "Calculation mode", type: "select", defaultValue: "output", options: [{ value: "output", label: "Calculate output voltage" }, { value: "resistor", label: "Find R1 or R2" }, { value: "loaded", label: "Loaded voltage divider" }] },
+      { id: "vin", label: "Input voltage", type: "number", defaultValue: 24, unit: "V", min: 0 },
+      { id: "r1", label: "Upper resistor R1", type: "number", defaultValue: 10, unit: "kΩ", min: 0 },
+      { id: "r2", label: "Lower resistor R2", type: "number", defaultValue: 10, unit: "kΩ", min: 0 },
+      { id: "target", label: "Target output voltage", type: "number", defaultValue: 5, unit: "V", min: 0, showWhen: { field: "mode", values: ["resistor"] } },
+      { id: "solve", label: "Unknown resistor", type: "select", defaultValue: "r2", options: [{ value: "r1", label: "Find upper resistor R1" }, { value: "r2", label: "Find lower resistor R2" }], showWhen: { field: "mode", values: ["resistor"] } },
+      { id: "load", label: "Load / input resistance", type: "number", defaultValue: 100, unit: "kΩ", min: 0, showWhen: { field: "mode", values: ["loaded"] } },
+      { id: "series", label: "Preferred resistor series", type: "select", defaultValue: "e24", options: [{ value: "e12", label: "E12" }, { value: "e24", label: "E24" }, { value: "none", label: "No standard-value suggestion" }] }
+    ],
+    formula: "Ideal: Vout = Vin × R2/(R1+R2). Loaded: Rlower = R2 || RL and Vout = Vin × Rlower/(R1+Rlower). Reverse mode algebraically solves R1 or R2.",
+    assumptions: ["DC steady state", "Resistor values are entered in kΩ", "The load is represented by a resistance from output to ground", "Ideal voltage source"],
+    warnings: ["A resistor divider is a signal-scaling network, not a regulated power supply.", "Check resistor working voltage, tolerance, temperature coefficient, power rating, input leakage, transient protection, and required isolation."],
+    faqs: [{ question: "Why does a load reduce divider output?", answer: "The load resistance is in parallel with R2, reducing the effective lower resistance and therefore the output ratio." }, { question: "Can a voltage divider power a device?", answer: "Usually no. Load current changes the output voltage; use a regulator, buffer, or power converter when the load is not negligible." }],
+    relatedTools: ["ohms-law-calculator", "resistor-series-parallel-calculator", "clearance-creepage-calculator"], relatedProducts: [{ label: "VIOX terminal blocks", href: "https://viox.com/terminal-block/" }], keywords: ["voltage divider calculator", "resistor divider calculator", "loaded voltage divider", "R1 R2 calculator", "ADC voltage divider"]
+  },
+  {
     slug: "clearance-creepage-calculator", title: "Clearance & Creepage Calculator", shortTitle: "Clearance & Creepage", category: "panel-design",
     description: "Estimate IEC 60664-1 minimum clearance through air and creepage along an insulating surface from voltage, overvoltage category, pollution degree, CTI group, insulation level, and altitude.",
     intent: "Transparent insulation-coordination screening for low-voltage equipment, PCB assemblies, terminals, relays, contactors, and control panels.",

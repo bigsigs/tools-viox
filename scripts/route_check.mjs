@@ -11,7 +11,8 @@ if (!existsSync(join(dist, "index.html")) || !existsSync(join(dist, "robots.txt"
 }
 
 const directories = readdirSync(dist, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-const toolSlugs = directories.filter((name) => !name.startsWith("_") && name !== "category" && name !== "embed");
+const nonRouteDirectories = new Set(["category", "embed", "images"]);
+const toolSlugs = directories.filter((name) => !name.startsWith("_") && !nonRouteDirectories.has(name));
 const categorySlugs = readdirSync(join(dist, "category"), { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
 const embedSlugs = readdirSync(join(dist, "embed"), { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
 const missingHtml = [...toolSlugs.map((slug) => `${slug}/index.html`), ...categorySlugs.map((slug) => `category/${slug}/index.html`), ...embedSlugs.map((slug) => `embed/${slug}/index.html`)].filter((route) => !existsSync(join(dist, route)));
@@ -19,9 +20,9 @@ const missingEmbeds = toolSlugs.filter((slug) => !embedSlugs.includes(slug));
 const unexpectedCategories = categorySlugs.filter((slug) => !expectedCategories.has(slug));
 const missingCategories = [...expectedCategories].filter((slug) => !categorySlugs.includes(slug));
 
-if (toolSlugs.length !== 52 || embedSlugs.length !== 52 || categorySlugs.length !== 9 || missingHtml.length || missingEmbeds.length || unexpectedCategories.length || missingCategories.length) {
+if (!toolSlugs.length || toolSlugs.length !== embedSlugs.length || categorySlugs.length !== 9 || missingHtml.length || missingEmbeds.length || unexpectedCategories.length || missingCategories.length) {
   console.error("Route verification failed:", { toolCount: toolSlugs.length, embedCount: embedSlugs.length, categoryCount: categorySlugs.length, missingHtml, missingEmbeds, unexpectedCategories, missingCategories });
   process.exit(1);
 }
 
-console.log("Route check passed: 52 calculators, 52 embeds, and 9 category pages found.");
+console.log(`Route check passed: ${toolSlugs.length} calculators, ${embedSlugs.length} embeds, and ${categorySlugs.length} category pages found.`);

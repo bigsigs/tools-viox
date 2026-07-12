@@ -4,6 +4,7 @@ import { site, toolDescription, toolTitle } from "./seo";
 import { seoGuidesBySlug } from "./seoGuides";
 import { tools } from "./tools";
 import { vioxResourcesByTool } from "./vioxResources";
+import { equationsBySlug } from "./equations";
 
 describe("calculator SEO guides", () => {
   it("provides a substantial guide for every calculator", () => {
@@ -85,6 +86,33 @@ describe("calculator SEO guides", () => {
             expect(routes.has(link.href), `${slug}: ${link.href}`).toBe(true);
           }
         }
+      }
+    }
+  });
+
+  it("provides one non-duplicated structured formula set for every calculator", () => {
+    expect(Object.keys(equationsBySlug).sort()).toEqual(tools.map((tool) => tool.slug).sort());
+
+    for (const tool of tools) {
+      const equation = equationsBySlug[tool.slug];
+      const expressions = equation.equations.map((item) => item.expression.trim());
+
+      expect(expressions.length, tool.slug).toBeGreaterThan(0);
+      expect(new Set(expressions).size, `${tool.slug}: duplicate formula`).toBe(expressions.length);
+      for (const expression of expressions) {
+        expect(expression, `${tool.slug}: compound formula line`).not.toContain(";");
+      }
+    }
+  });
+
+  it("keeps related calculator links unique, valid, and contextual", () => {
+    const slugs = new Set(tools.map((tool) => tool.slug));
+
+    for (const tool of tools) {
+      expect(new Set(tool.relatedTools).size, `${tool.slug}: duplicate related tool`).toBe(tool.relatedTools.length);
+      for (const related of tool.relatedTools) {
+        expect(slugs.has(related), `${tool.slug}: missing ${related}`).toBe(true);
+        expect(related, `${tool.slug}: self link`).not.toBe(tool.slug);
       }
     }
   });

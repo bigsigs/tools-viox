@@ -4,6 +4,10 @@ type Resources = Record<string, { articles: ToolLink[]; products: ToolLink[] }>;
 const resource = (articleLabel: string, article: string, productLabel: string, product: string) => ({ articles: [{ label: articleLabel, href: article }], products: [{ label: productLabel, href: product }] });
 
 export const expansionResources: Resources = {
+  "three-phase-power-calculator": resource("Single-phase and three-phase power systems", "https://viox.com/the-technical-nuances-of-single-phase-and-three-phase-power-systems/", "VIOX contactors", "https://viox.com/ac-contactor/"),
+  "battery-capacity-converter": resource("Battery energy and power units guide", "https://viox.com/kwh-vs-mwh-vs-mw-battery-energy-storage/", "VIOX DC circuit breakers", "https://viox.com/dc-mcb/"),
+  "power-energy-time-calculator": resource("kW and kWh difference explained", "https://viox.com/kw-vs-kwh-difference/", "VIOX electrical protection products", "https://viox.com/products/"),
+  "voltage-divider-calculator": resource("Low-voltage electrical formulas guide", "https://viox.com/electrical-formulas-low-voltage-panel-design-maintenance/", "VIOX terminal blocks", "https://viox.com/terminal-block/"),
   "clearance-creepage-calculator": resource("Low-voltage panel design and electrical formulas", "https://viox.com/electrical-formulas-low-voltage-panel-design-maintenance/", "VIOX terminal blocks", "https://viox.com/terminal-block/"),
   "ohms-law-calculator": resource("Low-voltage electrical formulas guide", "https://viox.com/electrical-formulas-low-voltage-panel-design-maintenance/", "VIOX electrical terminal blocks", "https://viox.com/terminal-block/"),
   "watts-amps-volts-calculator": resource("Single-phase and three-phase power guide", "https://viox.com/the-technical-nuances-of-single-phase-and-three-phase-power-systems/", "VIOX miniature circuit breakers", "https://viox.com/mcb/"),

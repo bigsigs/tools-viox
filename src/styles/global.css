@@ -990,6 +990,13 @@ select {
 .awg-input-note { display: grid; gap: 3px; padding: 13px 14px; border: 1px solid var(--line); background: #f8fafc; }
 .awg-input-note strong { font-size: 13px; }
 .awg-input-note span { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.energy-task-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.three-phase-power-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.three-phase-secondary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.energy-task-tabs button { min-width: 0; padding-inline: 8px; line-height: 1.25; }
+.energy-relationship-note { display: grid; gap: 3px; padding: 13px 14px; border-left: 3px solid var(--red); background: #f8fafc; }
+.energy-relationship-note strong { font-size: 13px; }
+.energy-relationship-note span { color: var(--muted); font-size: 12px; line-height: 1.5; }
 .ampacity-disclaimer { margin: 12px 0 0; padding: 11px 12px; border-left: 3px solid #f0a326; background: #fff9ec; color: #654a12; font-size: 11px; line-height: 1.55; }
 .nema-simple-mode, .industrial-sizing-engine { display: grid; gap: 16px; }
 .rating-visual { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 20px; border: 1px solid #dbe3ec; background: #f8fafc; border-radius: 6px; }
@@ -2098,5 +2105,7 @@ select {
   .gland-context-grid { grid-template-columns: 1fr; }
   .gland-estimate-fields { grid-template-columns: 1fr; }
   .gland-family-field { grid-column: auto; }
+  .energy-task-tabs { grid-template-columns: 1fr; }
+  .three-phase-power-tabs, .three-phase-secondary-grid { grid-template-columns: 1fr; }
   .rating-visual { flex-wrap: wrap; }
 }

@@ -37,9 +37,8 @@ export const expansionSeoGuides = Object.fromEntries(expansionTools.map((tool) =
         : ["Confirm the system and calculation mode.", "Enter measured or manufacturer-rated values.", "Review the primary result and intermediate metrics.", "Continue with the related protection or equipment-selection checks."]
     },
     {
-      title: `${tool.shortTitle ?? tool.title} formula and method`,
-      paragraphs: [`The calculator uses this transparent relationship: ${tool.formula} Inputs are validated before calculation so zero, negative, incompatible, or physically impossible combinations are flagged instead of silently producing a misleading number.`],
-      callouts: [tool.formula]
+      title: "Calculation method and validation",
+      paragraphs: ["The equations and symbol definitions above show the complete calculation basis. Inputs are checked before calculation so zero, negative, incompatible, or physically impossible combinations are flagged instead of silently producing a misleading result."]
     },
     {
       title: "How to interpret the result",

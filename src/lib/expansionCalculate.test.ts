@@ -12,6 +12,70 @@ function metric(slug: string, label: string, overrides: Record<string, string | 
 }
 
 describe("20-calculator expansion reference cases", () => {
+  it("calculates the balanced three-phase power triangle from voltage current and PF", () => {
+    const result = calculateTool("three-phase-power-calculator", { ...defaults("three-phase-power-calculator"), mode: "measured", voltage: 400, current: 100, powerFactor: 0.9, loadType: "inductive", targetPf: 0.95 });
+    expect(result.primary).toBe("62.35 kW");
+    expect(result.metrics.find((item) => item.label === "Apparent power S")?.value).toBe("69.28 kVA");
+    expect(result.metrics.find((item) => item.label === "Reactive power Q")?.value).toBe("30.20 kvar");
+  });
+
+  it("reverses three-phase kW and kVA into line current", () => {
+    const fromKw = calculateTool("three-phase-power-calculator", { ...defaults("three-phase-power-calculator"), mode: "kw-current", voltage: 400, activePower: 62.3538, powerFactor: 0.9 });
+    const fromKva = calculateTool("three-phase-power-calculator", { ...defaults("three-phase-power-calculator"), mode: "kva-current", voltage: 400, apparentPower: 69.282, powerFactor: 0.9 });
+    expect(fromKw.metrics.find((item) => item.label === "Line current")?.value).toBe("100.00 A");
+    expect(fromKva.metrics.find((item) => item.label === "Line current")?.value).toBe("100.00 A");
+  });
+
+  it("marks capacitive reactive power as leading and negative", () => {
+    const result = calculateTool("three-phase-power-calculator", { ...defaults("three-phase-power-calculator"), mode: "measured", voltage: 400, current: 100, powerFactor: 0.9, loadType: "capacitive" });
+    expect(result.metrics.find((item) => item.label === "Reactive power Q")?.value).toBe("-30.20 kvar");
+    expect(result.metrics.find((item) => item.label === "Power factor")?.value).toContain("leading");
+  });
+  it("converts a 16-series 100 Ah battery into nominal and usable energy", () => {
+    const result = calculateTool("battery-capacity-converter", {
+      ...defaults("battery-capacity-converter"), mode: "capacity-to-energy", capacity: 100,
+      capacityUnit: "ah", voltage: 3.2, series: 16, parallel: 1, dod: 80, efficiency: 90
+    });
+    expect(result.primary).toBe("5.120 kWh");
+    expect(result.metrics.find((item) => item.label === "Pack voltage")?.value).toBe("51.20 V");
+    expect(result.metrics.find((item) => item.label === "Estimated delivered energy")?.value).toBe("3.686 kWh");
+  });
+
+  it("converts battery kWh back to Ah at pack voltage", () => {
+    const result = calculateTool("battery-capacity-converter", {
+      ...defaults("battery-capacity-converter"), mode: "energy-to-capacity", energy: 5,
+      energyUnit: "kwh", packVoltage: 48
+    });
+    expect(result.primary).toBe("104.2 Ah");
+    expect(result.metrics.find((item) => item.label === "Nominal energy (kWh)")?.value).toBe("5.000 kWh");
+  });
+
+  it.each([
+    ["energy", { power: 2, powerUnit: "kw", time: 5, timeUnit: "h", energyUnit: "kwh" }, "10.00 kWh"],
+    ["power", { energy: 10, energyUnit: "kwh", time: 5, timeUnit: "h", powerUnit: "kw" }, "2.000 kW"],
+    ["time", { energy: 10, energyUnit: "kwh", power: 2, powerUnit: "kw", timeUnit: "h" }, "5.000 h"]
+  ])("solves %s in the power-energy-time relationship", (solve, overrides, expected) => {
+    expect(calculateTool("power-energy-time-calculator", { ...defaults("power-energy-time-calculator"), solve, ...overrides }).primary).toBe(expected);
+  });
+  it("calculates an ideal voltage divider and resistor power", () => {
+    const result = calculateTool("voltage-divider-calculator", { ...defaults("voltage-divider-calculator"), vin: 24, r1: 10, r2: 10, mode: "output" });
+    expect(result.primary).toBe("12.00 V");
+    expect(result.metrics.find((item) => item.label === "Divider source current")?.value).toBe("1.200 mA");
+    expect(result.metrics.find((item) => item.label === "R1 power")?.value).toBe("14.40 mW");
+  });
+
+  it("solves R2 for a target divider voltage", () => {
+    const result = calculateTool("voltage-divider-calculator", { ...defaults("voltage-divider-calculator"), mode: "resistor", vin: 24, target: 5, solve: "r2", r1: 10 });
+    expect(result.metrics.find((item) => item.label === "Calculated R2")?.value).toBe("2.632 kΩ");
+    expect(result.primary).toBe("5.000 V");
+  });
+
+  it("accounts for load resistance in parallel with R2", () => {
+    const result = calculateTool("voltage-divider-calculator", { ...defaults("voltage-divider-calculator"), mode: "loaded", vin: 24, r1: 10, r2: 10, load: 10 });
+    expect(result.primary).toBe("8.000 V");
+    expect(result.metrics.find((item) => item.label === "Effective lower resistance")?.value).toBe("5.000 kΩ");
+    expect(result.metrics.find((item) => item.label === "Loading error")?.value).toBe("-33.33%");
+  });
   it("matches the published 800 V, PD2, Group IIIa, 5000 m insulation example", () => {
     const result = calculateTool("clearance-creepage-calculator", {
       ...defaults("clearance-creepage-calculator"), systemVoltage: 230, workingVoltage: 800,

@@ -208,6 +208,32 @@ export default function CalculatorIsland({ slug }: Props) {
               </label>
             ) : null}
           </>
+        ) : slug === "three-phase-power-calculator" ? (
+          <>
+            <div className="converter-tabs power-task-tabs three-phase-power-tabs" role="tablist" aria-label="Three-phase power calculation mode">
+              {[{ value: "measured", label: "V + A + PF → Power" }, { value: "kw-current", label: "kW + V + PF → Amps" }, { value: "kva-current", label: "kVA + V → Amps" }].map((mode) => <button type="button" role="tab" aria-selected={String(values.mode) === mode.value} className={String(values.mode) === mode.value ? "active" : ""} onClick={() => update("mode", mode.value)} key={mode.value}>{mode.label}</button>)}
+            </div>
+            <label className="field"><span>Line-to-line voltage</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.voltage)} onChange={(event) => update("voltage", event.target.value)} /><span className="unit-addon">V</span></div></label>
+            {String(values.mode) === "measured" ? <label className="field"><span>Line current</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.current)} onChange={(event) => update("current", event.target.value)} /><span className="unit-addon">A</span></div></label> : null}
+            {String(values.mode) === "kw-current" ? <label className="field"><span>Active power</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.activePower)} onChange={(event) => update("activePower", event.target.value)} /><span className="unit-addon">kW</span></div></label> : null}
+            {String(values.mode) === "kva-current" ? <label className="field"><span>Apparent power</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.apparentPower)} onChange={(event) => update("apparentPower", event.target.value)} /><span className="unit-addon">kVA</span></div></label> : null}
+            <label className="field"><span>Power factor</span><div className="unit-input"><input type="number" min="0.01" max="1" step="0.01" value={String(values.powerFactor)} onChange={(event) => update("powerFactor", event.target.value)} /><span className="unit-addon">PF</span></div></label>
+            <div className="three-phase-secondary-grid"><label className="field"><span>Reactive load</span><select value={String(values.loadType)} onChange={(event) => update("loadType", event.target.value)}><option value="inductive">Inductive — lagging</option><option value="capacitive">Capacitive — leading</option></select></label><label className="field"><span>Target power factor</span><div className="unit-input"><input type="number" min="0.01" max="1" step="0.01" value={String(values.targetPf)} onChange={(event) => update("targetPf", event.target.value)} /><span className="unit-addon">PF</span></div></label></div>
+          </>
+        ) : slug === "power-energy-time-calculator" ? (
+          <>
+            <div className="converter-tabs power-task-tabs energy-task-tabs" role="tablist" aria-label="Power energy and time calculation">
+              {[
+                { value: "energy", label: "Power × Time → Energy" },
+                { value: "power", label: "Energy ÷ Time → Power" },
+                { value: "time", label: "Energy ÷ Power → Time" }
+              ].map((mode) => <button type="button" role="tab" aria-selected={String(values.solve) === mode.value} className={String(values.solve) === mode.value ? "active" : ""} onClick={() => update("solve", mode.value)} key={mode.value}>{mode.label}</button>)}
+            </div>
+            {String(values.solve) !== "power" ? <label className="field"><span>Power</span><div className="unit-input"><input type="number" inputMode="decimal" min="0" step="any" value={String(values.power)} onChange={(event) => update("power", event.target.value)} /><select aria-label="Power unit" value={String(values.powerUnit)} onChange={(event) => update("powerUnit", event.target.value)}><option value="w">W</option><option value="kw">kW</option><option value="mw">MW</option></select></div></label> : null}
+            {String(values.solve) !== "energy" ? <label className="field"><span>Energy</span><div className="unit-input"><input type="number" inputMode="decimal" min="0" step="any" value={String(values.energy)} onChange={(event) => update("energy", event.target.value)} /><select aria-label="Energy unit" value={String(values.energyUnit)} onChange={(event) => update("energyUnit", event.target.value)}><option value="j">J</option><option value="kj">kJ</option><option value="mj">MJ</option><option value="wh">Wh</option><option value="kwh">kWh</option><option value="mwh">MWh</option></select></div></label> : null}
+            {String(values.solve) !== "time" ? <label className="field"><span>Operating time</span><div className="unit-input"><input type="number" inputMode="decimal" min="0" step="any" value={String(values.time)} onChange={(event) => update("time", event.target.value)} /><select aria-label="Time unit" value={String(values.timeUnit)} onChange={(event) => update("timeUnit", event.target.value)}><option value="s">seconds</option><option value="min">minutes</option><option value="h">hours</option><option value="day">days</option></select></div></label> : null}
+            <div className="energy-relationship-note"><strong>{String(values.solve) === "energy" ? "Energy = Power × Time" : String(values.solve) === "power" ? "Power = Energy ÷ Time" : "Time = Energy ÷ Power"}</strong><span>Choose the units beside each value. The result panel also shows the equivalent W, kW, J, Wh, kWh, seconds, hours, and days.</span></div>
+          </>
         ) : slug === "mm2-to-awg-converter" ? (
           <>
             <div className="converter-tabs awg-mode-tabs" role="tablist" aria-label="Wire gauge conversion direction">

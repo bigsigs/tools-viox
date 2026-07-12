@@ -8,6 +8,10 @@ const fuseSizes = [2, 4, 6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 160, 2
 
 export function calculateExpansionTool(slug: string, v: Values): CalculationResult {
   switch (slug) {
+    case "three-phase-power-calculator": return threePhasePower(v);
+    case "battery-capacity-converter": return batteryCapacityConverter(v);
+    case "power-energy-time-calculator": return powerEnergyTime(v);
+    case "voltage-divider-calculator": return voltageDivider(v);
     case "clearance-creepage-calculator": return clearanceCreepage(v);
     case "ohms-law-calculator": return ohms(v);
     case "watts-amps-volts-calculator": return wattsAmpsVolts(v);
@@ -38,6 +42,78 @@ export function calculateExpansionTool(slug: string, v: Values): CalculationResu
     case "nema-ip-rating-converter": return nemaIp(v);
     default: throw new Error("Unknown calculator");
   }
+}
+
+function threePhasePower(v: Values): CalculationResult {
+  const mode = s(v.mode), voltage = pos(v.voltage, "Line-to-line voltage"), pf = bounded(v.powerFactor, "Power factor", 0.01, 1), targetPf = bounded(v.targetPf, "Target power factor", 0.01, 1);
+  let current: number, apparent: number, active: number;
+  if (mode === "measured") { current = pos(v.current, "Line current"); apparent = Math.sqrt(3) * voltage * current / 1000; active = apparent * pf; }
+  else if (mode === "kw-current") { active = pos(v.activePower, "Active power"); current = active * 1000 / (Math.sqrt(3) * voltage * pf); apparent = active / pf; }
+  else if (mode === "kva-current") { apparent = pos(v.apparentPower, "Apparent power"); current = apparent * 1000 / (Math.sqrt(3) * voltage); active = apparent * pf; }
+  else throw new Error("Select a valid three-phase power calculation mode.");
+  const angle = Math.acos(pf), sign = s(v.loadType) === "capacitive" ? -1 : 1;
+  const reactive = sign * apparent * Math.sin(angle);
+  const targetCurrent = active * 1000 / (Math.sqrt(3) * voltage * targetPf);
+  const targetReactive = active * Math.tan(Math.acos(targetPf));
+  const compensation = sign > 0 ? Math.max(0, Math.abs(reactive) - targetReactive) : 0;
+  const currentReduction = current - targetCurrent;
+  return result(`${f(active)} kW`, targetPf < pf ? "caution" : "ok", `${f(voltage)} V line-to-line at ${f(current)} A and PF ${f(pf)} corresponds to ${f(active)} kW, ${f(apparent)} kVA, and ${f(reactive)} kvar.`, [["Active power P", `${f(active)} kW`], ["Apparent power S", `${f(apparent)} kVA`], ["Reactive power Q", `${f(reactive)} kvar`], ["Line current", `${f(current)} A`], ["Power factor", `${f(pf)} ${sign > 0 ? "lagging" : "leading"}`], ["Phase angle", `${f(angle * 180 / Math.PI)}°`], ["Current at target PF", targetPf >= pf ? `${f(targetCurrent)} A` : "Target PF is below present PF"], ["Potential current reduction", targetPf >= pf ? `${f(Math.max(0, currentReduction))} A` : "Not applicable"], ["Correction to target PF", sign > 0 && targetPf > pf ? `${f(compensation)} kvar capacitive` : sign < 0 ? "Leading load — do not add capacitors from this result" : "No increase requested"]], ["Use true measured power factor when harmonics are significant; displacement PF alone may understate current and losses.", "Run conductor, voltage-drop, breaker, fault-current, and thermal checks using the actual operating and starting currents.", targetPf > pf && sign > 0 ? "Confirm capacitor-bank steps, switching duty, harmonic detuning, resonance risk, voltage, and applicable utility limits before selection." : "No capacitive correction recommendation is produced for an already-leading load or a target below the present PF."]);
+}
+
+function batteryCapacityConverter(v: Values): CalculationResult {
+  const mode = s(v.mode), dod = bounded(v.dod, "Depth of discharge", 1, 100) / 100, efficiency = bounded(v.efficiency, "Efficiency", 1, 100) / 100;
+  let packV: number, packAh: number, nominalWh: number, series = 1, parallel = 1;
+  if (mode === "capacity-to-energy") {
+    const entered = pos(v.capacity, "Battery capacity"), unitAh = s(v.capacityUnit) === "mah" ? entered / 1000 : entered;
+    const unitV = pos(v.voltage, "Unit voltage"); series = integerAtLeast(v.series, "Series count", 1); parallel = integerAtLeast(v.parallel, "Parallel count", 1);
+    packV = unitV * series; packAh = unitAh * parallel; nominalWh = packV * packAh;
+  } else if (mode === "energy-to-capacity") {
+    const entered = pos(v.energy, "Battery energy"); nominalWh = s(v.energyUnit) === "kwh" ? entered * 1000 : entered;
+    packV = pos(v.packVoltage, "Pack voltage"); packAh = nominalWh / packV;
+  } else throw new Error("Select a valid battery conversion direction.");
+  const usableBatteryWh = nominalWh * dod, deliveredWh = usableBatteryWh * efficiency;
+  return result(mode === "capacity-to-energy" ? `${f(nominalWh / 1000)} kWh` : `${f(packAh)} Ah`, "ok", `${f(packV)} V × ${f(packAh)} Ah = ${f(nominalWh)} Wh nominal battery energy.`, [["Pack voltage", `${f(packV)} V`], ["Pack capacity (Ah)", `${f(packAh)} Ah`], ["Pack capacity (mAh)", `${f(packAh * 1000)} mAh`], ["Nominal energy (Wh)", `${f(nominalWh)} Wh`], ["Nominal energy (kWh)", `${f(nominalWh / 1000)} kWh`], ["Energy within selected DOD", `${f(usableBatteryWh / 1000)} kWh`], ["Estimated delivered energy", `${f(deliveredWh / 1000)} kWh`], ["Series units", `${series}`], ["Parallel strings", `${parallel}`], ["DOD / efficiency", `${f(dod * 100)}% / ${f(efficiency * 100)}%`]], ["Verify nominal and usable capacity against the exact chemistry, BMS voltage window, temperature, aging, and discharge-rate curves.", "Use the C-rate and runtime calculator for load duration, then verify DC protection, conductor ampacity, switching, isolation, and fault current."]);
+}
+
+function powerEnergyTime(v: Values): CalculationResult {
+  const solve = s(v.solve), powerFactors: Record<string, number> = { w: 1, kw: 1e3, mw: 1e6 }, energyFactors: Record<string, number> = { j: 1, kj: 1e3, mj: 1e6, wh: 3600, kwh: 3.6e6, mwh: 3.6e9 }, timeFactors: Record<string, number> = { s: 1, min: 60, h: 3600, day: 86400 };
+  const pu = s(v.powerUnit), eu = s(v.energyUnit), tu = s(v.timeUnit); if (!powerFactors[pu] || !energyFactors[eu] || !timeFactors[tu]) throw new Error("Select valid units.");
+  let watts = Number(v.power) * powerFactors[pu], joules = Number(v.energy) * energyFactors[eu], seconds = Number(v.time) * timeFactors[tu];
+  if (solve === "energy") { watts = pos(v.power, "Power") * powerFactors[pu]; seconds = pos(v.time, "Time") * timeFactors[tu]; joules = watts * seconds; }
+  else if (solve === "power") { joules = pos(v.energy, "Energy") * energyFactors[eu]; seconds = pos(v.time, "Time") * timeFactors[tu]; watts = joules / seconds; }
+  else if (solve === "time") { joules = pos(v.energy, "Energy") * energyFactors[eu]; watts = pos(v.power, "Power") * powerFactors[pu]; seconds = joules / watts; }
+  else throw new Error("Select power, energy, or time to calculate.");
+  const display = solve === "energy" ? `${f(joules / energyFactors[eu])} ${toLabel(eu)}` : solve === "power" ? `${f(watts / powerFactors[pu])} ${toLabel(pu)}` : `${f(seconds / timeFactors[tu])} ${tu === "day" ? "days" : tu}`;
+  return result(display, "ok", `${f(watts)} W operating for ${f(seconds)} seconds corresponds to ${f(joules)} joules.`, [["Power", `${f(watts)} W`], ["Power", `${f(watts / 1000)} kW`], ["Energy", `${f(joules)} J`], ["Energy", `${f(joules / 3600)} Wh`], ["Energy", `${f(joules / 3.6e6)} kWh`], ["Time", `${f(seconds)} s`], ["Time", `${f(seconds / 60)} min`], ["Time", `${f(seconds / 3600)} h`], ["Time", `${f(seconds / 86400)} days`]], ["Use average real power for energy and runtime calculations; separately verify peak power and starting demand.", "Apply charger, inverter, cable, battery, and standby losses when estimating utility input or usable battery runtime."]);
+}
+
+function voltageDivider(v: Values): CalculationResult {
+  const mode = s(v.mode), vin = pos(v.vin, "Input voltage"), target = Number(v.target);
+  let r1 = pos(v.r1, "R1"), r2 = pos(v.r2, "R2"), load = Infinity;
+  if (mode === "resistor") {
+    if (!Number.isFinite(target) || target <= 0 || target >= vin) throw new Error("Target output voltage must be greater than zero and lower than input voltage.");
+    if (s(v.solve) === "r1") r1 = r2 * (vin / target - 1);
+    else r2 = target * r1 / (vin - target);
+  } else if (mode === "loaded") load = pos(v.load, "Load resistance");
+  else if (mode !== "output") throw new Error("Select a valid voltage-divider mode.");
+  const lower = Number.isFinite(load) ? r2 * load / (r2 + load) : r2;
+  const currentMa = vin / (r1 + lower);
+  const vout = vin * lower / (r1 + lower);
+  const unloaded = vin * r2 / (r1 + r2);
+  const p1Mw = currentMa * currentMa * r1;
+  const r2CurrentMa = vout / r2, p2Mw = r2CurrentMa * r2CurrentMa * r2;
+  const loadCurrentMa = Number.isFinite(load) ? vout / load : 0;
+  const loadingError = (vout - unloaded) / unloaded * 100;
+  const preferred = s(v.series);
+  const bases = preferred === "e12" ? [10, 12, 15, 18, 22, 27, 33, 39, 47, 56, 68, 82] : [10, 11, 12, 13, 15, 16, 18, 20, 22, 24, 27, 30, 33, 36, 39, 43, 47, 51, 56, 62, 68, 75, 82, 91];
+  const nearestPreferred = (value: number) => {
+    const exponent = Math.floor(Math.log10(value)) - 1, scale = 10 ** exponent;
+    const candidates = [-1, 0, 1].flatMap(offset => bases.map(base => base * scale * 10 ** offset));
+    return candidates.reduce((best, item) => Math.abs(item - value) < Math.abs(best - value) ? item : best);
+  };
+  const stdR1 = preferred === "none" ? r1 : nearestPreferred(r1), stdR2 = preferred === "none" ? r2 : nearestPreferred(r2);
+  const stdOut = vin * stdR2 / (stdR1 + stdR2);
+  return result(`${f(vout)} V`, mode === "loaded" && Math.abs(loadingError) > 5 ? "caution" : "ok", `${f(vin)} V applied to R1 = ${f(r1)} kΩ and R2 = ${f(r2)} kΩ produces ${f(vout)} V${mode === "loaded" ? " with the entered load" : " at no load"}.`, [["Output voltage", `${f(vout)} V`], ["Unloaded output", `${f(unloaded)} V`], ["Divider source current", `${f(currentMa)} mA`], ["R1 power", `${f(p1Mw)} mW`], ["R2 power", `${f(p2Mw)} mW`], ["Load current", `${f(loadCurrentMa)} mA`], ["Effective lower resistance", `${f(lower)} kΩ`], ["Loading error", `${f(loadingError)}%`], ["Calculated R1", `${f(r1)} kΩ`], ["Calculated R2", `${f(r2)} kΩ`], ["Nearest standard pair", preferred === "none" ? "Not requested" : `${f(stdR1)} kΩ / ${f(stdR2)} kΩ (${preferred.toUpperCase()})`], ["Standard-pair output", preferred === "none" ? "Not requested" : `${f(stdOut)} V`]], ["Keep divider current comfortably above input leakage and bias current, while staying within the allowed source loading and resistor power limits.", "Use resistor voltage ratings and series strings appropriate for high input voltage; verify clearance, creepage, surge, and isolation separately.", mode === "loaded" && Math.abs(loadingError) > 1 ? "Loading materially changes the output. Increase the load resistance, reduce divider resistance, or buffer the divider output." : "Confirm tolerance and temperature drift against the receiving circuit's allowable input error."]);
 }
 
 function clearanceCreepage(v: Values): CalculationResult {
