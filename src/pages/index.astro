@@ -37,17 +37,19 @@ const searchableTools = tools.map(({ slug, title, shortTitle, description, keywo
           <a class="button secondary" href="https://viox.com/">Visit VIOX.com</a>
         </div>
       </div>
-      <div class="hero-workbench" aria-label="Featured calculator list">
+      <div class="hero-workbench" aria-label="Four-step circuit sizing workflow">
         <div class="workbench-header">
-          <span>Engineering workflow</span>
-          <strong>Load, protection, and cable check</strong>
+          <span>Guided workflow</span>
+          <strong>Size a circuit in four steps</strong>
+          <p>Move from connected load to a checked conductor.</p>
         </div>
         <ol class="workflow-list">
-          <li><a href="/kw-kva-amp-calculator/">Calculate load current from power</a></li>
-          <li><a href="/circuit-breaker-size-calculator/">Estimate protective device rating</a></li>
-          <li><a href="/cable-size-calculator/">Check reference conductor size</a></li>
-          <li><a href="/voltage-drop-calculator/">Verify voltage drop for the run</a></li>
+          <li><a href="/kw-kva-amp-calculator/"><span class="workflow-number">01</span><span class="workflow-copy"><strong>Calculate Load Current</strong><small>Power → operating current</small></span><b>Ib</b><i aria-hidden="true">→</i></a></li>
+          <li><a href="/circuit-breaker-size-calculator/"><span class="workflow-number">02</span><span class="workflow-copy"><strong>Select Breaker Rating</strong><small>Current → MCB or MCCB</small></span><b>In</b><i aria-hidden="true">→</i></a></li>
+          <li><a href="/cable-size-calculator/"><span class="workflow-number">03</span><span class="workflow-copy"><strong>Size the Conductor</strong><small>Current + installation</small></span><b>Iz</b><i aria-hidden="true">→</i></a></li>
+          <li><a href="/voltage-drop-calculator/"><span class="workflow-number">04</span><span class="workflow-copy"><strong>Check Voltage Drop</strong><small>Cable + route length</small></span><b>Vd%</b><i aria-hidden="true">→</i></a></li>
         </ol>
+        <div class="workflow-rule"><span>Protection relationship</span><strong>Ib ≤ In ≤ Iz</strong><i aria-hidden="true">→</i><b>Check Vd%</b></div>
       </div>
     </section>
 

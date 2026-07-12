@@ -564,25 +564,111 @@ select {
 
 .workbench-header strong {
   color: var(--ink);
-  font-size: 26px;
+  font-size: 24px;
   line-height: 1.1;
-  letter-spacing: -0.035em;
+  letter-spacing: 0;
+}
+
+.workbench-header p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .workflow-list {
   display: grid;
-  gap: 11px;
-  margin-top: 18px;
-  padding-left: 22px;
+  gap: 0;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
 }
 
 .workflow-list a {
-  color: var(--navy);
-  font-weight: 800;
+  position: relative;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto 18px;
+  gap: 10px;
+  align-items: center;
+  min-height: 62px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
 }
 
 .workflow-list a:hover {
   color: var(--red);
+  background: #fff7f7;
+}
+
+.workflow-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #f2c6c8;
+  border-radius: 5px;
+  color: var(--red);
+  background: #fff6f6;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.workflow-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.workflow-copy strong {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.workflow-copy small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.workflow-list a > b {
+  color: var(--red);
+  font-size: 12px;
+}
+
+.workflow-list a > i {
+  color: var(--muted);
+  font-style: normal;
+  font-weight: 900;
+}
+
+.workflow-rule {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 8px;
+  align-items: center;
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 11px;
+  background: var(--soft);
+}
+
+.workflow-rule span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.workflow-rule strong,
+.workflow-rule b {
+  color: var(--ink);
+  font-size: 11px;
+}
+
+.workflow-rule i {
+  color: var(--red);
+  font-style: normal;
 }
 
 .tool-discovery-shell {
