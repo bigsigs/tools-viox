@@ -1,6 +1,6 @@
 import type { ToolCategory } from "./types";
 
-export const categories: Record<ToolCategory, {
+type CategoryDefinition = {
   slug: ToolCategory;
   title: string;
   deck: string;
@@ -9,95 +9,79 @@ export const categories: Record<ToolCategory, {
   seoDescription: string;
   overviewTitle: string;
   overview: string[];
-}> = {
-  "basic-conversion": {
-    slug: "basic-conversion",
-    title: "Basic Electrical & Conversion Tools",
-    deck: "Ohm's law, watts, amps, volts, and unit conversions",
-    description: "Fast calculators for everyday electrical formulas, resistance networks, charging time, and engineering unit conversions.",
-    seoTitle: "Ohm's Law, Watts to Amps & Electrical Converters | VIOX",
-    seoDescription: "Use free Ohm's law, watts-to-amps, resistor, battery charging-time, power, energy, and electrical unit conversion calculators online.",
-    overviewTitle: "Solve everyday electrical quantities quickly",
-    overview: ["These tools turn common voltage, current, resistance, power, energy, and charging relationships into quick browser calculations.", "Confirm units before using a result in cable, breaker, battery, or equipment selection, and continue with the related engineering calculator where required."]
+};
+
+export const categories: Record<ToolCategory, CategoryDefinition> = {
+  "electrical-fundamentals": {
+    slug: "electrical-fundamentals", title: "Electrical Fundamentals & Conversion", deck: "Core formulas, phase power, resistance, and unit conversion",
+    description: "Everyday calculators for voltage, current, resistance, power, energy, power factor, lighting, and electrical units.",
+    seoTitle: "Electrical Formula & Power Conversion Calculators | VIOX",
+    seoDescription: "Use Ohm's law, watts-to-amps, three-phase power, power factor, resistor, lighting, energy, and electrical unit conversion calculators.",
+    overviewTitle: "Start with the electrical quantities you know",
+    overview: ["These tools connect voltage, current, resistance, active and apparent power, energy, time, and common engineering units.", "Use the result as an input to the appropriate cable, protection, motor, battery, or distribution workflow rather than as final equipment selection."]
   },
-  "solar-storage": {
-    slug: "solar-storage",
-    title: "Solar & Energy Storage Tools",
-    deck: "PV strings, off-grid systems, batteries, and DC protection",
-    description: "Calculators for PV string voltage, off-grid solar and battery sizing, combiner boxes, and storage planning.",
-    seoTitle: "Solar PV String & Battery Storage Calculators | VIOX",
-    seoDescription: "Calculate PV string length, off-grid solar array size, battery capacity, inverter power, combiner protection, and storage runtime.",
-    overviewTitle: "Connect the PV module, battery, inverter, and protection chain",
-    overview: ["Solar design starts with temperature-corrected module voltage and daily energy demand, then moves through strings, MPPT limits, batteries, inverters, DC protection, combiner boxes, and SPDs.", "Final equipment selection must use the exact module and inverter datasheets, battery operating limits, local solar rules, and manufacturer coordination data."]
+  "cable-wire": {
+    slug: "cable-wire", title: "Cable, Wire & Voltage Drop Tools", deck: "Conductor size, ampacity, voltage drop, and fault withstand",
+    description: "Engineering calculators for cable sizing, AC and DC voltage drop, derating, AWG conversion, PE conductors, and thermal withstand.",
+    seoTitle: "Cable Size, Voltage Drop & Wire Gauge Calculators | VIOX",
+    seoDescription: "Calculate cable size, AC or DC voltage drop, cable derating, AWG and mm² conversion, protective conductor size, and fault withstand.",
+    overviewTitle: "Check conductor performance from load to fault duty",
+    overview: ["Conductor selection combines load current, installation derating, voltage drop, material, insulation, route length, and short-circuit thermal duty.", "Verify the final conductor against the adopted wiring standard, terminal temperature, installation method, grouping, ambient conditions, and protective-device clearing time."]
   },
-  "surge-protection": {
-    slug: "surge-protection",
-    title: "Surge Protection Tools",
-    deck: "SPD selection and coordination",
-    description: "Calculators for AC, DC, and PV surge protection selection workflows.",
-    seoTitle: "Surge Protection Calculators & SPD Selection Tools | VIOX",
-    seoDescription: "Use free SPD calculators to screen Type 1, Type 2, Type 3, AC, DC, and PV surge protection by exposure, earthing, voltage, and installation point.",
-    overviewTitle: "Plan SPD type, voltage, and coordination",
-    overview: ["Start with the installation origin, lightning exposure, supply route, earthing arrangement, and equipment withstand level. The tools then narrow the SPD type, connection arrangement, continuous operating voltage, and coordination checks.", "Calculator results are screening references. Final selection must use the applicable IEC or local standard and the exact VIOX SPD datasheet, backup protection, short-circuit rating, and wiring diagram."]
+  "cable-management": {
+    slug: "cable-management", title: "Cable Management & Termination Tools", deck: "Conduit, tray, glands, lugs, and cable entry",
+    description: "Practical tools for conduit and cable tray fill, cable gland selection, cable lugs, and termination planning.",
+    seoTitle: "Cable Gland, Lug, Conduit & Tray Fill Calculators | VIOX",
+    seoDescription: "Select cable glands and lugs and calculate conduit or cable tray fill for practical cable routing, entry, and termination planning.",
+    overviewTitle: "Move from selected conductor to installed termination",
+    overview: ["Cable outside diameter, construction, quantity, route system, entry thread, sealing duty, conductor area, material, and stud size determine the installation hardware.", "Confirm exact manufacturer clamping ranges, listed fittings, fill rules, bend radius, pulling limits, crimp tooling, ingress rating, and environmental compatibility."]
   },
   "circuit-protection": {
-    slug: "circuit-protection",
-    title: "Circuit Protection Tools",
-    deck: "Breaker sizing and protection checks",
-    description: "Tools for estimating MCB, MCCB, RCBO, fuse, and load protection requirements.",
-    seoTitle: "Circuit Breaker, Fuse & RCBO Calculators | VIOX",
-    seoDescription: "Calculate breaker and fuse size, fault current, MCB inrush compatibility, and RCD or RCBO selection for low-voltage circuit protection planning.",
-    overviewTitle: "Coordinate load, conductor, trip curve, and fault duty",
-    overview: ["Protective-device selection is more than rounding load current to the next rating. The circuit must coordinate design current, conductor ampacity, overload behavior, magnetic or instantaneous operation, prospective fault current, and breaking capacity.", "Use these calculators together, then verify disconnection time, selectivity, backup protection, ambient derating, and the exact VIOX MCB, MCCB, RCBO, or fuse product data."]
+    slug: "circuit-protection", title: "Circuit Protection & Fault Tools", deck: "Breakers, fuses, fault current, selectivity, and arc flash",
+    description: "Tools for breaker, fuse, RCD and RCBO selection, fault current, loop impedance, inrush, coordination, and arc-flash screening.",
+    seoTitle: "Circuit Breaker, Fuse & Fault Calculators | VIOX",
+    seoDescription: "Calculate breaker and fuse size, fault current, loop impedance, MCB inrush, selectivity, RCD or RCBO selection, and arc-flash energy.",
+    overviewTitle: "Coordinate load, trip behavior, and fault duty",
+    overview: ["Protective-device selection must coordinate design current, conductor capacity, overload behavior, instantaneous operation, fault current, breaking capacity, and disconnection time.", "Use exact manufacturer curves and coordination tables plus the applicable installation and arc-flash methods for final engineering decisions."]
   },
-  "cable-wiring": {
-    slug: "cable-wiring",
-    title: "Cable and Wiring Tools",
-    deck: "Cable sizing, voltage drop, and entry planning",
-    description: "Practical calculators for conductor sizing, voltage drop, AWG conversion, conduit fill, cable lugs, and cable gland selection.",
-    seoTitle: "Cable Size, Voltage Drop & AWG Calculators | VIOX",
-    seoDescription: "Calculate cable size, AC or DC voltage drop, AWG wire size, mm² conversion, conduit fill, cable gland size, and cable lug selection online.",
-    overviewTitle: "Move from conductor calculation to termination",
-    overview: ["Cable planning combines ampacity, voltage drop, installation derating, conductor material, route length, raceway fill, and termination compatibility. Metric and AWG sizes also require careful comparison because their nominal areas do not match exactly.", "After finding a preliminary conductor, verify the applicable wiring standard, insulation and terminal temperature, short-circuit withstand, cable outside diameter, gland clamping range, and approved lug or crimp system."]
+  "power-distribution": {
+    slug: "power-distribution", title: "Power Distribution & Panel Tools", deck: "Transformers, demand, ATS, busbars, enclosures, and thermal checks",
+    description: "Distribution and panel calculators for transformer capacity, demand, ATS, busbars, terminals, heat, insulation spacing, and enclosures.",
+    seoTitle: "Power Distribution & Electrical Panel Calculators | VIOX",
+    seoDescription: "Calculate transformer size, maximum demand, ATS rating, busbar duty, panel heat, terminal loss, clearance, creepage, and enclosure ratings.",
+    overviewTitle: "Design the distribution assembly as one system",
+    overview: ["Power distribution joins source capacity, demand, switching, busbars, short-circuit forces, connections, temperature rise, insulation coordination, and enclosure conditions.", "Final verification applies to the complete assembly, including supports, joints, ventilation, protective devices, clearances, entries, and the relevant switchgear standard."]
   },
   "motor-control": {
-    slug: "motor-control",
-    title: "Motor Control Tools",
-    deck: "Motor current and starter selection",
-    description: "Tools for estimating motor full-load current, contactor duty, starter method, overload range, and phase-voltage conditions.",
-    seoTitle: "Motor Current & Starter Selection Calculators | VIOX",
-    seoDescription: "Calculate three-phase motor current, starter and contactor size, overload range, starting method, and voltage unbalance for motor-control planning.",
-    overviewTitle: "Size the complete motor starting path",
-    overview: ["Motor control begins with full-load current but also depends on starting current, duty, starts per hour, acceleration time, load torque, utilization category, and voltage quality. The calculators screen these inputs together.", "Confirm the final contactor, overload relay, motor protection circuit breaker, starter coordination type, enclosure, and manufacturer performance tables before procurement."]
+    slug: "motor-control", title: "Motors, Contactors & Drives", deck: "Motor current, starting, contactors, voltage quality, and VFDs",
+    description: "Tools for motor current, starter and contactor selection, starting voltage drop, voltage unbalance, and VFD sizing.",
+    seoTitle: "Motor, Contactor, Starter & VFD Calculators | VIOX",
+    seoDescription: "Calculate motor current, starter and contactor size, starting voltage drop, voltage unbalance, overload range, and VFD requirements.",
+    overviewTitle: "Size the complete motor operating path",
+    overview: ["Motor circuits depend on full-load and starting current, duty, acceleration, load torque, utilization category, voltage quality, and drive environment.", "Confirm the exact motor nameplate and manufacturer coordination tables for the contactor, overload relay, breaker, starter, and VFD."]
+  },
+  "solar-storage": {
+    slug: "solar-storage", title: "Solar, Battery & Energy Tools", deck: "PV strings, batteries, off-grid systems, charging, and energy",
+    description: "Calculators for PV strings and combiners, off-grid solar, battery capacity, C-rate, charging time, stationary systems, and energy cost.",
+    seoTitle: "Solar PV, Battery & Energy Calculators | VIOX",
+    seoDescription: "Calculate PV string and combiner size, off-grid solar, battery capacity, C-rate, runtime, charging time, stationary DC systems, and energy cost.",
+    overviewTitle: "Connect generation, storage, load, and protection",
+    overview: ["Solar and battery planning links temperature-corrected PV voltage, daily energy, array output, battery capacity, operating limits, charge rate, runtime, and DC protection.", "Final selection requires exact module, inverter, battery, charger, BMS, protective-device, and local installation data."]
+  },
+  "surge-protection": {
+    slug: "surge-protection", title: "Surge & Lightning Protection Tools", deck: "Lightning exposure, SPD selection, coordination, and backup protection",
+    description: "Tools for lightning-risk screening and AC, DC, and PV SPD type, voltage, coordination, and backup-fuse selection.",
+    seoTitle: "Surge & Lightning Protection Calculators | VIOX",
+    seoDescription: "Screen lightning exposure and select Type 1, Type 2, Type 3, AC, DC, or PV SPDs, coordination, voltage ratings, and backup protection.",
+    overviewTitle: "Plan exposure, SPD duty, and coordination",
+    overview: ["Start with lightning exposure, supply route, installation point, earthing arrangement, equipment withstand, and prospective fault current.", "Final selection must use the applicable lightning and SPD standards with exact device ratings, backup protection, wiring, and coordination distance."]
   },
   "ev-charging": {
-    slug: "ev-charging",
-    title: "EV Charging Tools",
-    deck: "EV charger load planning",
-    description: "Calculators for EV charging current, simultaneity, feeder demand, breaker sizing, and residual-current protection planning.",
-    seoTitle: "EV Charger Load & Protection Calculators | VIOX",
-    seoDescription: "Calculate EV charger current and feeder demand, then screen breaker, RCBO, RCD type, 6 mA DC detection, poles, and breaking-capacity requirements.",
-    overviewTitle: "Plan EV demand and protective devices together",
-    overview: ["EV charging design must account for charger power, phase arrangement, quantity, simultaneity or load management, feeder capacity, and prospective fault current. Residual-current waveform protection is a separate decision from overcurrent protection.", "Verify the charger instructions, local EV installation rules, upstream distribution capacity, SPD coordination, DC leakage detection, RCD or RCBO type, and enclosure conditions."]
-  },
-  "power-conversion": {
-    slug: "power-conversion",
-    title: "Power Conversion Tools",
-    deck: "kW, kVA, amps, and phase conversions",
-    description: "Electrical conversion calculators for kW, kVA, amps, phase current, transformer loading, battery runtime, and energy cost.",
-    seoTitle: "kW, kVA, Amps & Electrical Conversion Calculators | VIOX",
-    seoDescription: "Convert kW, kVA, and amps; calculate three-phase current, transformer kVA, battery C-rate and runtime, and daily or annual electricity cost.",
-    overviewTitle: "Keep real power, apparent power, current, and energy distinct",
-    overview: ["Electrical calculations must distinguish kW from kVA, power from energy, line voltage from phase voltage, and output power from electrical input. Power factor and efficiency determine the current that equipment and protection must carry.", "Use the conversion results as inputs to the related breaker, cable, contactor, transformer, battery, and energy-planning workflows rather than treating a converted number as final equipment selection."]
-  },
-  "panel-design": {
-    slug: "panel-design",
-    title: "Panel Design Tools",
-    deck: "Busbar and enclosure planning",
-    description: "Reference tools for busbar current, short-circuit force, terminal heating, cable entry, and low-voltage panel design tasks.",
-    seoTitle: "Busbar, Terminal & Panel Design Calculators | VIOX",
-    seoDescription: "Calculate busbar current and short-circuit force, terminal I²R heating, cable entry, and supporting low-voltage switchboard design checks online.",
-    overviewTitle: "Check electrical and mechanical panel limits",
-    overview: ["Panel design joins current capacity, temperature rise, clearances, creepage, short-circuit withstand, busbar support loading, connection resistance, enclosure conditions, and protective-device coordination.", "Simplified calculations cannot replace verification of the complete assembly. Confirm material properties, joint design, supports, fasteners, terminals, airflow, enclosure temperature, and the applicable switchgear or assembly standard."]
+    slug: "ev-charging", title: "EV Charging Tools", deck: "Charging time, cost, current, demand, and feeder planning",
+    description: "Calculators for EV charging current, charging duration and cost, multiple-charger demand, and feeder planning.",
+    seoTitle: "EV Charging Time, Cost & Load Calculators | VIOX",
+    seoDescription: "Calculate EV charging time and cost, charger current, multiple-charger demand, simultaneity, feeder load, and preliminary protection needs.",
+    overviewTitle: "Connect the vehicle charging session to the installation",
+    overview: ["EV planning combines battery energy, charging power, efficiency, tariff, phase arrangement, charger quantity, simultaneity, and distribution capacity.", "Continue with the related breaker, RCD or RCBO, SPD, cable, voltage-drop, and fault-current checks required by the charger instructions and local rules."]
   }
 };

@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const dist = fileURLToPath(new URL("../dist/", import.meta.url));
-const expectedCategories = new Set(["basic-conversion", "solar-storage", "surge-protection", "circuit-protection", "cable-wiring", "motor-control", "ev-charging", "power-conversion", "panel-design"]);
+const expectedCategories = new Set(["electrical-fundamentals", "solar-storage", "surge-protection", "circuit-protection", "cable-wire", "cable-management", "motor-control", "ev-charging", "power-distribution"]);
 
 if (!existsSync(join(dist, "index.html")) || !existsSync(join(dist, "robots.txt"))) {
   console.error("Build output is missing index.html or robots.txt. Run npm run build first.");

@@ -1,12 +1,12 @@
 export type ToolCategory =
   | "surge-protection"
   | "circuit-protection"
-  | "cable-wiring"
+  | "cable-wire"
+  | "cable-management"
   | "motor-control"
   | "ev-charging"
-  | "power-conversion"
-  | "panel-design"
-  | "basic-conversion"
+  | "power-distribution"
+  | "electrical-fundamentals"
   | "solar-storage";
 
 export type ToolFieldOption = {

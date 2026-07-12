@@ -113,7 +113,7 @@ export const tools: ToolDefinition[] = [
     slug: "voltage-drop-calculator",
     title: "Voltage Drop Calculator",
     shortTitle: "Voltage Drop",
-    category: "cable-wiring",
+    category: "cable-wire",
     description: "Estimate voltage drop by current, conductor length, material, cross-section, and phase system.",
     intent: "Quick voltage drop check for cable and panel design discussions.",
     fields: [
@@ -146,7 +146,7 @@ export const tools: ToolDefinition[] = [
     slug: "cable-size-calculator",
     title: "Cable Size Calculator",
     shortTitle: "Cable Size",
-    category: "cable-wiring",
+    category: "cable-wire",
     description: "Find a reference conductor size from load current, sizing factor, conductor material, and installation severity.",
     intent: "Early-stage conductor sizing before standards-based cable selection.",
     fields: [
@@ -180,7 +180,7 @@ export const tools: ToolDefinition[] = [
     slug: "conduit-fill-calculator",
     title: "Conduit Fill Calculator",
     shortTitle: "Conduit Fill",
-    category: "cable-wiring",
+    category: "cable-management",
     description: "Calculate conduit fill percentage from pathway type, trade size, cable outside diameter, and cable quantity.",
     intent: "Pathway planning for panel entrances, low-voltage wiring, data cable, control cable, and mixed cable runs.",
     fields: [
@@ -215,7 +215,7 @@ export const tools: ToolDefinition[] = [
     slug: "dc-voltage-drop-calculator",
     title: "DC Voltage Drop Calculator",
     shortTitle: "DC Voltage Drop",
-    category: "cable-wiring",
+    category: "cable-wire",
     description: "Check DC voltage drop for 12 V, 24 V, 48 V, control, LED, battery, and PV accessory circuits using AWG conductor resistance.",
     intent: "Low-voltage DC wiring check where a small voltage loss can become a large percentage of source voltage.",
     fields: [
@@ -248,7 +248,7 @@ export const tools: ToolDefinition[] = [
     slug: "awg-wire-size-calculator",
     title: "AWG Wire Size Calculator",
     shortTitle: "AWG Wire Size",
-    category: "cable-wiring",
+    category: "cable-wire",
     description: "Find the smallest AWG conductor that passes both reference ampacity and voltage-drop checks.",
     intent: "US-market wire sizing reference for low-voltage DC, single-phase AC, and three-phase AC discussions.",
     fields: [
@@ -289,7 +289,7 @@ export const tools: ToolDefinition[] = [
     slug: "mm2-to-awg-converter",
     title: "mm² to AWG & AWG to mm² Converter",
     shortTitle: "mm² / AWG",
-    category: "cable-wiring",
+    category: "cable-wire",
     description: "Convert conductor cross-sectional area between metric mm² and American Wire Gauge, with nearest and not-smaller standard-size references.",
     intent: "Quick bidirectional conductor-size comparison for cable, lug, gland, terminal, and datasheet work.",
     fields: [
@@ -347,7 +347,7 @@ export const tools: ToolDefinition[] = [
     slug: "transformer-sizing-calculator",
     title: "Transformer Sizing Calculator",
     shortTitle: "Transformer Size",
-    category: "panel-design",
+    category: "power-distribution",
     description: "Estimate transformer kVA from connected load, demand factor, future growth, loading margin, ambient derating, and standard rating series.",
     intent: "Distribution transformer planning before feeder, breaker, cable, and busbar sizing.",
     fields: [
@@ -422,7 +422,7 @@ export const tools: ToolDefinition[] = [
     slug: "kw-kva-amp-calculator",
     title: "kW, kVA and Amp Calculator",
     shortTitle: "kW/kVA/Amp",
-    category: "basic-conversion",
+    category: "electrical-fundamentals",
     description: "Choose kVA to amps, amps to kW, or kW to amps and see only the inputs required for that calculation.",
     intent: "Task-based electrical power conversion for generator, feeder, and equipment planning.",
     fields: [
@@ -451,7 +451,7 @@ export const tools: ToolDefinition[] = [
     slug: "three-phase-current-calculator",
     title: "Three Phase Current Calculator",
     shortTitle: "3-Phase Current",
-    category: "basic-conversion",
+    category: "electrical-fundamentals",
     description: "Calculate three-phase current from kW or kVA, line voltage, power factor, and efficiency.",
     intent: "Current estimate for balanced three-phase loads.",
     fields: [
@@ -549,7 +549,7 @@ export const tools: ToolDefinition[] = [
     slug: "cable-gland-size-calculator",
     title: "Cable Gland Size Calculator",
     shortTitle: "Cable Gland",
-    category: "cable-wiring",
+    category: "cable-management",
     description: "Select a cable gland by cable outside diameter or check Metric, PG, NPT, and G/BSPP entry threads.",
     intent: "Cable entry planning for panels, enclosures, and industrial equipment.",
     fields: [
@@ -597,7 +597,7 @@ export const tools: ToolDefinition[] = [
     slug: "busbar-current-rating-calculator",
     title: "Busbar Current Rating Calculator",
     shortTitle: "Busbar Rating",
-    category: "panel-design",
+    category: "power-distribution",
     description: "Estimate busbar current from width, thickness, material, current-density reference, and derating factor.",
     intent: "Early panel design estimate before thermal testing and standard verification.",
     fields: [
@@ -670,7 +670,7 @@ export const tools: ToolDefinition[] = [
     slug: "power-factor-correction-calculator",
     title: "Power Factor Calculator and Correction",
     shortTitle: "Power Factor",
-    category: "power-conversion",
+    category: "electrical-fundamentals",
     description: "Analyze active, reactive, and apparent power or calculate the capacitor-bank kvar needed to improve power factor.",
     intent: "Power-triangle analysis and preliminary VIOX capacitor-bank selection for balanced AC systems.",
     fields: [
@@ -1019,7 +1019,7 @@ export const tools: ToolDefinition[] = [
     slug: "ats-selection-calculator",
     title: "ATS Selection Calculator",
     shortTitle: "ATS Selection",
-    category: "circuit-protection",
+    category: "power-distribution",
     description: "Select a preliminary ATS current rating, PC or CB class, pole arrangement, transfer-speed category, and UPS or STS requirement.",
     intent: "ATS screening by load current, source type, integrated protection, connected-load ride-through, and available fault current.",
     fields: [
@@ -1070,7 +1070,7 @@ export const tools: ToolDefinition[] = [
     slug: "cable-lug-selector",
     title: "Cable Lug Selection Calculator",
     shortTitle: "Cable Lug",
-    category: "cable-wiring",
+    category: "cable-management",
     description: "Select a preliminary cable-lug material, conductor marking, stud hole, palm style, finish, and connection method.",
     intent: "Screen copper, tinned-copper, aluminum-rated, or bimetallic lugs before checking the manufacturer crimp system.",
     fields: [
@@ -1161,7 +1161,7 @@ export const tools: ToolDefinition[] = [
     slug: "energy-cost-calculator",
     title: "Electrical Energy Cost Calculator",
     shortTitle: "Energy Cost",
-    category: "power-conversion",
+    category: "solar-storage",
     description: "Calculate daily, monthly, and annual electricity consumption and operating cost from power, runtime, quantity, load factor, and tariff.",
     intent: "Estimate operating energy and cost for motors, HVAC, lighting, chargers, and industrial equipment.",
     fields: [
@@ -1193,7 +1193,7 @@ export const tools: ToolDefinition[] = [
     slug: "terminal-heating-calculator",
     title: "Electrical Terminal Heating Calculator",
     shortTitle: "Terminal Heating",
-    category: "panel-design",
+    category: "power-distribution",
     description: "Calculate contact power loss, voltage drop, daily heat energy, and optional temperature-rise estimate from current and contact resistance.",
     intent: "Quantify why a small increase in terminal or joint resistance creates dangerous I²R heating.",
     fields: [
@@ -1231,7 +1231,7 @@ export const tools: ToolDefinition[] = [
     slug: "busbar-short-circuit-force-calculator",
     title: "Busbar Short-Circuit Force Calculator",
     shortTitle: "Busbar Force",
-    category: "panel-design",
+    category: "power-distribution",
     description: "Estimate electrodynamic force between parallel busbars from peak short-circuit current, conductor spacing, and unsupported support span.",
     intent: "Screen busbar-support mechanical duty before complete assembly verification and testing.",
     fields: [
