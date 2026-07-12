@@ -711,42 +711,39 @@ export const seoGuidesBySlug: Record<string, SeoGuide> = {
       {
         title: "How to convert kW, kVA, and amps",
         paragraphs: [
-          "Power conversion depends on system phase, voltage, power factor, and efficiency. The calculator treats entered kW as output power, converts it to required input kW using efficiency, then calculates apparent power and current."
+          "Start by choosing kVA to amps, amps to kW, or kW to amps. The calculator then shows only the system and electrical values required for that task."
         ],
         steps: [
-          "Select DC, single-phase AC, or three-phase AC.",
-          "Enter output power and system voltage.",
-          "Enter power factor for AC loads.",
-          "Enter efficiency when output power differs from electrical input power.",
-          "Use the calculated current for preliminary feeder and protection checks."
+          "Choose one of the three conversion modes.",
+          "Select DC, single-phase AC, or three-phase AC where available.",
+          "Enter the visible power or current value and voltage.",
+          "Enter power factor for active-power AC conversions.",
+          "Review the result and formula basis before equipment selection."
         ]
       },
       {
         title: "kW to amps calculation example",
         paragraphs: [
-          "A 15 kW three-phase output at 400 V, 0.90 power factor, and 90% efficiency requires about 16.7 kW input, 18.5 kVA, and 26.7 A line current."
+          "A 15 kW balanced three-phase load at 400 V and 0.90 power factor draws approximately 24.1 A."
         ],
         callouts: [
-          "Pinput = 15 / 0.90 = 16.7 kW",
-          "S = 16.7 / 0.90 = 18.5 kVA",
-          "I = 15,000 / (√3 × 400 × 0.90 × 0.90) = 26.7 A"
+          "I = 15,000 / (√3 × 400 × 0.90) = 24.1 A"
         ],
         table: {
           headers: ["Input or result", "Value"],
           rows: [
             ["Output power", "15 kW"],
             ["Voltage", "400 V three-phase"],
-            ["Power factor / efficiency", "0.90 / 90%"],
-            ["Input power", "16.7 kW"],
-            ["Apparent power", "18.5 kVA"],
-            ["Line current", "26.7 A"]
+            ["Power factor", "0.90"],
+            ["Apparent power", "16.7 kVA"],
+            ["Line current", "24.1 A"]
           ]
         }
       },
       {
         title: "kW vs. kVA",
         paragraphs: [
-          "Kilowatts measure real power, while kilovolt-amperes measure apparent power. For an AC load, input kW equals kVA multiplied by power factor. If entered power is mechanical or useful output, efficiency is also needed to find electrical input power."
+          "Kilowatts measure active power, while kilovolt-amperes measure apparent power. For an AC load, kW equals kVA multiplied by power factor. Equipment efficiency belongs in motor or generator output calculations, not this direct electrical conversion."
         ],
         table: {
           headers: ["Quantity", "Meaning", "Typical use"],

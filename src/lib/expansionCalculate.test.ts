@@ -154,6 +154,15 @@ describe("20-calculator expansion reference cases", () => {
     expect(metric("vfd-sizing-protection-calculator", "Estimated VFD panel heat")).toMatch(/W$/);
   });
 
+  it("applies service-factor loading only when enabled and changes regional guidance only", () => {
+    const base = defaults("vfd-sizing-protection-calculator");
+    const withService = calculateTool("vfd-sizing-protection-calculator", { ...base, includeServiceFactor: "yes", serviceFactor: 1.15, region: "north-america" });
+    expect(withService.primary).toBe("≥ 79.32 A output");
+    expect(withService.metrics.find((item) => item.label === "Regional checklist")?.value).toContain("UL 61800-5-1");
+    const regionOnly = calculateTool("vfd-sizing-protection-calculator", { ...base, region: "china" });
+    expect(regionOnly.primary).toBe("≥ 68.97 A output");
+  });
+
   it("exposes both IEEE 1584 arcing-current scenarios without assigning PPE", () => {
     const result = calculateTool("arc-flash-incident-energy-calculator", defaults("arc-flash-incident-energy-calculator"));
     expect(result.primary).toMatch(/cal\/cm²$/);

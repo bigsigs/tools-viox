@@ -572,29 +572,32 @@ describe("calculateTool", () => {
 
   it("converts kW to kVA and current for balanced three-phase power", () => {
     const result = calculateTool("kw-kva-amp-calculator", {
+      mode: "kw-to-amps",
       phase: "three",
       power: 15,
       voltage: 400,
-      pf: 0.9,
-      efficiency: 100
+      pf: 0.9
     });
 
     expect(result.primary).toBe("24.1");
     expect(result.metrics.find((metric) => metric.label === "Apparent power")?.value).toBe("16.7 kVA");
   });
 
-  it("keeps input power, apparent power, and current consistent when efficiency is below 100%", () => {
+  it("converts three-phase amps to kW", () => {
     const result = calculateTool("kw-kva-amp-calculator", {
+      mode: "amps-to-kw",
       phase: "three",
-      power: 15,
+      amps: 100,
       voltage: 400,
-      pf: 0.9,
-      efficiency: 90
+      pf: 0.8
     });
+    expect(result.primary).toBe("55.4");
+  });
 
-    expect(result.metrics.find((metric) => metric.label === "Input power")?.value).toBe("16.7 kW");
-    expect(result.metrics.find((metric) => metric.label === "Apparent power")?.value).toBe("18.5 kVA");
-    expect(result.primary).toBe("26.7");
+  it("converts three-phase kVA to amps without power factor", () => {
+    const result = calculateTool("kw-kva-amp-calculator", { mode: "kva-to-amps", phase: "three", kva: 100, voltage: 400, pf: 0.2 });
+    expect(result.primary).toBe("144");
+    expect(result.metrics.find((metric) => metric.label === "Power factor")?.value).toBe("Not required");
   });
 
   it("rejects a fractional EV charger quantity", () => {

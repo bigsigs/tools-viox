@@ -511,61 +511,28 @@ export const equationsBySlug: Record<string, ToolEquation> = {
   },
   "kw-kva-amp-calculator": {
     title: "Power conversion equations",
-    intro: "These equations convert real power, apparent power, and current for DC, single-phase AC, and balanced three-phase AC systems.",
+    intro: "Choose one task. The phase factor is 1 for DC and single-phase AC, and √3 for balanced three-phase AC.",
     equations: [
       {
-        label: "DC current",
-        expression: "I = P / (V × η)",
-        mathml: `<math display="block" aria-label="I equals P over V times efficiency">
-          <mi>I</mi>
-          <mo>=</mo>
-          <mfrac>
-            <mi>P</mi>
-            <mrow><mi>V</mi><mi>η</mi></mrow>
-          </mfrac>
-        </math>`
+        label: "kVA to amps",
+        expression: "I = S × 1000 / (Fphase × V)"
       },
       {
-        label: "Single-phase AC current",
-        expression: "I = P / (V × PF × η)",
-        mathml: `<math display="block" aria-label="I equals P over V times power factor times efficiency">
-          <mi>I</mi>
-          <mo>=</mo>
-          <mfrac>
-            <mi>P</mi>
-            <mrow><mi>V</mi><mi>PF</mi><mi>η</mi></mrow>
-          </mfrac>
-        </math>`
+        label: "Amps to kW",
+        expression: "P = Fphase × V × I × PF / 1000"
       },
       {
-        label: "Three-phase AC current",
-        expression: "I = P / (√3 × V × PF × η)",
-        mathml: `<math display="block" aria-label="I equals P over square root of three V times power factor times efficiency">
-          <mi>I</mi>
-          <mo>=</mo>
-          <mfrac>
-            <mi>P</mi>
-            <mrow><msqrt><mn>3</mn></msqrt><mi>V</mi><mi>PF</mi><mi>η</mi></mrow>
-          </mfrac>
-        </math>`
-      },
-      {
-        label: "Apparent power",
-        expression: "S = P / (PF × η)",
-        mathml: `<math display="block" aria-label="S equals output power over power factor times efficiency">
-          <mi>S</mi>
-          <mo>=</mo>
-          <mfrac><mi>P</mi><mrow><mi>PF</mi><mi>η</mi></mrow></mfrac>
-        </math>`
+        label: "kW to amps",
+        expression: "I = P × 1000 / (Fphase × V × PF)"
       }
     ],
     symbols: [
       { symbol: "I", meaning: "Calculated current", unit: "A" },
-      { symbol: "P", meaning: "Output power converted to watts", unit: "W" },
+      { symbol: "P", meaning: "Active power", unit: "kW" },
       { symbol: "V", meaning: "System voltage", unit: "V" },
       { symbol: "PF", meaning: "Power factor for AC systems" },
-      { symbol: "η", meaning: "Efficiency as a decimal" },
-      { symbol: "S", meaning: "Apparent power", unit: "kVA" }
+      { symbol: "S", meaning: "Apparent power", unit: "kVA" },
+      { symbol: "Fphase", meaning: "1 for DC or single-phase; √3 for three-phase" }
     ],
     conclusion: "Use equipment nameplate current when available, especially for nonlinear loads, motor loads, or equipment with high starting current."
   },

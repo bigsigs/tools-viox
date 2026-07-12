@@ -1260,24 +1260,32 @@ function calculateShortCircuit(values: Values): CalculationResult {
 }
 
 function calculatePowerConversion(values: Values): CalculationResult {
+  const mode = str(values.mode || "kw-to-amps");
   const phase = str(values.phase);
-  const kw = positiveNumber(values.power, "Power");
   const voltage = positiveNumber(values.voltage, "Voltage");
+  const phaseFactor = phase === "three" ? Math.sqrt(3) : 1;
+  if (mode === "kva-to-amps") {
+    if (phase === "dc") throw new Error("kVA to amps requires a single-phase or three-phase AC system.");
+    const kva = positiveNumber(values.kva, "Apparent power"), amps = kva * 1000 / (phaseFactor * voltage);
+    return { primary: fmt(amps), unit: "A", severity: "ok", summary: `${fmt(kva)} kVA at ${fmt(voltage)} V equals approximately ${fmt(amps)} A.`, metrics: [{ label: "Apparent power", value: `${fmt(kva)} kVA` }, { label: "Voltage", value: `${fmt(voltage)} V` }, { label: "System", value: phase === "three" ? "Three-phase AC" : "Single-phase AC" }, { label: "Power factor", value: "Not required" }], recommendations: [phase === "three" ? "Use line-to-line voltage for three-phase calculations." : "Confirm the entered single-phase voltage."] };
+  }
   const pf = phase === "dc" ? 1 : positiveNumber(values.pf, "Power factor");
-  const efficiency = positiveNumber(values.efficiency, "Efficiency") / 100;
-  const amps = currentFromKw(kw, voltage, pf, phase, efficiency);
-  const inputKw = kw / efficiency;
-  const kva = phase === "dc" ? inputKw : inputKw / pf;
+  if (pf > 1) throw new Error("Power factor must not exceed 1.");
+  if (mode === "amps-to-kw") {
+    const amps = positiveNumber(values.amps, "Current"), kw = phaseFactor * voltage * amps * pf / 1000;
+    return { primary: fmt(kw), unit: "kW", severity: "ok", summary: `${fmt(amps)} A corresponds to approximately ${fmt(kw)} kW for the selected system.`, metrics: [{ label: "Current", value: `${fmt(amps)} A` }, { label: "Voltage", value: `${fmt(voltage)} V` }, { label: "Power factor", value: fmt(pf) }, { label: "Apparent power", value: phase === "dc" ? "Not used for DC" : `${fmt(kw / pf)} kVA` }], recommendations: [phase === "three" ? "Use line-to-line voltage for three-phase calculations." : "Confirm voltage and power factor from the equipment data."] };
+  }
+  const kw = positiveNumber(values.power, "Active power"), amps = kw * 1000 / (phaseFactor * voltage * pf);
 
   return {
     primary: fmt(amps),
     unit: "A",
     severity: "ok",
-    summary: `${fmt(kw)} kW output requires approximately ${fmt(inputKw)} kW input and ${fmt(amps)} A for the selected system.`,
+    summary: `${fmt(kw)} kW corresponds to approximately ${fmt(amps)} A for the selected system.`,
     metrics: [
-      { label: "Output power", value: `${fmt(kw)} kW` },
-      { label: "Input power", value: `${fmt(inputKw)} kW` },
-      { label: "Apparent power", value: phase === "dc" ? "Not used for DC" : `${fmt(kva)} kVA` },
+      { label: "Active power", value: `${fmt(kw)} kW` },
+      { label: "Power factor", value: fmt(pf) },
+      { label: "Apparent power", value: phase === "dc" ? "Not used for DC" : `${fmt(kw / pf)} kVA` },
       { label: "Voltage", value: `${fmt(voltage)} V` },
       { label: "Formula basis", value: phase === "three" ? "sqrt(3) three-phase" : phase === "single" ? "Single-phase AC" : "DC" }
     ],

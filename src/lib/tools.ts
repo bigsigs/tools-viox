@@ -423,20 +423,22 @@ export const tools: ToolDefinition[] = [
     title: "kW, kVA and Amp Calculator",
     shortTitle: "kW/kVA/Amp",
     category: "basic-conversion",
-    description: "Convert between kW, kVA, and current for DC, single-phase AC, and three-phase AC systems.",
-    intent: "Fast electrical power conversion before equipment sizing.",
+    description: "Choose kVA to amps, amps to kW, or kW to amps and see only the inputs required for that calculation.",
+    intent: "Task-based electrical power conversion for generator, feeder, and equipment planning.",
     fields: [
+      { id: "mode", label: "Calculation", type: "select", defaultValue: "kw-to-amps", options: [{ value: "kva-to-amps", label: "kVA to amps" }, { value: "amps-to-kw", label: "Amps to kW" }, { value: "kw-to-amps", label: "kW to amps" }] },
       { id: "phase", label: "System type", type: "select", defaultValue: "three", options: phaseOptions },
-      { id: "power", label: "Output power", type: "number", defaultValue: 15, unit: "kW", min: 0 },
+      { id: "kva", label: "Apparent power", type: "number", defaultValue: 100, unit: "kVA", min: 0 },
+      { id: "amps", label: "Current", type: "number", defaultValue: 100, unit: "A", min: 0 },
+      { id: "power", label: "Active power", type: "number", defaultValue: 100, unit: "kW", min: 0 },
       { id: "voltage", label: "Voltage", type: "number", defaultValue: 400, unit: "V", min: 0 },
-      { id: "pf", label: "Power factor", type: "number", defaultValue: 0.9, min: 0.1, max: 1, step: 0.01 },
-      { id: "efficiency", label: "Efficiency", type: "number", defaultValue: 100, unit: "%", min: 1, max: 100 }
+      { id: "pf", label: "Power factor", type: "number", defaultValue: 0.8, min: 0.1, max: 1, step: 0.01 }
     ],
-    formula: "DC: I = Pout / (V x efficiency). Single-phase: I = Pout / (V x PF x efficiency). Three-phase: I = Pout / (sqrt(3) x V x PF x efficiency).",
-    assumptions: ["Entered kW is output power", "Balanced three-phase load", "Power factor applies to AC systems only", "Efficiency converts output power to required input power"],
+    formula: "kVA to amps: I = S x 1000 / (phase factor x V). Amps to kW: P = phase factor x V x I x PF / 1000. kW to amps: I = P x 1000 / (phase factor x V x PF).",
+    assumptions: ["Balanced three-phase load", "Three-phase voltage is line-to-line", "Power factor applies to active-power AC conversions"],
     warnings: ["Use nameplate data when available.", "Nonlinear loads, harmonics, and starting current are not included."],
     faqs: [
-      { question: "What is the difference between kW and kVA?", answer: "kW is real power and kVA is apparent power. This calculator treats entered kW as output power, converts it to input kW using efficiency, then divides input kW by power factor for kVA." },
+      { question: "What is the difference between kW and kVA?", answer: "kW is active power and kVA is apparent power. Power factor relates them for AC systems: kW = kVA × power factor." },
       { question: "Can I use this for motors?", answer: "Yes for a first estimate, but the motor current calculator is better because it includes efficiency and overload context." }
     ],
     relatedTools: ["three-phase-current-calculator", "motor-current-calculator", "circuit-breaker-size-calculator"],

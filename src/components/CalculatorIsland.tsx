@@ -90,6 +90,14 @@ export default function CalculatorIsland({ slug }: Props) {
     { id: "current", symbol: "I", key: "i", label: "Current", unit: "A" },
     { id: "voltage", symbol: "V", key: "v", label: "Voltage", unit: "V" }
   ];
+  const regionStandards: Record<string, string> = {
+    international: "IEC 61800 series; IEC 60204-1 machinery electrical requirements",
+    eu: "EN IEC 61800-3 and EN IEC 61800-5-1; applicable EU machinery requirements",
+    "north-america": "NEC Article 430; UL 61800-5-1; NEMA MG 1 Part 31",
+    "au-nz": "AS/NZS 3000; AS/NZS IEC 61800.3; local machinery safety requirements",
+    china: "GB/T 12668 series; GB/T 5226.1 machinery electrical requirements",
+    other: "Use the standards and certification requirements stated by the project authority"
+  };
   const converterUnits = {
     power: [{ value: "w", label: "W", factor: 1 }, { value: "kw", label: "kW", factor: 1e3 }, { value: "mw", label: "MW", factor: 1e6 }, { value: "hp", label: "hp", factor: 745.699872 }, { value: "btuh", label: "BTU/h", factor: 0.2930710702 }],
     energy: [{ value: "j", label: "J", factor: 1 }, { value: "kj", label: "kJ", factor: 1e3 }, { value: "mj", label: "MJ", factor: 1e6 }, { value: "wh", label: "Wh", factor: 3600 }, { value: "kwh", label: "kWh", factor: 3.6e6 }, { value: "mwh", label: "MWh", factor: 3.6e9 }]
@@ -208,6 +216,56 @@ export default function CalculatorIsland({ slug }: Props) {
                 <label><span>To</span><div className="converter-value"><input type="number" inputMode="decimal" min="0" step="any" value={displayedRight} onChange={(event) => updateConverterValue("right", event.target.value)} /><select aria-label="To unit" value={String(values.toUnit)} onChange={(event) => update("toUnit", event.target.value)}>{activeUnits.map((unit) => <option value={unit.value} key={unit.value}>{unit.label}</option>)}</select></div></label>
               </div>
             )}
+          </>
+        ) : slug === "kw-kva-amp-calculator" ? (
+          <>
+            <div className="converter-tabs power-task-tabs" role="tablist" aria-label="Power calculation mode">
+              {[
+                { value: "kva-to-amps", label: "kVA → Amps" },
+                { value: "amps-to-kw", label: "Amps → kW" },
+                { value: "kw-to-amps", label: "kW → Amps" }
+              ].map((mode) => (
+                <button type="button" role="tab" aria-selected={String(values.mode) === mode.value} className={String(values.mode) === mode.value ? "active" : ""} onClick={() => setValues((current) => ({ ...current, mode: mode.value, phase: mode.value === "kva-to-amps" && current.phase === "dc" ? "three" : current.phase }))} key={mode.value}>{mode.label}</button>
+              ))}
+            </div>
+            <label className="field">
+              <span>System</span>
+              <select value={String(values.phase)} onChange={(event) => update("phase", event.target.value)}>
+                {String(values.mode) !== "kva-to-amps" ? <option value="dc">DC</option> : null}
+                <option value="single">Single-phase AC</option>
+                <option value="three">Three-phase AC</option>
+              </select>
+            </label>
+            {String(values.mode) === "kva-to-amps" ? <label className="field"><span>Apparent power</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.kva)} onChange={(event) => update("kva", event.target.value)} /><span className="unit-addon">kVA</span></div></label> : null}
+            {String(values.mode) === "amps-to-kw" ? <label className="field"><span>Current</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.amps)} onChange={(event) => update("amps", event.target.value)} /><span className="unit-addon">A</span></div></label> : null}
+            {String(values.mode) === "kw-to-amps" ? <label className="field"><span>Active power</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.power)} onChange={(event) => update("power", event.target.value)} /><span className="unit-addon">kW</span></div></label> : null}
+            <label className="field"><span>{String(values.phase) === "three" ? "Line-to-line voltage" : "Voltage"}</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.voltage)} onChange={(event) => update("voltage", event.target.value)} /><span className="unit-addon">V</span></div></label>
+            {String(values.mode) !== "kva-to-amps" && String(values.phase) !== "dc" ? <label className="field"><span>Power factor</span><div className="unit-input"><input type="number" min="0.1" max="1" step="0.01" value={String(values.pf)} onChange={(event) => update("pf", event.target.value)} /><span className="unit-addon">pf</span></div></label> : null}
+          </>
+        ) : slug === "vfd-sizing-protection-calculator" ? (
+          <>
+            <label className="field"><span>Motor rated output power</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.motorPower)} onChange={(event) => update("motorPower", event.target.value)} /><select aria-label="Motor power unit" value={String(values.motorPowerUnit ?? "kw")} onChange={(event) => update("motorPowerUnit", event.target.value)}><option value="kw">kW</option><option value="hp">HP</option></select></div></label>
+            <div className="vfd-basic-grid">
+              <label className="field"><span>Motor rated voltage</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.motorVoltage)} onChange={(event) => update("motorVoltage", event.target.value)} /><span className="unit-addon">V</span></div></label>
+              <label className="field"><span>Motor nameplate current</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.motorCurrent)} onChange={(event) => update("motorCurrent", event.target.value)} /><span className="unit-addon">A</span></div></label>
+            </div>
+            <label className="field"><span>Application duty</span><select value={String(values.loadType)} onChange={(event) => update("loadType", event.target.value)}><option value="variable">Variable torque: fan / centrifugal pump</option><option value="constant">Constant torque: conveyor / mixer</option><option value="heavy">Heavy / overhauling: hoist / crane</option></select></label>
+            <label className="field"><span>Required short-time overload</span><div className="unit-input"><input type="number" min="100" max="250" step="5" value={String(values.requiredOverload)} onChange={(event) => update("requiredOverload", event.target.value)} /><span className="unit-addon">%</span></div></label>
+            <div className="service-factor-control">
+              <label className="toggle-row"><span><b>Include service-factor loading</b><small>Enable only when operation above nameplate rating is expected.</small></span><input type="checkbox" checked={String(values.includeServiceFactor ?? "no") === "yes"} onChange={(event) => update("includeServiceFactor", event.target.checked ? "yes" : "no")} /></label>
+              {String(values.includeServiceFactor ?? "no") === "yes" ? <div className="service-slider"><div><span>Motor service factor</span><strong>{Number(values.serviceFactor ?? 1.15).toFixed(2)}</strong></div><input type="range" min="1" max="1.25" step="0.05" value={String(values.serviceFactor ?? 1.15)} onChange={(event) => update("serviceFactor", event.target.value)} aria-label="Motor service factor" /><div className="slider-labels"><span>1.00</span><span>1.05</span><span>1.10</span><span>1.15</span><span>1.20</span><span>1.25</span></div></div> : null}
+            </div>
+            <label className="field region-field"><span>Installation region / standards</span><select value={String(values.region ?? "international")} onChange={(event) => update("region", event.target.value)}><option value="international">International — IEC 61800 / IEC 60204-1</option><option value="eu">European Union — EN IEC 61800</option><option value="north-america">North America — NEC 430 / UL 61800-5-1</option><option value="au-nz">Australia / New Zealand — AS/NZS 3000 / 61800.3</option><option value="china">China — GB/T 12668 / GB/T 5226.1</option><option value="other">Other — project-specific standards</option></select><small className="region-standards">{regionStandards[String(values.region ?? "international")]}</small></label>
+            <details className="vfd-advanced">
+              <summary>Advanced conditions</summary>
+              <div className="vfd-advanced-grid">
+                {[
+                  ["motorEfficiency", "Motor efficiency", "%", 1, 100], ["motorPowerFactor", "Motor power factor", "pf", 0.01, 1], ["designMargin", "Additional sizing margin", "%", 0, 50], ["supplyVoltage", "VFD supply voltage", "V", 1, undefined], ["vfdEfficiency", "VFD efficiency", "%", 80, 100], ["ambient", "Maximum panel ambient", "°C", undefined, undefined], ["altitude", "Installation altitude", "m", 0, undefined], ["motorCableLength", "VFD-to-motor cable length", "m", 0, undefined], ["faultCurrent", "Prospective fault current", "kA", 0, undefined], ["candidateBreaking", "Protection breaking capacity", "kA", 0, undefined]
+                ].map(([id, label, unit, min, max]) => <label className="field" key={String(id)}><span>{label}</span><div className="unit-input"><input type="number" step="any" min={min as number | undefined} max={max as number | undefined} value={String(values[String(id)])} onChange={(event) => update(String(id), event.target.value)} /><span className="unit-addon">{unit}</span></div></label>)}
+                <label className="field"><span>Rapid braking / overhauling</span><select value={String(values.braking)} onChange={(event) => update("braking", event.target.value)}><option value="no">No</option><option value="yes">Yes</option></select></label>
+                <label className="field"><span>Across-line bypass required</span><select value={String(values.bypass)} onChange={(event) => update("bypass", event.target.value)}><option value="no">No</option><option value="yes">Yes</option></select></label>
+              </div>
+            </details>
           </>
         ) : tool.fields.filter((field) => !field.showWhen || field.showWhen.values.includes(String(values[field.showWhen.field]))).map((field) => (
           <label className="field" key={field.id}>
