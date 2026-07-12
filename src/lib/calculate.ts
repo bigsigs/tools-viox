@@ -273,9 +273,55 @@ function calculateFuseSizing(values: Values): CalculationResult {
 }
 
 function calculatePowerFactorCorrection(values: Values): CalculationResult {
+  const mode = str(values.mode || "correction");
   const phase = str(values.phase);
-  const power = positiveNumber(values.power, "Active power");
   const voltage = positiveNumber(values.voltage, "System voltage");
+  const divisor = phase === "three" ? Math.sqrt(3) * voltage : voltage;
+  if (mode === "analysis") {
+    const basis = str(values.analysisBasis || "ps");
+    let active = 0, reactive = 0, apparent = 0;
+    if (basis === "ps") {
+      active = positiveNumber(values.power, "Active power");
+      apparent = positiveNumber(values.apparentPower, "Apparent power");
+      if (apparent < active) throw new Error("Apparent power must be at least as large as active power.");
+      reactive = Math.sqrt(apparent ** 2 - active ** 2);
+    } else if (basis === "pq") {
+      active = positiveNumber(values.power, "Active power");
+      reactive = positiveNumber(values.reactivePower, "Reactive power");
+      apparent = Math.hypot(active, reactive);
+    } else if (basis === "sq") {
+      apparent = positiveNumber(values.apparentPower, "Apparent power");
+      reactive = positiveNumber(values.reactivePower, "Reactive power");
+      if (reactive > apparent) throw new Error("Reactive power cannot exceed apparent power.");
+      active = Math.sqrt(apparent ** 2 - reactive ** 2);
+    } else if (basis === "p-pf") {
+      active = positiveNumber(values.power, "Active power");
+      const enteredPf = positiveNumber(values.initialPf, "Power factor");
+      if (enteredPf > 1) throw new Error("Power factor cannot exceed 1.00.");
+      apparent = active / enteredPf;
+      reactive = Math.sqrt(apparent ** 2 - active ** 2);
+    } else {
+      active = positiveNumber(values.power, "Active power");
+      const current = positiveNumber(values.current, "Line current");
+      apparent = divisor * current / 1000;
+      if (apparent < active) throw new Error("Measured apparent power is below active power; check voltage, current, phase, and kW inputs.");
+      reactive = Math.sqrt(apparent ** 2 - active ** 2);
+    }
+    const pf = active / apparent, angle = Math.acos(pf) * 180 / Math.PI, lineCurrent = apparent * 1000 / divisor;
+    return {
+      primary: fmt(pf), unit: "PF", severity: pf < 0.8 ? "warning" : pf < 0.9 ? "caution" : "ok",
+      summary: `The load power factor is ${fmt(pf)} with a phase angle of ${fmt(angle)}° for the entered power triangle.`,
+      metrics: [
+        { label: "Active power (P)", value: `${fmt(active)} kW` },
+        { label: "Reactive power (Q)", value: `${fmt(reactive)} kvar` },
+        { label: "Apparent power (S)", value: `${fmt(apparent)} kVA` },
+        { label: "Phase angle", value: `${fmt(angle)}°` },
+        { label: "Line current", value: `${fmt(lineCurrent)} A` }
+      ],
+      recommendations: [pf < 0.9 ? "Use the correction-bank mode to estimate the mathematical kvar needed for the project target." : "The calculated power factor is relatively high; confirm the utility target before adding compensation.", "Confirm whether the load is inductive or capacitive; this magnitude-only power triangle assumes lagging reactive power unless project data says otherwise."]
+    };
+  }
+  const power = positiveNumber(values.power, "Active power");
   const initialPf = positiveNumber(values.initialPf, "Existing power factor");
   const targetPf = positiveNumber(values.targetPf, "Target power factor");
   if (initialPf > 1 || targetPf > 1) throw new Error("Power factor cannot exceed 1.00.");
@@ -285,7 +331,6 @@ function calculatePowerFactorCorrection(values: Values): CalculationResult {
   const kvar = power * (tan1 - tan2);
   const initialKva = power / initialPf;
   const targetKva = power / targetPf;
-  const divisor = phase === "three" ? Math.sqrt(3) * voltage : voltage;
   const initialCurrent = initialKva * 1000 / divisor;
   const targetCurrent = targetKva * 1000 / divisor;
   const harmonics = str(values.harmonics);

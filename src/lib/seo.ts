@@ -77,8 +77,8 @@ const toolSeoMeta: Record<string, { title: string; description: string }> = {
     description: "Estimate a preliminary gG, aM, or gPV fuse size and check load current, cable or module limits, starting duty, voltage, and breaking capacity."
   },
   "power-factor-correction-calculator": {
-    title: "Power Factor Correction Calculator (kVAR) | VIOX",
-    description: "Calculate capacitor-bank kVAR, corrected line current, apparent-power reduction, and annual reactive-energy reduction from load and target power factor."
+    title: "Power Factor Calculator: P, Q, S & kVAR | VIOX",
+    description: "Calculate power factor, phase angle, real, reactive and apparent power, line current, or the capacitor-bank kVAR required for power factor correction."
   },
   "motor-starter-selection-calculator": {
     title: "Motor Starter Selection Calculator | VIOX",

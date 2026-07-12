@@ -267,6 +267,35 @@ export default function CalculatorIsland({ slug }: Props) {
               </div>
             </details>
           </>
+        ) : slug === "power-factor-correction-calculator" ? (
+          <>
+            <div className="converter-tabs pf-mode-tabs" role="tablist" aria-label="Power factor mode">
+              <button type="button" role="tab" aria-selected={String(values.mode) === "analysis"} className={String(values.mode) === "analysis" ? "active" : ""} onClick={() => update("mode", "analysis")}>Analyze power factor</button>
+              <button type="button" role="tab" aria-selected={String(values.mode) !== "analysis"} className={String(values.mode) !== "analysis" ? "active" : ""} onClick={() => update("mode", "correction")}>Size correction bank</button>
+            </div>
+            <div className="vfd-basic-grid">
+              <label className="field"><span>System</span><select value={String(values.phase)} onChange={(event) => update("phase", event.target.value)}><option value="single">Single-phase AC</option><option value="three">Three-phase AC</option></select></label>
+              <label className="field"><span>{String(values.phase) === "three" ? "Line-to-line voltage" : "System voltage"}</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.voltage)} onChange={(event) => update("voltage", event.target.value)} /><span className="unit-addon">V</span></div></label>
+            </div>
+            {String(values.mode) === "analysis" ? (
+              <>
+                <label className="field"><span>Known values</span><select value={String(values.analysisBasis)} onChange={(event) => update("analysisBasis", event.target.value)}><option value="ps">Active power + apparent power</option><option value="pq">Active power + reactive power</option><option value="sq">Apparent power + reactive power</option><option value="p-pf">Active power + power factor</option><option value="meter">Voltage + current + active power</option></select></label>
+                <div className="pf-analysis-grid">
+                  {String(values.analysisBasis) !== "sq" ? <label className="field"><span>Active power (P)</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.power)} onChange={(event) => update("power", event.target.value)} /><span className="unit-addon">kW</span></div></label> : null}
+                  {["pq", "sq"].includes(String(values.analysisBasis)) ? <label className="field"><span>Reactive power (Q)</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.reactivePower)} onChange={(event) => update("reactivePower", event.target.value)} /><span className="unit-addon">kvar</span></div></label> : null}
+                  {["ps", "sq"].includes(String(values.analysisBasis)) ? <label className="field"><span>Apparent power (S)</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.apparentPower)} onChange={(event) => update("apparentPower", event.target.value)} /><span className="unit-addon">kVA</span></div></label> : null}
+                  {String(values.analysisBasis) === "p-pf" ? <label className="field"><span>Power factor</span><div className="unit-input"><input type="number" min="0.01" max="1" step="0.01" value={String(values.initialPf)} onChange={(event) => update("initialPf", event.target.value)} /><span className="unit-addon">PF</span></div></label> : null}
+                  {String(values.analysisBasis) === "meter" ? <label className="field"><span>Measured line current</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.current)} onChange={(event) => update("current", event.target.value)} /><span className="unit-addon">A</span></div></label> : null}
+                </div>
+              </>
+            ) : (
+              <>
+                <label className="field"><span>Active power</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.power)} onChange={(event) => update("power", event.target.value)} /><span className="unit-addon">kW</span></div></label>
+                <div className="pf-analysis-grid"><label className="field"><span>Existing power factor</span><div className="unit-input"><input type="number" min="0.01" max="1" step="0.01" value={String(values.initialPf)} onChange={(event) => update("initialPf", event.target.value)} /><span className="unit-addon">PF</span></div></label><label className="field"><span>Target power factor</span><div className="unit-input"><input type="number" min="0.01" max="1" step="0.01" value={String(values.targetPf)} onChange={(event) => update("targetPf", event.target.value)} /><span className="unit-addon">PF</span></div></label></div>
+                <div className="pf-analysis-grid"><label className="field"><span>Frequency</span><select value={String(values.frequency)} onChange={(event) => update("frequency", event.target.value)}><option value="50">50 Hz</option><option value="60">60 Hz</option></select></label><label className="field"><span>Power-electronic loads</span><select value={String(values.harmonics)} onChange={(event) => update("harmonics", event.target.value)}><option value="low">Low / mainly linear loads</option><option value="moderate">Moderate VFD / UPS / rectifier load</option><option value="high">High harmonic loading</option></select></label></div>
+              </>
+            )}
+          </>
         ) : tool.fields.filter((field) => !field.showWhen || field.showWhen.values.includes(String(values[field.showWhen.field]))).map((field) => (
           <label className="field" key={field.id}>
             <span>

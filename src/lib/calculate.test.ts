@@ -200,6 +200,24 @@ describe("calculateTool", () => {
     expect(result.unit).toBe("kvar");
   });
 
+  it("completes the power triangle from real and apparent power", () => {
+    const result = calculateTool("power-factor-correction-calculator", {
+      mode: "analysis", analysisBasis: "ps", phase: "three",
+      power: 100, apparentPower: 125, voltage: 400
+    });
+    expect(Number(result.primary)).toBeCloseTo(0.8, 3);
+    expect(result.unit).toBe("PF");
+    expect(result.metrics.find((item) => item.label === "Reactive power (Q)")?.value).toContain("75");
+    expect(result.metrics.find((item) => item.label === "Line current")?.value).toBe("180 A");
+  });
+
+  it("rejects an apparent power lower than real power", () => {
+    expect(() => calculateTool("power-factor-correction-calculator", {
+      mode: "analysis", analysisBasis: "ps", phase: "three",
+      power: 125, apparentPower: 100, voltage: 400
+    })).toThrow("Apparent power");
+  });
+
   it("selects a motor starter from a 7.5 kW motor estimate", () => {
     const result = calculateTool("motor-starter-selection-calculator", {
       inputMode: "power", power: 7.5, voltage: 400, pf: 0.85,

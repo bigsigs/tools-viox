@@ -750,9 +750,15 @@ export const equationsBySlug: Record<string, ToolEquation> = {
     conclusion: "These equations shortlist a rating. Exact motor-starting tolerance, clearing time, selectivity, peak let-through current, and I²t require the selected manufacturer's curves and coordination tables."
   },
   "power-factor-correction-calculator": {
-    title: "Power factor correction equation",
-    intro: "The required capacitor reactive power is the difference between reactive power at the existing and target power factors.",
+    title: "Power factor and correction equations",
+    intro: "Real power, reactive power, and apparent power form a right-angled power triangle. Power factor is the ratio of real power to apparent power. Correction supplies part of the reactive power locally to reduce source current.",
     equations: [
+      {
+        label: "Power triangle",
+        expression: "S² = P² + Q²",
+        mathml: `<math display="block" aria-label="S squared equals P squared plus Q squared"><msup><mi>S</mi><mn>2</mn></msup><mo>=</mo><msup><mi>P</mi><mn>2</mn></msup><mo>+</mo><msup><mi>Q</mi><mn>2</mn></msup></math>`
+      },
+      { label: "Power factor", expression: "PF = P / S = cos φ" },
       {
         label: "Required compensation",
         expression: "Qc = P × [tan(cos⁻¹ PF1) - tan(cos⁻¹ PF2)]",
@@ -762,14 +768,17 @@ export const equationsBySlug: Record<string, ToolEquation> = {
       { label: "Three-phase line current", expression: "I = P / (√3 × V × PF)" }
     ],
     symbols: [
-      { symbol: "Qc", meaning: "Capacitive reactive power required", unit: "kvar" },
       { symbol: "P", meaning: "Active power of the load", unit: "kW" },
+      { symbol: "Q", meaning: "Reactive power of the load", unit: "kvar" },
+      { symbol: "S", meaning: "Apparent power supplied to the load", unit: "kVA" },
+      { symbol: "PF", meaning: "Power factor, equal to real power divided by apparent power" },
+      { symbol: "Qc", meaning: "Capacitive reactive power required", unit: "kvar" },
       { symbol: "PF1", meaning: "Existing power factor" },
       { symbol: "PF2", meaning: "Target power factor" },
       { symbol: "φ", meaning: "Phase angle corresponding to the power factor" },
       { symbol: "I", meaning: "AC line current", unit: "A" }
     ],
-    conclusion: "The calculated kvar is the mathematical requirement at one operating point. A real bank needs practical steps, switching control, harmonic assessment, voltage margin, discharge, and thermal design."
+    conclusion: "The power-triangle result describes one operating point. A real correction bank needs practical steps, switching control, harmonic assessment, voltage margin, discharge, and thermal design."
   },
   "motor-starter-selection-calculator": {
     title: "Motor starter sizing equations",

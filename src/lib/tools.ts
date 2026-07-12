@@ -654,17 +654,31 @@ export const tools: ToolDefinition[] = [
   },
   {
     slug: "power-factor-correction-calculator",
-    title: "Power Factor Correction Calculator",
+    title: "Power Factor Calculator and Correction",
     shortTitle: "Power Factor",
     category: "power-conversion",
-    description: "Calculate the capacitor-bank kvar needed to improve power factor and compare line current before and after correction.",
-    intent: "Preliminary capacitor-bank sizing for balanced AC loads before harmonic, switching-step, and equipment checks.",
+    description: "Analyze active, reactive, and apparent power or calculate the capacitor-bank kvar needed to improve power factor.",
+    intent: "Power-triangle analysis and preliminary VIOX capacitor-bank selection for balanced AC systems.",
     fields: [
+      { id: "mode", label: "Mode", type: "select", defaultValue: "analysis", options: [
+        { value: "analysis", label: "Analyze power factor" },
+        { value: "correction", label: "Size correction bank" }
+      ] },
+      { id: "analysisBasis", label: "Known values", type: "select", defaultValue: "ps", options: [
+        { value: "ps", label: "Active power + apparent power" },
+        { value: "pq", label: "Active power + reactive power" },
+        { value: "sq", label: "Apparent power + reactive power" },
+        { value: "p-pf", label: "Active power + power factor" },
+        { value: "meter", label: "Voltage + current + active power" }
+      ] },
       { id: "phase", label: "System", type: "select", defaultValue: "three", options: [
         { value: "single", label: "Single-phase AC" },
         { value: "three", label: "Three-phase AC" }
       ] },
       { id: "power", label: "Active power", type: "number", defaultValue: 100, unit: "kW", min: 0 },
+      { id: "reactivePower", label: "Reactive power", type: "number", defaultValue: 60, unit: "kvar", min: 0 },
+      { id: "apparentPower", label: "Apparent power", type: "number", defaultValue: 125, unit: "kVA", min: 0 },
+      { id: "current", label: "Measured line current", type: "number", defaultValue: 180, unit: "A", min: 0 },
       { id: "voltage", label: "System voltage", type: "number", defaultValue: 400, unit: "V", min: 0 },
       { id: "initialPf", label: "Existing power factor", type: "number", defaultValue: 0.75, min: 0.01, max: 1, step: 0.01 },
       { id: "targetPf", label: "Target power factor", type: "number", defaultValue: 0.95, min: 0.01, max: 1, step: 0.01 },
@@ -678,12 +692,17 @@ export const tools: ToolDefinition[] = [
         { value: "high", label: "High harmonic loading" }
       ] }
     ],
-    formula: "Required compensation is Qc = P x (tan(arccos PF1) - tan(arccos PF2)). Line current is calculated from active power, voltage, phase, and power factor.",
-    assumptions: ["Balanced steady-state AC load", "Active power remains constant after correction", "Capacitor steps and harmonic resonance are not modeled"],
+    formula: "S² = P² + Q²; PF = P/S = cos φ; Qc = P × [tan(acos PF1) − tan(acos PF2)].",
+    assumptions: ["Balanced steady-state AC load", "Power-triangle analysis represents a sinusoidal displacement-power model", "Active power remains constant after correction", "Capacitor steps and harmonic resonance are not modeled"],
     warnings: ["Do not raise the target above the utility or project requirement; overcorrection can create leading power factor and overvoltage.", "Sites with VFDs, UPS systems, rectifiers, or significant harmonics require harmonic measurement and detuned or filtered capacitor-bank review."],
     faqs: [
+      { question: "How do I calculate power factor from kW and kVA?", answer: "Divide active power in kW by apparent power in kVA. For example, 100 kW divided by 125 kVA gives a power factor of 0.80." },
+      { question: "How do I calculate reactive power in kvar?", answer: "When kW and kVA are known, use Q = √(S² − P²). A 100 kW, 125 kVA load has 75 kvar of reactive power in the sinusoidal power-triangle model." },
       { question: "What target power factor should I use?", answer: "A target around 0.95 is a common planning value, but the correct target depends on utility penalties, load variation, harmonics, and project requirements." },
       { question: "Why does correction reduce current?", answer: "For the same useful kW, improving power factor reduces apparent power and therefore reduces line current, cable loss, and transformer loading." },
+      { question: "Does power factor correction reduce kWh consumption?", answer: "It normally does not reduce the useful energy required by the load. It can reduce upstream I²R losses and utility reactive-power charges, but the saving depends on the installation and tariff." },
+      { question: "Why not correct power factor to exactly 1.00?", answer: "Load variation and capacitor tolerances can produce leading power factor or overvoltage when compensation is too high. Use the utility or project target and practical switched steps." },
+      { question: "How do harmonics affect power factor correction?", answer: "Harmonics can lower true power factor and can overload or resonate with capacitor banks. Sites with VFDs, UPS systems, rectifiers, or other nonlinear loads need measurements and a detuned or filtered-bank review." },
       { question: "Is the calculated kvar a final capacitor-bank specification?", answer: "No. Round to a practical stepped bank only after checking load variation, switching frequency, harmonics, voltage, temperature, and capacitor tolerances." }
     ],
     relatedTools: ["kw-kva-amp-calculator", "three-phase-current-calculator", "transformer-sizing-calculator"],
@@ -691,7 +710,7 @@ export const tools: ToolDefinition[] = [
       { label: "VIOX compensation panel support", href: "https://viox.com/contact" },
       { label: "Low-voltage electrical formulas", href: "https://viox.com/electrical-formulas-low-voltage-panel-design-maintenance/" }
     ],
-    keywords: ["power factor correction calculator", "capacitor bank sizing calculator", "kvar calculator", "power factor capacitor calculator"]
+    keywords: ["power factor calculator", "power factor correction calculator", "kw kva kvar calculator", "capacitor bank sizing calculator", "kvar calculator", "calculate power factor from kw and kva", "power factor capacitor calculator"]
   },
   {
     slug: "motor-starter-selection-calculator",
