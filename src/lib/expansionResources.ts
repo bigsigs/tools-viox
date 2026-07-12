@@ -4,6 +4,16 @@ type Resources = Record<string, { articles: ToolLink[]; products: ToolLink[] }>;
 const resource = (articleLabel: string, article: string, productLabel: string, product: string) => ({ articles: [{ label: articleLabel, href: article }], products: [{ label: productLabel, href: product }] });
 
 export const expansionResources: Resources = {
+  "transformer-impedance-calculator": resource("Transformer kVA rating and impedance guide", "https://viox.com/transformer-kva-rating-explained/", "VIOX molded case circuit breakers", "https://viox.com/mccb/"),
+  "generator-sizing-calculator": resource("ATS selection and transfer class guide", "https://viox.com/pc-class-vs-cb-class-ats-selection-guide/", "VIOX automatic transfer switches", "https://viox.com/ats/"),
+  "harmonic-thd-calculator": resource("Single-phase and three-phase power systems", "https://viox.com/the-technical-nuances-of-single-phase-and-three-phase-power-systems/", "VIOX contactors and protection", "https://viox.com/products/"),
+  "ups-backup-time-calculator": resource("Battery energy, C-rate and state-of-charge guide", "https://viox.com/kwh-vs-mwh-vs-mw-battery-energy-storage-c-rate-p-rate-soc-soh-dod/", "VIOX DC circuit breakers", "https://viox.com/dc-mcb/"),
+  "inverter-sizing-calculator": resource("Solar combiner and DC protection guide", "https://viox.com/solar-combiner-box-sizing-guide-expansion/", "VIOX solar combiner boxes", "https://viox.com/combiner-box/"),
+  "grounding-resistance-calculator": resource("SPD and earthing selection guide", "https://viox.com/what-is-a-surge-protective-device/", "VIOX surge protective devices", "https://viox.com/spd/"),
+  "insulation-resistance-temperature-correction-calculator": resource("Motor starter and protection selection guide", "https://viox.com/types-of-motor-starters-selection-guide/", "VIOX motor contactors", "https://viox.com/ac-contactor/"),
+  "cable-pulling-tension-calculator": resource("IEC cable sizing and installation guide", "https://viox.com/iec-60204-1-cable-sizing-formulas-voltage-drop-trunking-capacity-tables/", "VIOX cable glands", "https://viox.com/cable-gland/"),
+  "motor-torque-calculator": resource("Motor contactor and breaker selection guide", "https://viox.com/how-to-select-contactors-and-circuit-breakers-based-on-motor-power/", "VIOX AC contactors", "https://viox.com/ac-contactor/"),
+  "motor-control-panel-load-calculator": resource("Motor contactor overload and breaker guide", "https://viox.com/how-to-select-contactors-overload-relays-circuit-breakers-motor-power/", "VIOX MCCB and contactors", "https://viox.com/mccb/"),
   "three-phase-power-calculator": resource("Single-phase and three-phase power systems", "https://viox.com/the-technical-nuances-of-single-phase-and-three-phase-power-systems/", "VIOX contactors", "https://viox.com/ac-contactor/"),
   "battery-capacity-converter": resource("Battery energy and power units guide", "https://viox.com/kwh-vs-mwh-vs-mw-battery-energy-storage/", "VIOX DC circuit breakers", "https://viox.com/dc-mcb/"),
   "power-energy-time-calculator": resource("kW and kWh difference explained", "https://viox.com/kw-vs-kwh-difference/", "VIOX electrical protection products", "https://viox.com/products/"),

@@ -8,6 +8,16 @@ const fuseSizes = [2, 4, 6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 160, 2
 
 export function calculateExpansionTool(slug: string, v: Values): CalculationResult {
   switch (slug) {
+    case "transformer-impedance-calculator": return transformerImpedance(v);
+    case "generator-sizing-calculator": return generatorSizing(v);
+    case "harmonic-thd-calculator": return harmonicThd(v);
+    case "ups-backup-time-calculator": return upsRuntime(v);
+    case "inverter-sizing-calculator": return inverterSizing(v);
+    case "grounding-resistance-calculator": return groundingResistance(v);
+    case "insulation-resistance-temperature-correction-calculator": return insulationCorrection(v);
+    case "cable-pulling-tension-calculator": return cablePulling(v);
+    case "motor-torque-calculator": return motorTorque(v);
+    case "motor-control-panel-load-calculator": return motorPanelLoad(v);
     case "three-phase-power-calculator": return threePhasePower(v);
     case "battery-capacity-converter": return batteryCapacityConverter(v);
     case "power-energy-time-calculator": return powerEnergyTime(v);
@@ -42,6 +52,61 @@ export function calculateExpansionTool(slug: string, v: Values): CalculationResu
     case "nema-ip-rating-converter": return nemaIp(v);
     default: throw new Error("Unknown calculator");
   }
+}
+
+function transformerImpedance(v: Values): CalculationResult {
+  const kva = pos(v.kva, "Transformer rating"), voltage = pos(v.voltage, "Secondary voltage"), zPct = pos(v.percentZ, "Percent impedance"), xr = nonneg(v.xr, "X/R ratio"), three = s(v.phase) === "three";
+  const va = kva * 1000, ifl = va / (voltage * (three ? Math.sqrt(3) : 1)), zBase = voltage * voltage / va, z = zBase * zPct / 100, r = z / Math.sqrt(1 + xr * xr), x = r * xr, isc = ifl * 100 / zPct, faultMva = kva / zPct * 100 / 1000;
+  return result(`${f(isc / 1000)} kA`, "caution", `Infinite-bus secondary fault current is ${f(isc / 1000)} kA from ${f(ifl)} A full-load current and ${f(zPct)}% nameplate impedance.`, [["Full-load current", `${f(ifl)} A`], ["Base impedance", `${f(zBase)} Ω`], ["Transformer impedance", `${f(z)} Ω`], ["Resistance component", `${f(r)} Ω`], ["Reactance component", `${f(x)} Ω`], ["X/R ratio", f(xr)], ["Fault MVA", `${f(faultMva)} MVA`]], ["Add upstream source and feeder impedance for a location-specific fault current.", "Use X/R in asymmetrical peak, making-duty, and short-time withstand studies.", "Confirm MCCB, ACB, busbar and assembly SCCR above the calculated duty."]);
+}
+
+function generatorSizing(v: Values): CalculationResult {
+  const run = pos(v.runningKw, "Running load"), pf = bounded(v.powerFactor, "Power factor", 0.1, 1), step = nonneg(v.startingKw, "Starting step"), reserve = 1 + nonneg(v.reserve, "Reserve") / 100, growth = 1 + nonneg(v.growth, "Growth") / 100, altitude = nonneg(v.altitude, "Altitude"), temp = num(v.temperature, "Ambient temperature");
+  const steady = run * reserve * growth, transient = run + step, designKw = Math.max(steady, transient), kAlt = Math.max(0.5, 1 - Math.max(0, altitude - 1000) / 500 * 0.03), kTemp = Math.max(0.5, 1 - Math.max(0, temp - 40) / 5 * 0.01), ratedKw = designKw / (kAlt * kTemp), ratedKva = ratedKw / pf;
+  return result(`${f(ratedKva)} kVA`, ratedKva > run / pf * 1.5 ? "caution" : "ok", `The governing screen is ${transient >= steady ? "the entered starting step" : "running load with reserve and growth"}; after generic environmental derating the reference is ${f(ratedKw)} kW / ${f(ratedKva)} kVA.`, [["Steady-state design load", `${f(steady)} kW`], ["Starting-step load", `${f(transient)} kW`], ["Governing site output", `${f(designKw)} kW`], ["Altitude factor", f(kAlt)], ["Temperature factor", f(kTemp)], ["Reference generator kW", `${f(ratedKw)} kW`], ["Reference generator kVA", `${f(ratedKva)} kVA`]], ["Replace generic derating with the exact engine-alternator manufacturer's site-rating data.", "Submit the load sequence and largest motor/UPS step for transient voltage and frequency analysis.", "Coordinate ATS poles, neutral, SCCR, protection, fuel runtime, ventilation, exhaust and load-bank testing."]);
+}
+
+function harmonicThd(v: Values): CalculationResult {
+  const q = s(v.quantity), h1 = pos(v.h1, "Fundamental"), hs = [3,5,7,9,11,13].map(n => [n, nonneg(v[`h${n}`], `H${n}`)] as const), harmonicSq = hs.reduce((a,[,x]) => a + x*x, 0), thd = Math.sqrt(harmonicSq) / h1 * 100, rms = Math.sqrt(h1*h1 + harmonicSq), triplen = Math.sqrt(hs.filter(([n]) => n % 3 === 0).reduce((a,[,x]) => a+x*x,0)), neutralScreen = q === "current" ? 3 * triplen : 0, dominant = hs.reduce((a,b) => b[1] > a[1] ? b : a);
+  return result(`${f(thd)}% THD`, thd > (q === "voltage" ? 8 : 35) ? "warning" : thd > (q === "voltage" ? 5 : 20) ? "caution" : "ok", `${q === "current" ? "THDi" : "THDv"} is ${f(thd)}% and total RMS is ${f(rms)} in the entered unit.`, [["Fundamental RMS", f(h1)], ["Harmonic RSS", f(Math.sqrt(harmonicSq))], ["Total RMS", f(rms)], ["THD", `${f(thd)}%`], ["Dominant entered harmonic", `H${dominant[0]} at ${f(dominant[1] / h1 * 100)}%`], ["Triplen harmonic RSS", f(triplen)], ["Worst-case triplen neutral screen", q === "current" ? f(neutralScreen) : "Current data required"]], ["Do not claim IEEE 519 compliance without PCC voltage, Isc/IL, demand current and individual limits.", "Use phase-resolved magnitude and angle measurements for exact neutral current.", "Review VFD, UPS, EV charger, transformer K-factor, capacitor resonance and conductor heating."]);
+}
+
+function upsRuntime(v: Values): CalculationResult {
+  const load = pos(v.load, "Load"), vb = pos(v.batteryVoltage, "Battery voltage"), ah = pos(v.ah, "Battery capacity"), ns = integerAtLeast(v.series, "Series count", 1), np = integerAtLeast(v.parallel, "Parallel count", 1), eff = bounded(v.efficiency, "Efficiency", 1, 100)/100, aging = bounded(v.aging, "Remaining capacity", 1, 100)/100, dod = bounded(v.dod, "Depth of discharge", 1, 100)/100;
+  const bankV=vb*ns, bankAh=ah*np, nominal=bankV*bankAh, usable=nominal*eff*aging*dod, hours=usable/load, dcCurrent=load/(bankV*eff), cRate=dcCurrent/bankAh;
+  return result(duration(hours), cRate > 0.5 ? "warning" : cRate > 0.2 ? "caution" : "ok", `The energy-method estimate provides ${f(usable/1000)} kWh delivered and approximately ${duration(hours)} at ${f(load)} W.`, [["Bank voltage", `${f(bankV)} VDC`], ["Bank capacity", `${f(bankAh)} Ah`], ["Nominal energy", `${f(nominal/1000)} kWh`], ["Usable delivered energy", `${f(usable/1000)} kWh`], ["Estimated DC current", `${f(dcCurrent)} A`], ["Approximate discharge rate", `${f(cRate)} C`], ["Energy-method runtime", duration(hours)]], ["Use manufacturer constant-power discharge data at the UPS cutoff voltage and minimum temperature.", "Include UPS standby loss, battery tolerance, aging requirement and required end-of-life runtime.", "Verify string protection, DC fault current, cable drop, ventilation and recharge time."]);
+}
+
+function inverterSizing(v: Values): CalculationResult {
+  const load=pos(v.loadKw,"AC load"), pf=bounded(v.powerFactor,"Power factor",0.1,1), surge=pos(v.surgeKw,"Surge load"), margin=1+nonneg(v.margin,"Margin")/100, vdc=pos(v.dcVoltage,"DC voltage"), eff=bounded(v.efficiency,"Efficiency",1,100)/100, vac=pos(v.acVoltage,"AC voltage"), ratio=bounded(v.dcAcRatio,"DC/AC ratio",0.1,2);
+  const continuous=load*margin, kva=continuous/pf, surgeRef=Math.max(surge,continuous), idc=continuous*1000/(vdc*eff), iac=continuous*1000/(vac*pf), pv=continuous*ratio;
+  return result(`${f(continuous)} kW / ${f(kva)} kVA`, surge > continuous*2 ? "caution":"ok", `Continuous inverter reference is ${f(continuous)} kW (${f(kva)} kVA), with at least ${f(surgeRef)} kW entered surge capability.`, [["Continuous active-power reference",`${f(continuous)} kW`],["Continuous apparent-power reference",`${f(kva)} kVA`],["Minimum entered surge reference",`${f(surgeRef)} kW`],["DC input current at nominal voltage",`${f(idc)} A`],["Single-phase AC output current",`${f(iac)} A`],["PV array DC reference",`${f(pv)} kWp`]], ["Recalculate maximum DC current at the inverter minimum operating voltage.", "Verify surge duration and load type against the exact inverter overload curve.", "Complete PV string voltage, MPPT current, battery C-rate, DC protection, isolation and SPD checks."]);
+}
+
+function groundingResistance(v: Values): CalculationResult {
+  const rho=pos(v.rho,"Soil resistivity"), l=pos(v.length,"Rod length"), d=pos(v.diameter,"Rod diameter")/1000, n=integerAtLeast(v.count,"Rod count",1), spacing=pos(v.spacing,"Rod spacing"), target=pos(v.target,"Target resistance"); if(l/d < 10) throw new Error("Rod length must be much greater than rod diameter for this approximation.");
+  const single=rho/(2*Math.PI*l)*(Math.log(4*l/d)-1), ratio=spacing/l, efficiency=n===1?1:Math.min(1, Math.max(0.45, 0.55+0.15*Math.min(ratio,3))), combined=single/(n*efficiency);
+  return result(`${f(combined)} Ω`, combined>target?"warning":"ok", `Uniform-soil screening gives ${f(single)} Ω per rod and approximately ${f(combined)} Ω for ${n} rod${n===1?"":"s"}.`, [["Single-rod resistance",`${f(single)} Ω`],["Spacing-to-length ratio",f(ratio)],["Generic array efficiency",`${f(efficiency*100)}%`],["Multiple-rod estimate",`${f(combined)} Ω`],["Entered project target",`${f(target)} Ω`],["Target screen",combined<=target?"At or below target":"Above target"]], ["Measure the installed electrode system with an accepted fall-of-potential, clamp, or selective method as applicable.", "Use layered-soil modeling for critical sites, substations, lightning systems and touch/step voltage studies.", "Check bonding, conductor sizing, corrosion, seasonal moisture and local electrode requirements separately."]);
+}
+
+function insulationCorrection(v: Values): CalculationResult {
+  const r=pos(v.measured,"Measured resistance"), tm=num(v.measuredTemp,"Measured temperature"), tr=num(v.referenceTemp,"Reference temperature"), interval=pos(v.doubling,"Doubling interval"), test=pos(v.testVoltage,"Test voltage"), factor=Math.pow(2,(tm-tr)/interval), corrected=r*factor;
+  return result(`${f(corrected)} MΩ at ${f(tr)}°C`, "caution", `${f(r)} MΩ measured at ${f(tm)}°C corrects to ${f(corrected)} MΩ at ${f(tr)}°C using a ${f(interval)}°C doubling interval.`, [["Measured resistance",`${f(r)} MΩ`],["Measured temperature",`${f(tm)}°C`],["Reference temperature",`${f(tr)}°C`],["Correction factor",f(factor)],["Corrected resistance",`${f(corrected)} MΩ`],["DC test voltage",`${f(test)} VDC`]], ["Use the equipment or insulation manufacturer's correction curve when available.", "Trend readings only when test voltage, duration, connection, temperature and asset condition are comparable.", "Apply the relevant acceptance criterion; this calculator does not pass or fail the insulation."]);
+}
+
+function cablePulling(v: Values): CalculationResult {
+  const w=pos(v.weight,"Cable weight"), l=pos(v.length,"Length"), mu=nonneg(v.friction,"Friction"), t0=nonneg(v.entryTension,"Entry tension"), angle=nonneg(v.bendAngle,"Bend angle")*Math.PI/180, radius=pos(v.bendRadius,"Bend radius"), allow=pos(v.allowable,"Allowable tension"), swpLimit=pos(v.swpLimit,"Sidewall pressure limit"), straight=t0+mu*w*9.80665*l, out=straight*Math.exp(mu*angle), swp=out/radius, tUse=out/allow*100, sUse=swp/swpLimit*100;
+  return result(`${f(out)} N exit tension`, tUse>100||sUse>100?"warning":tUse>80||sUse>80?"caution":"ok", `The simplified straight-plus-bend route produces ${f(out)} N exit tension and ${f(swp)} N/m sidewall pressure.`, [["Straight-section exit tension",`${f(straight)} N`],["Bend angle",`${f(angle)} rad`],["Capstan tension multiplier",f(Math.exp(mu*angle))],["Final pulling tension",`${f(out)} N`],["Tension utilization",`${f(tUse)}%`],["Sidewall pressure",`${f(swp)} N/m`],["SWP utilization",`${f(sUse)}%`]], ["Model real routes segment by segment in the actual pulling direction.", "Use manufacturer maximum pulling tension, sidewall pressure and bend-radius limits for the exact cable.", "Review conduit fill, jam ratio, lubricant compatibility, pulling eye, reel setup and communication plan."]);
+}
+
+function motorTorque(v: Values): CalculationResult {
+  const p=pos(v.power,"Power"), mode=s(v.powerUnit), rpm=pos(v.rpm,"Speed"), eff=bounded(v.efficiency,"Efficiency",1,100)/100; let outKw=mode==="hp-output"?p*0.745699872:mode==="kw-input"?p*eff:p; const inKw=outKw/eff, nm=9550*outKw/rpm, lbft=nm*0.737562149, omega=2*Math.PI*rpm/60;
+  return result(`${f(nm)} N·m`, "ok", `${f(outKw)} kW shaft output at ${f(rpm)} rpm corresponds to ${f(nm)} N·m (${f(lbft)} lb-ft).`, [["Shaft output power",`${f(outKw)} kW`],["Electrical input reference",`${f(inKw)} kW`],["Shaft speed",`${f(rpm)} rpm`],["Angular speed",`${f(omega)} rad/s`],["Torque",`${f(nm)} N·m`],["Torque",`${f(lbft)} lb-ft`]], ["Use the motor torque-speed curve for starting, pull-up, breakdown and accelerating torque.", "Add gearbox efficiency, ratio and driven-load torque separately.", "Confirm shaft, coupling and mechanical service factor with the equipment manufacturer."]);
+}
+
+function motorPanelLoad(v: Values): CalculationResult {
+  const largest=pos(v.largestMotor,"Largest motor current"), others=nonneg(v.otherMotors,"Other motor currents"), demand=bounded(v.motorDemand,"Motor demand",0,100)/100, kva=nonneg(v.nonMotorKva,"Non-motor load"), voltage=pos(v.voltage,"Voltage"), spare=1+nonneg(v.spare,"Spare")/100, main=pos(v.mainRating,"Main rating"), nonMotorA=kva*1000/(Math.sqrt(3)*voltage), base=1.25*largest+others*demand+nonMotorA, design=base*spare, utilization=design/main*100;
+  return result(`${f(design)} A feeder reference`, design>main?"warning":utilization>80?"caution":"ok", `The entered load basis gives ${f(base)} A before spare and ${f(design)} A after ${f((spare-1)*100)}% planning spare.`, [["125% largest motor contribution",`${f(1.25*largest)} A`],["Other motor contribution",`${f(others*demand)} A`],["Non-motor contribution",`${f(nonMotorA)} A`],["Base feeder ampacity screen",`${f(base)} A`],["With planning spare",`${f(design)} A`],["Entered main rating",`${f(main)} A`],["Main-rating utilization",`${f(utilization)}%`]], ["Verify the adopted motor-feeder rule and whether any entered demand factor is permitted.", "Select the main device only after fault current, breaking capacity, coordination and motor-starting checks.", "Complete busbar, SCCR, neutral, heat, enclosure, starter, overload and conductor verification for the assembled panel."]);
 }
 
 function threePhasePower(v: Values): CalculationResult {

@@ -347,4 +347,51 @@ describe("20-calculator expansion reference cases", () => {
     expect(result.primary).toBe("NEMA 4 / NEMA 4X");
     expect(result.summary).toContain("not an equivalent conversion");
   });
+
+  it("calculates 630 kVA transformer fault current on a three-phase basis", () => {
+    expect(Number.parseFloat(metric("transformer-impedance-calculator", "Full-load current")!)).toBeCloseTo(909.3, 0);
+    expect(Number.parseFloat(calculateTool("transformer-impedance-calculator", defaults("transformer-impedance-calculator")).primary)).toBeCloseTo(15.16, 1);
+  });
+
+  it("uses the larger generator steady or starting requirement", () => {
+    expect(metric("generator-sizing-calculator", "Governing site output")).toBe("210.0 kW");
+  });
+
+  it("calculates THD by root-sum-square", () => {
+    const expected = Math.sqrt(25 ** 2 + 18 ** 2 + 12 ** 2 + 5 ** 2 + 4 ** 2 + 3 ** 2);
+    expect(Number.parseFloat(metric("harmonic-thd-calculator", "Harmonic RSS")!)).toBeCloseTo(expected, 2);
+  });
+
+  it("calculates UPS energy runtime", () => {
+    expect(metric("ups-backup-time-calculator", "Bank voltage")).toBe("48.00 VDC");
+    expect(calculateTool("ups-backup-time-calculator", defaults("ups-backup-time-calculator")).primary).toContain("h");
+  });
+
+  it("calculates inverter nominal DC current", () => {
+    expect(Number.parseFloat(metric("inverter-sizing-calculator", "DC input current at nominal voltage")!)).toBeCloseTo(132.98, 1);
+  });
+
+  it("reduces the grounding estimate when a second rod is added", () => {
+    const one = Number.parseFloat(metric("grounding-resistance-calculator", "Multiple-rod estimate", { count: 1 })!);
+    const two = Number.parseFloat(metric("grounding-resistance-calculator", "Multiple-rod estimate", { count: 2 })!);
+    expect(two).toBeLessThan(one);
+  });
+
+  it("corrects hotter insulation readings downward to 40 C", () => {
+    expect(metric("insulation-resistance-temperature-correction-calculator", "Corrected resistance")).toBe("100.0 MΩ");
+  });
+
+  it("applies the capstan equation to cable pulling", () => {
+    const straight = Number.parseFloat(metric("cable-pulling-tension-calculator", "Straight-section exit tension")!);
+    const final = Number.parseFloat(metric("cable-pulling-tension-calculator", "Final pulling tension")!);
+    expect(final).toBeGreaterThan(straight);
+  });
+
+  it("calculates motor torque from output kW and rpm", () => {
+    expect(Number.parseFloat(calculateTool("motor-torque-calculator", defaults("motor-torque-calculator")).primary)).toBeCloseTo(97.45, 1);
+  });
+
+  it("uses 125 percent of the largest motor in the MCC feeder screen", () => {
+    expect(metric("motor-control-panel-load-calculator", "125% largest motor contribution")).toBe("125.0 A");
+  });
 });
