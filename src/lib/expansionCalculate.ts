@@ -62,11 +62,19 @@ function ohms(v: Values): CalculationResult {
 
 function phaseFactor(phase: string, pf: number) { return phase === "dc" ? 1 : phase === "three" ? Math.sqrt(3) * pf : pf; }
 function wattsAmpsVolts(v: Values): CalculationResult {
-  const mode = s(v.mode), phase = s(v.phase), pf = phase === "dc" ? 1 : bounded(v.powerFactor, "Power factor", 0.01, 1);
-  let P = pos(v.power, "Power"), I = pos(v.current, "Current"), V = pos(v.voltage, "Voltage"); const k = phaseFactor(phase, pf);
-  if (mode === "amps") I = P / (V * k); else if (mode === "watts") P = V * I * k; else V = P / (I * k);
-  const primary = mode === "amps" ? `${f(I)} A` : mode === "watts" ? `${f(P)} W` : `${f(V)} V`;
-  return result(primary, "ok", `${readable(phase)} conversion using the appropriate phase factor.`, [["Power", `${f(P)} W`], ["Current", `${f(I)} A`], ["Voltage", `${f(V)} V`], ["Power factor", f(pf)]], ["Use line-to-line voltage for three-phase calculations."]);
+  const known = s(v.knownQuantities);
+  if (known.length !== 2) throw new Error("Select two known quantities to calculate the third.");
+  const phase = s(v.phase), pf = phase === "dc" ? 1 : bounded(v.powerFactor, "Power factor", 0.01, 1), k = phaseFactor(phase, pf);
+  let P = known.includes("p") ? pos(v.power, "Power") : 0;
+  let I = known.includes("i") ? pos(v.current, "Current") : 0;
+  let V = known.includes("v") ? pos(v.voltage, "Voltage") : 0;
+  if (!known.includes("i")) I = P / (V * k);
+  else if (!known.includes("p")) P = V * I * k;
+  else V = P / (I * k);
+  const target = !known.includes("p") ? "Power" : !known.includes("i") ? "Current" : "Voltage";
+  const systemLabel = phase === "dc" ? "DC" : phase === "three" ? "three-phase AC" : "single-phase AC";
+  const primary = target === "Power" ? `${f(P)} W` : target === "Current" ? `${f(I)} A` : `${f(V)} V`;
+  return result(primary, "ok", `${target} calculated for a ${systemLabel} system using the entered known values.`, [["Power", `${f(P)} W`], ["Current", `${f(I)} A`], ["Voltage", `${f(V)} V`], ["Power factor", f(pf)]], [phase === "three" ? "Use line-to-line voltage for three-phase calculations." : "Confirm that the selected system matches the actual supply."]);
 }
 
 function evCharge(v: Values): CalculationResult {

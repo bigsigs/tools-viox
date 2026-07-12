@@ -37,6 +37,15 @@ describe("20-calculator expansion reference cases", () => {
     expect(calculateTool("watts-amps-volts-calculator", defaults("watts-amps-volts-calculator")).primary).toBe("13.04 A");
   });
 
+  it.each([
+    ["pv", { power: 3000, voltage: 230 }, "13.04 A"],
+    ["iv", { current: 13, voltage: 230 }, "2990 W"],
+    ["pi", { power: 3000, current: 13 }, "230.8 V"]
+  ])("solves the %s watts-amps-volts pair", (knownQuantities, overrides, expected) => {
+    const result = calculateTool("watts-amps-volts-calculator", { ...defaults("watts-amps-volts-calculator"), knownQuantities, ...overrides });
+    expect(result.primary).toBe(expected);
+  });
+
   it("calculates EV charging wall energy, time, and cost", () => {
     const result = calculateTool("ev-charging-time-cost-calculator", defaults("ev-charging-time-cost-calculator"));
     expect(result.primary).toBe("4.545 h");

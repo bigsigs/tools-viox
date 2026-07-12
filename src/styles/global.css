@@ -947,6 +947,20 @@ select {
   gap: 10px;
 }
 
+.power-quantity-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.power-quantity-grid .unit-addon {
+  min-width: 40px;
+  padding: 0 8px;
+}
+
+.power-quantity-grid .unit-input input {
+  padding: 0 8px;
+  font-size: 14px;
+}
+
 .ohms-quantity {
   display: grid;
   gap: 10px;
@@ -1898,6 +1912,10 @@ select {
   .category-grid,
   .metric-list,
   .embed-shell .calculator-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .power-quantity-grid {
     grid-template-columns: 1fr;
   }
 

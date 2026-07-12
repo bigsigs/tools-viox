@@ -68,11 +68,27 @@ export default function CalculatorIsland({ slug }: Props) {
     update("solveFrom", next);
   }
 
+  function selectPowerQuantity(symbol: string) {
+    const selected = String(values.knownQuantities);
+    const order = ["p", "i", "v"];
+    const next = selected.includes(symbol)
+      ? selected.replace(symbol, "")
+      : [...(selected.length < 2 ? selected : selected.slice(-1)), symbol]
+          .sort((a, b) => order.indexOf(a) - order.indexOf(b))
+          .join("");
+    update("knownQuantities", next);
+  }
+
   const ohmsQuantities = [
     { id: "voltage", symbol: "V", key: "v", label: "Voltage", unit: "V" },
     { id: "current", symbol: "I", key: "i", label: "Current", unit: "A" },
     { id: "resistance", symbol: "R", key: "r", label: "Resistance", unit: "Ω" },
     { id: "power", symbol: "P", key: "p", label: "Power", unit: "W" }
+  ];
+  const powerQuantities = [
+    { id: "power", symbol: "P", key: "p", label: "Power", unit: "W" },
+    { id: "current", symbol: "I", key: "i", label: "Current", unit: "A" },
+    { id: "voltage", symbol: "V", key: "v", label: "Voltage", unit: "V" }
   ];
 
   return (
@@ -98,6 +114,43 @@ export default function CalculatorIsland({ slug }: Props) {
                 );
               })}
             </div>
+          </>
+        ) : slug === "watts-amps-volts-calculator" ? (
+          <>
+            <label className="field">
+              <span>System</span>
+              <select value={String(values.phase)} onChange={(event) => update("phase", event.target.value)}>
+                <option value="dc">DC</option>
+                <option value="single">Single-phase AC</option>
+                <option value="three">Three-phase AC</option>
+              </select>
+            </label>
+            <p className="ohms-instruction">Choose two known quantities, then enter their values.</p>
+            <div className="ohms-quantity-grid power-quantity-grid">
+              {powerQuantities.map((quantity) => {
+                const selected = String(values.knownQuantities).includes(quantity.key);
+                return (
+                  <div className={`ohms-quantity ${selected ? "selected" : ""}`} key={quantity.id}>
+                    <button type="button" aria-pressed={selected} onClick={() => selectPowerQuantity(quantity.key)}>
+                      <b>{quantity.symbol}</b><span>{quantity.label}</span>
+                    </button>
+                    <div className="unit-input">
+                      <input type="number" inputMode="decimal" min="0" step="any" disabled={!selected} aria-label={`${quantity.label}${selected ? " known value" : " calculated value"}`} value={String(values[quantity.id])} onChange={(event) => update(quantity.id, event.target.value)} />
+                      <span className="unit-addon">{quantity.unit}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {String(values.phase) !== "dc" ? (
+              <label className="field">
+                <span>Power factor</span>
+                <div className="unit-input">
+                  <input type="number" inputMode="decimal" min="0.01" max="1" step="0.01" value={String(values.powerFactor)} onChange={(event) => update("powerFactor", event.target.value)} />
+                  <span className="unit-addon">pf</span>
+                </div>
+              </label>
+            ) : null}
           </>
         ) : tool.fields.filter((field) => !field.showWhen || field.showWhen.values.includes(String(values[field.showWhen.field]))).map((field) => (
           <label className="field" key={field.id}>

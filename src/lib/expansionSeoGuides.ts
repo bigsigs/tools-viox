@@ -7,9 +7,13 @@ export const expansionSeoGuides = Object.fromEntries(expansionTools.map((tool) =
       title: `How to use the ${tool.title}`,
       paragraphs: [tool.slug === "ohms-law-calculator"
         ? "Voltage, current, resistance, and power are shown together. Select any two quantities as known inputs and enter their values in the units shown; the other two values update immediately in the result panel."
+        : tool.slug === "watts-amps-volts-calculator"
+          ? "Power, current, and voltage are shown together. Select the electrical system, choose any two quantities as known inputs, and enter their values; the remaining quantity updates immediately in the result panel."
         : `${tool.description} Start by choosing the operating mode, then enter values from nameplates, measurements, or project documents in the units shown. The result updates immediately and keeps intermediate quantities visible for review.`],
       steps: tool.slug === "ohms-law-calculator"
         ? ["Select two known quantities from V, I, R, and P.", "Enter both known values.", "Read the two calculated values in the result panel.", "Check all four quantities against component ratings."]
+        : tool.slug === "watts-amps-volts-calculator"
+          ? ["Choose DC, single-phase AC, or three-phase AC.", "Select two known quantities from P, I, and V.", "Enter the known values and AC power factor where applicable.", "Read the calculated third quantity in the result panel."]
         : ["Confirm the system and calculation mode.", "Enter measured or manufacturer-rated values.", "Review the primary result and intermediate metrics.", "Continue with the related protection or equipment-selection checks."]
     },
     {
