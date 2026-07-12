@@ -51,7 +51,7 @@ describe("calculateTool", () => {
       direction: "mm2-to-awg", metricArea: 4, awgSize: "12"
     });
     expect(result.primary).toBe("11 AWG");
-    expect(result.metrics.find((item) => item.label === "Nearest nominal AWG area")?.value).toBe("11 AWG / 4.17 mm²");
+    expect(result.metrics.find((item) => item.label === "Matched nominal area")?.value).toBe("4.17 mm²");
     expect(result.metrics.find((item) => item.label === "Not-smaller AWG")?.value).toBe("11 AWG / 4.17 mm²");
   });
 
@@ -73,6 +73,17 @@ describe("calculateTool", () => {
     });
     expect(awg36.primary).toBe("0.0127");
     expect(awg4o.primary).toBe("107.2");
+  });
+
+  it("reports 3/0 AWG copper resistance and current references", () => {
+    const result = calculateTool("mm2-to-awg-converter", {
+      direction: "awg-to-mm2", metricArea: 4, awgSize: "3/0"
+    });
+    expect(result.primary).toBe("85.0");
+    expect(result.metrics.find((item) => item.label === "AWG size")?.value).toBe("3/0 AWG");
+    expect(result.metrics.find((item) => item.label === "Copper resistance at 20°C")?.value).toBe("0.203 Ω/km");
+    expect(result.metrics.find((item) => item.label === "Power transmission reference")?.value).toBe("559 A");
+    expect(result.metrics.find((item) => item.label === "Chassis wiring reference")?.value).toBe("240 A");
   });
 
   it("does not mislabel metric conductors above the 4/0 AWG range", () => {
@@ -698,6 +709,7 @@ describe("calculateTool", () => {
 
   it("selects a starting metric cable gland thread by cable OD", () => {
     const result = calculateTool("cable-gland-size-calculator", {
+      mode: "diameter",
       diameter: 18,
       armored: "armored",
       environment: "hazardous"
@@ -706,6 +718,46 @@ describe("calculateTool", () => {
     expect(result.primary).toBe("M25");
     expect(result.severity).toBe("warning");
     expect(result.metrics.find((metric) => metric.label === "Cable construction")?.value).toBe("Armored cable");
+  });
+
+  it("reports NPT geometry separately from its reference cable range", () => {
+    const result = calculateTool("cable-gland-size-calculator", {
+      mode: "npt",
+      threadSize: "NPT 1/2",
+      diameter: 0,
+      armored: "unarmored",
+      environment: "industrial"
+    });
+
+    expect(result.primary).toBe("NPT 1/2");
+    expect(result.metrics.find((metric) => metric.label === "Thread standard")?.value).toBe("ASME B1.20.1");
+    expect(result.metrics.find((metric) => metric.label === "Nominal major diameter")?.value).toBe("21.34 mm");
+    expect(result.metrics.find((metric) => metric.label === "Thread form")?.value).toBe("Tapered 1:16");
+  });
+
+  it("estimates a starting gland from a catalog cable conductor size", () => {
+    const result = calculateTool("cable-gland-size-calculator", {
+      mode: "conductor", conductorArea: "10", cores: "4", cableFamily: "swa",
+      diameter: 18, armored: "armored", environment: "industrial", threadSize: "M25"
+    });
+    expect(result.primary).toBe("M32");
+    expect(result.metrics.find((metric) => metric.label === "Published nominal cable OD")?.value).toBe("21.1 mm");
+    expect(result.metrics.find((metric) => metric.label === "Cable construction")?.value).toBe("XLPE/SWA/PVC armored");
+    expect(result.metrics.find((metric) => metric.label === "Data confidence")?.value).toContain("High");
+  });
+
+  it("reports G threads as parallel ISO 228-1 entries", () => {
+    const result = calculateTool("cable-gland-size-calculator", {
+      mode: "g",
+      threadSize: "G 3/4",
+      diameter: 0,
+      armored: "unarmored",
+      environment: "outdoor"
+    });
+
+    expect(result.primary).toBe("G 3/4");
+    expect(result.metrics.find((metric) => metric.label === "Thread standard")?.value).toBe("ISO 228-1 (BSPP)");
+    expect(result.metrics.find((metric) => metric.label === "Thread form")?.value).toBe("Parallel");
   });
 
   it("estimates busbar current from area, density, material, and derating", () => {

@@ -673,7 +673,7 @@ export const equationsBySlug: Record<string, ToolEquation> = {
   },
   "cable-gland-size-calculator": {
     title: "Cable gland selection rule",
-    intro: "Cable gland size is selected by matching the measured cable outside diameter to a product sealing range and then checking the installation environment.",
+    intro: "Cable gland selection requires two independent matches: the cable outside diameter must fit the gland sealing range, and the gland entry thread must fit the enclosure opening.",
     equations: [
       {
         label: "Diameter fit rule",
@@ -686,13 +686,14 @@ export const equationsBySlug: Record<string, ToolEquation> = {
           <msub><mi>OD</mi><mi>max</mi></msub>
         </math>`
       },
-      { label: "Thread selection rule", expression: "Select the first metric thread range that contains ODcable" }
+      { label: "Thread compatibility rule", expression: "Threadgland = Threadentry", note: "M, PG, NPT, and G/BSPP designations are different thread systems and must not be treated as interchangeable." }
     ],
     symbols: [
       { symbol: "ODcable", meaning: "Measured outside diameter over the cable sheath", unit: "mm" },
       { symbol: "ODmin", meaning: "Minimum sealing diameter from the gland datasheet", unit: "mm" },
       { symbol: "ODmax", meaning: "Maximum sealing diameter from the gland datasheet", unit: "mm" },
-      { symbol: "M", meaning: "Metric cable gland thread size, such as M20 or M25" }
+      { symbol: "Threadgland", meaning: "Cable gland male entry thread" },
+      { symbol: "Threadentry", meaning: "Enclosure threaded entry or matching locknut system" }
     ],
     conclusion: "Thread size is not the same as sealing range. Final gland selection must verify material, IP rating, thread length, armor termination, and hazardous-area certification where applicable."
   },

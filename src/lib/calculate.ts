@@ -1128,6 +1128,17 @@ function calculateAwgWireSize(values: Values): CalculationResult {
 function calculateMm2Awg(values: Values): CalculationResult {
   const direction = str(values.direction);
 
+  function wireReferenceMetrics(area: number) {
+    const diameter = Math.sqrt(4 * area / Math.PI);
+    const circularMils = area / 0.000506707479;
+    return [
+      { label: "Nominal solid-wire diameter", value: `${formatLength(diameter)} mm` },
+      { label: "Copper resistance at 20°C", value: `${(17.241 / area).toFixed(3)} Ω/km` },
+      { label: "Power transmission reference", value: `${fmt(circularMils / 300)} A` },
+      { label: "Chassis wiring reference", value: `${fmt(circularMils / 700)} A` }
+    ];
+  }
+
   if (direction === "mm2-to-awg") {
     const area = positiveNumber(values.metricArea, "Metric conductor area");
     const nearest = awgConversionTable.reduce((best, item) => Math.abs(item.area - area) < Math.abs(best.area - area) ? item : best);
@@ -1144,8 +1155,10 @@ function calculateMm2Awg(values: Values): CalculationResult {
       severity: belowRange || aboveRange ? "caution" : "ok",
       summary: `${formatArea(area)} mm² is mathematically closest to ${nearest.label} AWG at ${formatArea(nearest.area)} mm².`,
       metrics: [
+        { label: "Matched AWG", value: `${nearest.label} AWG` },
+        { label: "Matched nominal area", value: `${formatArea(nearest.area)} mm²` },
+        ...wireReferenceMetrics(nearest.area),
         { label: "Theoretical gauge", value: `${theoreticalGauge.toFixed(2)} AWG` },
-        { label: "Nearest nominal AWG area", value: `${nearest.label} AWG / ${formatArea(nearest.area)} mm²` },
         { label: "Nearest area difference", value: signedPercent((nearest.area - area) / area * 100) },
         { label: "Not-smaller AWG", value: notSmaller ? `${notSmaller.label} AWG / ${formatArea(notSmaller.area)} mm²` : "Above 4/0 AWG range" },
         { label: "Equivalent circular area", value: `${formatArea(area / 0.506707479)} kcmil` }
@@ -1161,7 +1174,6 @@ function calculateMm2Awg(values: Values): CalculationResult {
     const gauge = parseAwgGauge(str(values.awgSize));
     const match = awgConversionTable.find((item) => item.gauge === gauge);
     if (!match) throw new Error("Select an AWG size from 40 AWG through 4/0 AWG.");
-    const diameter = Math.sqrt(4 * match.area / Math.PI);
     const nearestMetric = metricConductorSizes.reduce((best, item) => Math.abs(item - match.area) < Math.abs(best - match.area) ? item : best);
     const notSmallerMetric = metricConductorSizes.find((item) => item >= match.area);
 
@@ -1172,7 +1184,8 @@ function calculateMm2Awg(values: Values): CalculationResult {
       summary: `${match.label} AWG has a nominal solid-wire cross-sectional area of approximately ${formatArea(match.area)} mm².`,
       metrics: [
         { label: "AWG size", value: `${match.label} AWG` },
-        { label: "Nominal solid-wire diameter", value: `${formatLength(diameter)} mm` },
+        { label: "Nominal conductor area", value: `${formatArea(match.area)} mm²` },
+        ...wireReferenceMetrics(match.area),
         { label: "Nearest metric nominal size", value: `${formatArea(nearestMetric)} mm²` },
         { label: "Nearest metric difference", value: signedPercent((nearestMetric - match.area) / match.area * 100) },
         { label: "Not-smaller metric size", value: notSmallerMetric ? `${formatArea(notSmallerMetric)} mm²` : "Above 2500 mm² range" }
@@ -1428,23 +1441,73 @@ function calculateEvCharger(values: Values): CalculationResult {
 }
 
 function calculateCableGland(values: Values): CalculationResult {
-  const diameter = positiveNumber(values.diameter, "Cable outer diameter");
+  const mode = str(values.mode || "diameter");
+  const diameter = mode === "diameter" ? positiveNumber(values.diameter, "Cable outer diameter") : Number(values.diameter || 0);
   const environment = str(values.environment);
   const armored = str(values.armored);
-  const ranges = [
-    { max: 6, thread: "M12" },
-    { max: 10, thread: "M16" },
-    { max: 14, thread: "M20" },
-    { max: 18, thread: "M25" },
-    { max: 25, thread: "M32" },
-    { max: 32, thread: "M40" },
-    { max: 38, thread: "M50" },
-    { max: 44, thread: "M63" },
-    { max: 55, thread: "M75" },
-    { max: 68, thread: "M90" }
+  const referenceRanges = [
+    { thread: "M12", min: 3, max: 6.5 }, { thread: "M16", min: 4, max: 8 },
+    { thread: "M20", min: 6, max: 12 }, { thread: "M25", min: 13, max: 18 },
+    { thread: "M32", min: 18, max: 25 }, { thread: "M40", min: 22, max: 32 },
+    { thread: "M50", min: 32, max: 38 }, { thread: "M63", min: 37, max: 44 },
+    { thread: "M75", min: 42, max: 52 }, { thread: "M90", min: 52, max: 68 }
   ];
-  const match = ranges.find((range) => diameter <= range.max);
-  const thread = match?.thread ?? "Custom size";
+  const cableOdData: Record<string, Record<string, number>> = {
+    "nyy-1": { "2.5": 6.15, "4": 7.5, "6": 7.5, "10": 8.6, "16": 9.6, "25": 11.1, "35": 12.1, "50": 13.7, "70": 15.5, "95": 17.6, "120": 19.3, "150": 21 },
+    "nyy-2": { "1.5": 10, "2.5": 10.7, "4": 13, "6": 14.2, "10": 16.2, "16": 18.2 },
+    "nyy-3": { "1.5": 10.4, "2.5": 11.3, "4": 13.1, "6": 15, "10": 17.1, "16": 19.2, "25": 22.1, "35": 24.1, "50": 27.6, "70": 36.3, "95": 40 },
+    "nyy-4": { "1.5": 11.6, "2.5": 12.1, "4": 15.1, "6": 16.5, "10": 18.6, "16": 21.1, "25": 24.2, "35": 26.6, "50": 30.9, "70": 35.1, "95": 40.4, "120": 44.2, "150": 48.5 },
+    "swa-2": { "1.5": 12.1, "2.5": 13.6, "4": 14.7, "6": 15.9, "10": 18, "16": 20.4, "25": 20.4, "35": 23.3, "50": 25.8, "70": 29, "95": 33.1, "120": 36.1, "150": 39.3 },
+    "swa-3": { "1.5": 12.6, "2.5": 14.1, "4": 15.3, "6": 16.6, "10": 19.5, "16": 21.6, "25": 23.6, "35": 25.7, "50": 28.5, "70": 32.2, "95": 37, "120": 40.4, "150": 45.5 },
+    "swa-4": { "1.5": 13.3, "2.5": 15, "4": 16.4, "6": 18.7, "10": 21.1, "16": 23.4, "25": 26.1, "35": 28.6, "50": 32, "70": 37.7, "95": 41.7 }
+  };
+  const threadData: Record<string, { standard: string; major: string; pitch: string; form: string; range: string }> = {
+    M12: { standard: "ISO metric", major: "12.00 mm", pitch: "1.50 mm", form: "Parallel", range: "3–6.5 mm" },
+    M16: { standard: "ISO metric", major: "16.00 mm", pitch: "1.50 mm", form: "Parallel", range: "4–8 mm" },
+    M20: { standard: "ISO metric", major: "20.00 mm", pitch: "1.50 mm", form: "Parallel", range: "6–12 mm" },
+    M25: { standard: "ISO metric", major: "25.00 mm", pitch: "1.50 mm", form: "Parallel", range: "13–18 mm" },
+    M32: { standard: "ISO metric", major: "32.00 mm", pitch: "1.50 mm", form: "Parallel", range: "18–25 mm" },
+    M40: { standard: "ISO metric", major: "40.00 mm", pitch: "1.50 mm", form: "Parallel", range: "22–32 mm" },
+    M50: { standard: "ISO metric", major: "50.00 mm", pitch: "1.50 mm", form: "Parallel", range: "32–38 mm" },
+    M63: { standard: "ISO metric", major: "63.00 mm", pitch: "1.50 mm", form: "Parallel", range: "37–44 mm" },
+    M75: { standard: "ISO metric", major: "75.00 mm", pitch: "1.50 mm", form: "Parallel", range: "42–52 mm" },
+    M90: { standard: "ISO metric", major: "90.00 mm", pitch: "2.00 mm", form: "Parallel", range: "52–68 mm" },
+    PG7: { standard: "DIN 40430", major: "12.50 mm", pitch: "1.27 mm / 20 TPI", form: "Parallel", range: "3–6.5 mm" },
+    PG9: { standard: "DIN 40430", major: "15.20 mm", pitch: "1.41 mm / 18 TPI", form: "Parallel", range: "4–8 mm" },
+    PG11: { standard: "DIN 40430", major: "18.60 mm", pitch: "1.41 mm / 18 TPI", form: "Parallel", range: "5–10 mm" },
+    "PG13.5": { standard: "DIN 40430", major: "20.40 mm", pitch: "1.41 mm / 18 TPI", form: "Parallel", range: "6–12 mm" },
+    PG16: { standard: "DIN 40430", major: "22.50 mm", pitch: "1.41 mm / 18 TPI", form: "Parallel", range: "10–14 mm" },
+    PG21: { standard: "DIN 40430", major: "28.30 mm", pitch: "1.59 mm / 16 TPI", form: "Parallel", range: "13–18 mm" },
+    PG29: { standard: "DIN 40430", major: "37.00 mm", pitch: "1.59 mm / 16 TPI", form: "Parallel", range: "18–25 mm" },
+    PG36: { standard: "DIN 40430", major: "47.00 mm", pitch: "1.59 mm / 16 TPI", form: "Parallel", range: "22–32 mm" },
+    PG42: { standard: "DIN 40430", major: "54.00 mm", pitch: "1.59 mm / 16 TPI", form: "Parallel", range: "32–38 mm" },
+    PG48: { standard: "DIN 40430", major: "59.30 mm", pitch: "1.59 mm / 16 TPI", form: "Parallel", range: "37–44 mm" },
+    "NPT 1/4": { standard: "ASME B1.20.1", major: "13.72 mm", pitch: "18 TPI", form: "Tapered 1:16", range: "3–6.5 mm" },
+    "NPT 3/8": { standard: "ASME B1.20.1", major: "17.15 mm", pitch: "18 TPI", form: "Tapered 1:16", range: "4–8 mm" },
+    "NPT 1/2": { standard: "ASME B1.20.1", major: "21.34 mm", pitch: "14 TPI", form: "Tapered 1:16", range: "6–12 mm" },
+    "NPT 3/4": { standard: "ASME B1.20.1", major: "26.67 mm", pitch: "14 TPI", form: "Tapered 1:16", range: "13–18 mm" },
+    "NPT 1": { standard: "ASME B1.20.1", major: "33.40 mm", pitch: "11.5 TPI", form: "Tapered 1:16", range: "18–25 mm" },
+    "NPT 1-1/4": { standard: "ASME B1.20.1", major: "42.16 mm", pitch: "11.5 TPI", form: "Tapered 1:16", range: "22–32 mm" },
+    "NPT 1-1/2": { standard: "ASME B1.20.1", major: "48.26 mm", pitch: "11.5 TPI", form: "Tapered 1:16", range: "32–38 mm" },
+    "NPT 2": { standard: "ASME B1.20.1", major: "60.33 mm", pitch: "11.5 TPI", form: "Tapered 1:16", range: "37–44 mm" },
+    "G 1/4": { standard: "ISO 228-1 (BSPP)", major: "13.16 mm", pitch: "19 TPI", form: "Parallel", range: "3–6.5 mm" },
+    "G 3/8": { standard: "ISO 228-1 (BSPP)", major: "16.66 mm", pitch: "19 TPI", form: "Parallel", range: "4–8 mm" },
+    "G 1/2": { standard: "ISO 228-1 (BSPP)", major: "20.96 mm", pitch: "14 TPI", form: "Parallel", range: "6–12 mm" },
+    "G 3/4": { standard: "ISO 228-1 (BSPP)", major: "26.44 mm", pitch: "14 TPI", form: "Parallel", range: "13–18 mm" },
+    "G 1": { standard: "ISO 228-1 (BSPP)", major: "33.25 mm", pitch: "11 TPI", form: "Parallel", range: "18–25 mm" },
+    "G 1-1/4": { standard: "ISO 228-1 (BSPP)", major: "41.91 mm", pitch: "11 TPI", form: "Parallel", range: "22–32 mm" },
+    "G 1-1/2": { standard: "ISO 228-1 (BSPP)", major: "47.80 mm", pitch: "11 TPI", form: "Parallel", range: "32–38 mm" },
+    "G 2": { standard: "ISO 228-1 (BSPP)", major: "59.61 mm", pitch: "11 TPI", form: "Parallel", range: "37–44 mm" }
+  };
+  const family = str(values.cableFamily || "nyy");
+  const cores = str(values.cores || "4");
+  const conductorArea = str(values.conductorArea || "10");
+  const estimatedOd = mode === "conductor" ? cableOdData[`${family}-${cores}`]?.[conductorArea] : undefined;
+  if (mode === "conductor" && !estimatedOd) throw new Error("This cable-family, core-count, and conductor-size combination is not available in the reference dataset.");
+  const selectionOd = mode === "conductor" ? estimatedOd! : diameter;
+  const match = ["diameter", "conductor"].includes(mode) ? referenceRanges.find((range) => selectionOd <= range.max) : undefined;
+  const thread = ["diameter", "conductor"].includes(mode) ? (match?.thread ?? "No reference match") : str(values.threadSize);
+  const data = threadData[thread];
   const note = environment === "hazardous"
     ? "Use certified hazardous-area cable glands."
     : environment === "outdoor"
@@ -1454,16 +1517,22 @@ function calculateCableGland(values: Values): CalculationResult {
   return {
     primary: thread,
     severity: environment === "hazardous" ? "warning" : "ok",
-    summary: `Starting thread suggestion for ${fmt(diameter)} mm cable OD. ${note}`,
+    summary: mode === "conductor" ? `${cores} × ${conductorArea} mm² ${family === "swa" ? "XLPE/SWA/PVC" : "NYY/PVC"} reference cable has a published nominal OD of ${fmt(selectionOd)} mm. Verify the actual cable before ordering.` : mode === "diameter" ? `Starting gland reference for ${fmt(diameter)} mm cable OD. ${note}` : `${data?.standard ?? "Thread"} entry reference. The cable range is product-dependent, not defined by the thread standard.`,
     metrics: [
-      { label: "Cable OD", value: `${fmt(diameter)} mm` },
-      { label: "Cable construction", value: armored === "armored" ? "Armored cable" : "Unarmored cable" },
+      ...(mode === "diameter" ? [{ label: "Cable OD", value: `${fmt(diameter)} mm` }] : []),
+      ...(mode === "conductor" ? [{ label: "Cable reference", value: `${cores} × ${conductorArea} mm²` }, { label: "Published nominal cable OD", value: `${fmt(selectionOd)} mm` }, { label: "Data confidence", value: "High — exact catalog combination" }] : []),
+      { label: "Reference cable range", value: data?.range ?? "Check selected product" },
+      { label: "Thread standard", value: data?.standard ?? "Custom / manufacturer-specific" },
+      { label: "Nominal major diameter", value: data?.major ?? "Check drawing" },
+      { label: "Pitch", value: data?.pitch ?? "Check drawing" },
+      { label: "Thread form", value: data?.form ?? "Check drawing" },
+      { label: "Cable construction", value: mode === "conductor" ? (family === "swa" ? "XLPE/SWA/PVC armored" : "PVC/PVC unarmored") : armored === "armored" ? "Armored cable" : "Unarmored cable" },
       { label: "Environment", value: readable(environment) },
-      { label: "Selection basis", value: "Typical metric gland range" }
+      { label: "Selection basis", value: mode === "conductor" ? "Published cable OD + reference gland range" : mode === "diameter" ? "Reference nylon-gland clamping range" : "Known enclosure entry thread" }
     ],
     recommendations: [
       "Confirm actual sealing range, thread length, panel hole size, and material.",
-      armored === "armored" ? "Use a gland designed to terminate and bond the cable armor." : "Check strain relief and sealing requirements for the application."
+      (mode === "conductor" ? family === "swa" : armored === "armored") ? "Use a gland designed to terminate and bond the cable armor; also verify the armor range and diameter under armor." : "Check strain relief and sealing requirements for the application."
     ]
   };
 }

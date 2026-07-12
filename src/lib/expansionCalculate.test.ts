@@ -250,11 +250,18 @@ describe("20-calculator expansion reference cases", () => {
     expect(result.summary).toContain("not an equivalent certification");
   });
 
-  it("refuses to convert IP68 into a NEMA Type", () => {
+  it("shows the common NEMA ingress reference for IP68 without claiming equivalence", () => {
     const result = calculateTool("nema-ip-rating-converter", { ...defaults("nema-ip-rating-converter"), mode: "ip-to-nema", solidDigit: "6", waterDigit: "8" });
-    expect(result.primary).toBe("No direct NEMA conversion");
-    expect(metric("nema-ip-rating-converter", "NEMA Type", { mode: "ip-to-nema", solidDigit: "6", waterDigit: "8" })).toBe("Cannot be derived from IP");
-    expect(result.summary).toContain("does not determine a NEMA enclosure Type");
+    expect(result.primary).toBe("NEMA 6P");
+    expect(metric("nema-ip-rating-converter", "Common NEMA ingress reference", { mode: "ip-to-nema", solidDigit: "6", waterDigit: "8" })).toBe("NEMA 6P");
+    expect(metric("nema-ip-rating-converter", "Equivalent NEMA Type", { mode: "ip-to-nema", solidDigit: "6", waterDigit: "8" })).toBe("Not established");
+    expect(result.summary).toContain("not an equivalent conversion");
     expect(result.recommendations[0]).toContain("depth");
+  });
+
+  it("shows both common IP66 ingress references without choosing corrosion duty", () => {
+    const result = calculateTool("nema-ip-rating-converter", { ...defaults("nema-ip-rating-converter"), mode: "ip-to-nema", solidDigit: "6", waterDigit: "6" });
+    expect(result.primary).toBe("NEMA 4 / NEMA 4X");
+    expect(result.summary).toContain("not an equivalent conversion");
   });
 });

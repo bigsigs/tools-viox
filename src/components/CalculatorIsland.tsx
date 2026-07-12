@@ -90,6 +90,21 @@ export default function CalculatorIsland({ slug }: Props) {
     { id: "current", symbol: "I", key: "i", label: "Current", unit: "A" },
     { id: "voltage", symbol: "V", key: "v", label: "Voltage", unit: "V" }
   ];
+  const glandThreadOptions: Record<string, string[]> = {
+    metric: ["M12", "M16", "M20", "M25", "M32", "M40", "M50", "M63", "M75", "M90"],
+    pg: ["PG7", "PG9", "PG11", "PG13.5", "PG16", "PG21", "PG29", "PG36", "PG42", "PG48"],
+    npt: ["NPT 1/4", "NPT 3/8", "NPT 1/2", "NPT 3/4", "NPT 1", "NPT 1-1/4", "NPT 1-1/2", "NPT 2"],
+    g: ["G 1/4", "G 3/8", "G 1/2", "G 3/4", "G 1", "G 1-1/4", "G 1-1/2", "G 2"]
+  };
+
+  function chooseGlandMode(mode: string) {
+    setCopied(false);
+    setValues((current) => ({
+      ...current,
+      mode,
+      ...(glandThreadOptions[mode]?.length ? { threadSize: glandThreadOptions[mode][0] } : {})
+    }));
+  }
   const regionStandards: Record<string, string> = {
     international: "IEC 61800 series; IEC 60204-1 machinery electrical requirements",
     eu: "EN IEC 61800-3 and EN IEC 61800-5-1; applicable EU machinery requirements",
@@ -193,6 +208,37 @@ export default function CalculatorIsland({ slug }: Props) {
               </label>
             ) : null}
           </>
+        ) : slug === "mm2-to-awg-converter" ? (
+          <>
+            <div className="converter-tabs awg-mode-tabs" role="tablist" aria-label="Wire gauge conversion direction">
+              <button type="button" role="tab" aria-selected={String(values.direction) === "mm2-to-awg"} className={String(values.direction) === "mm2-to-awg" ? "active" : ""} onClick={() => update("direction", "mm2-to-awg")}>mm² → AWG</button>
+              <button type="button" role="tab" aria-selected={String(values.direction) === "awg-to-mm2"} className={String(values.direction) === "awg-to-mm2" ? "active" : ""} onClick={() => update("direction", "awg-to-mm2")}>AWG → mm²</button>
+            </div>
+            {String(values.direction) === "mm2-to-awg" ? <label className="field"><span>Conductor cross-sectional area</span><div className="unit-input"><input type="number" inputMode="decimal" min="0.001" step="0.01" value={String(values.metricArea)} onChange={(event) => update("metricArea", event.target.value)} /><span className="unit-addon">mm²</span></div></label> : <label className="field"><span>American Wire Gauge size</span><select value={String(values.awgSize)} onChange={(event) => update("awgSize", event.target.value)}>{tool.fields.find((field) => field.id === "awgSize")?.options?.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>}
+            <div className="awg-input-note"><strong>Bare conductor reference</strong><span>AWG describes conductor geometry. Finished cable outside diameter depends on stranding and insulation.</span></div>
+          </>
+        ) : slug === "cable-gland-size-calculator" ? (
+          <>
+            <div className="converter-tabs gland-mode-tabs" role="tablist" aria-label="Cable gland selection method">
+              {[
+                ["diameter", "Cable OD"], ["conductor", "By mm²"], ["metric", "Metric M"], ["pg", "PG"], ["npt", "NPT"], ["g", "G / BSPP"]
+              ].map(([mode, label]) => <button type="button" role="tab" aria-selected={String(values.mode) === mode} className={String(values.mode) === mode ? "active" : ""} onClick={() => chooseGlandMode(mode)} key={mode}>{label}</button>)}
+            </div>
+            {String(values.mode) === "diameter" ? (
+              <label className="field"><span>Measured cable outside diameter</span><div className="unit-input"><input type="number" inputMode="decimal" min="0" step="0.1" value={String(values.diameter)} onChange={(event) => update("diameter", event.target.value)} /><span className="unit-addon">mm</span></div><small className="gland-field-note">Measure over the finished outer sheath, not the conductor insulation.</small></label>
+            ) : String(values.mode) === "conductor" ? <div className="gland-estimate-fields">
+              <label className="field"><span>Conductor cross-sectional area</span><select value={String(values.conductorArea)} onChange={(event) => update("conductorArea", event.target.value)}>{tool.fields.find((field) => field.id === "conductorArea")?.options?.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>
+              <label className="field"><span>Number of cores</span><select value={String(values.cores)} onChange={(event) => update("cores", event.target.value)}>{tool.fields.find((field) => field.id === "cores")?.options?.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>
+              <label className="field gland-family-field"><span>Cable construction reference</span><select value={String(values.cableFamily)} onChange={(event) => { update("cableFamily", event.target.value); update("armored", event.target.value === "swa" ? "armored" : "unarmored"); }}>{tool.fields.find((field) => field.id === "cableFamily")?.options?.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select><small className="gland-field-note">Uses published cable-family dimensions; verify the actual manufacturer's cable OD.</small></label>
+            </div> : (
+              <label className="field"><span>Existing enclosure entry thread</span><select value={String(values.threadSize)} onChange={(event) => update("threadSize", event.target.value)}>{glandThreadOptions[String(values.mode)]?.map((size) => <option value={size} key={size}>{size}</option>)}</select><small className="gland-field-note">Nominal thread labels are not physical hole diameters.</small></label>
+            )}
+            <div className="gland-context-grid">
+              {String(values.mode) !== "conductor" ? <label className="field"><span>Cable construction</span><select value={String(values.armored)} onChange={(event) => update("armored", event.target.value)}><option value="unarmored">Unarmored</option><option value="armored">Armored</option></select></label> : null}
+              <label className="field"><span>Installation environment</span><select value={String(values.environment)} onChange={(event) => update("environment", event.target.value)}><option value="indoor">Indoor panel</option><option value="industrial">Industrial</option><option value="outdoor">Outdoor / wet</option><option value="hazardous">Hazardous area</option></select></label>
+            </div>
+            <div className="gland-distinction"><strong>Two checks, one selection</strong><span>The sealing range must fit the cable OD. The entry thread must independently fit the enclosure opening.</span></div>
+          </>
         ) : slug === "electrical-unit-converter" ? (
           <>
             <div className="converter-tabs" role="tablist" aria-label="Conversion mode">
@@ -281,7 +327,7 @@ export default function CalculatorIsland({ slug }: Props) {
             </div> : null}
             {String(values.mode) === "ip-to-nema" ? <div className="nema-simple-mode">
               <div className="ip-builder"><span>IP</span><select aria-label="IP solids digit" value={String(values.solidDigit)} onChange={(event) => update("solidDigit", event.target.value)}>{[0,1,2,3,4,5,6].map((digit) => <option key={digit} value={digit}>{digit}</option>)}</select><select aria-label="IP water digit" value={String(values.waterDigit)} onChange={(event) => update("waterDigit", event.target.value)}>{[0,1,2,3,4,5,6,7,8,9].map((digit) => <option key={digit} value={digit}>{digit}</option>)}</select></div>
-              <div className="ip-reverse-warning"><strong>No direct NEMA conversion</strong><span>NEMA's official correlation table cannot be used from IP to NEMA. Decode the IP rating here, then use Industrial Sizing for a separate environment-based screen.</span></div>
+              <div className="ip-reverse-warning"><strong>Common ingress reference only</strong><span>The result shows NEMA Types whose published ingress cross-reference matches or exceeds the selected IP digits. It does not establish an equivalent NEMA rating or certification.</span></div>
             </div> : null}
             {String(values.mode) === "industrial" ? <div className="industrial-sizing-engine">
               <div className="engine-heading"><strong>Industrial environment</strong><span>Complete each exposure group</span></div>
@@ -387,6 +433,7 @@ export default function CalculatorIsland({ slug }: Props) {
                 </div>
               ))}
             </div>
+            {slug === "mm2-to-awg-converter" ? <p className="ampacity-disclaimer">Current figures use common circular-mil rules of thumb for comparison only. They are not code ampacities or cable ratings; verify the applicable wiring standard, insulation, terminals, ambient temperature and installation method.</p> : null}
             <div className="recommendations">
               <div className="panel-label">Next checks</div>
               <ul>

@@ -550,10 +550,24 @@ export const tools: ToolDefinition[] = [
     title: "Cable Gland Size Calculator",
     shortTitle: "Cable Gland",
     category: "cable-wiring",
-    description: "Find a starting metric cable gland thread size from cable outer diameter, cable type, and environment.",
+    description: "Select a cable gland by cable outside diameter or check Metric, PG, NPT, and G/BSPP entry threads.",
     intent: "Cable entry planning for panels, enclosures, and industrial equipment.",
     fields: [
+      { id: "mode", label: "Selection method", type: "select", defaultValue: "diameter", options: [
+        { value: "diameter", label: "Cable outside diameter" },
+        { value: "conductor", label: "Conductor size estimate" },
+        { value: "metric", label: "Metric M thread" },
+        { value: "pg", label: "PG thread" },
+        { value: "npt", label: "NPT thread" },
+        { value: "g", label: "G / BSPP thread" }
+      ] },
       { id: "diameter", label: "Cable outer diameter", type: "number", defaultValue: 18, unit: "mm", min: 0 },
+      { id: "conductorArea", label: "Conductor size", type: "select", defaultValue: "10", options: ["1.5", "2.5", "4", "6", "10", "16", "25", "35", "50", "70", "95", "120", "150"].map((value) => ({ value, label: `${value} mm²` })) },
+      { id: "cores", label: "Number of cores", type: "select", defaultValue: "4", options: ["1", "2", "3", "4"].map((value) => ({ value, label: `${value} core${value === "1" ? "" : "s"}` })) },
+      { id: "cableFamily", label: "Cable construction", type: "select", defaultValue: "nyy", options: [{ value: "nyy", label: "PVC/PVC unarmored (NYY reference)" }, { value: "swa", label: "XLPE/SWA/PVC armored (BS 5467 reference)" }] },
+      { id: "threadSize", label: "Entry thread size", type: "select", defaultValue: "M25", options: [
+        { value: "M25", label: "M25" }
+      ] },
       { id: "armored", label: "Cable type", type: "select", defaultValue: "unarmored", options: [
         { value: "unarmored", label: "Unarmored" },
         { value: "armored", label: "Armored" }
@@ -565,8 +579,8 @@ export const tools: ToolDefinition[] = [
         { value: "hazardous", label: "Hazardous area" }
       ] }
     ],
-    formula: "The cable outer diameter is matched to a typical metric gland thread range. The environment adds a sealing and certification note.",
-    assumptions: ["Metric gland reference ranges", "Exact sealing range depends on product series", "Cable OD is measured over the outer sheath"],
+    formula: "Cable-OD mode finds a reference gland whose published-style clamping range contains the measured cable. Thread modes show standard thread geometry and a clearly labeled product-range reference.",
+    assumptions: ["Reference clamping ranges represent common nylon gland proportions, not a universal thread property", "Exact sealing range depends on product series", "Cable OD is measured over the outer sheath"],
     warnings: ["Always verify the cable gland datasheet sealing range, thread, IP rating, material, and certification.", "Hazardous areas require properly certified glands and installation practices."],
     faqs: [
       { question: "Is cable gland thread size the same as sealing range?", answer: "No. A thread size can support different sealing ranges depending on gland design." },
@@ -577,7 +591,7 @@ export const tools: ToolDefinition[] = [
       { label: "VIOX cable gland support", href: "https://viox.com/contact" },
       { label: "Cable gland guide", href: "https://viox.com/a-full-guide-to-cable-gland/" }
     ],
-    keywords: ["cable gland size calculator", "cable gland thread size", "metric cable gland calculator"]
+    keywords: ["cable gland size calculator", "cable gland thread size", "metric cable gland calculator", "PG cable gland size chart", "NPT cable gland size", "BSPP cable gland size"]
   },
   {
     slug: "busbar-current-rating-calculator",

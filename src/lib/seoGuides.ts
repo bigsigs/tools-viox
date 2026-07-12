@@ -994,17 +994,33 @@ export const seoGuidesBySlug: Record<string, SeoGuide> = {
         ]
       },
       {
-        title: "Cable gland size example",
+        title: "Cable gland selection modes",
         paragraphs: [
-          "For an 18 mm cable outside diameter, the calculator gives M25 as a starting metric thread reference. This does not mean every M25 gland will seal an 18 mm cable; the exact clamping and sealing range must be confirmed on the selected product datasheet."
+          "Use Cable OD mode when the finished cable is available to measure. Use Metric M, PG, NPT, or G/BSPP mode when the enclosure entry thread is already known. Thread mode reports standard geometry and a common product-range reference, but the selected VIOX product datasheet remains the source of truth for clamping range."
         ],
         table: {
-          headers: ["Input or result", "Value"],
+          headers: ["Mode", "Standard or designation", "Important characteristic"],
           rows: [
-            ["Cable outside diameter", "18 mm"],
-            ["Starting metric thread", "M25"],
-            ["Armored cable", "Use an armor-terminating gland"],
-            ["Hazardous area", "Use correctly certified equipment and installation practice"]
+            ["Cable OD", "Manufacturer product data", "Matches the sealing insert to measured cable OD"],
+            ["Metric M", "ISO metric thread", "Parallel; size number is nominal major diameter in mm"],
+            ["PG", "DIN 40430", "Parallel legacy electrical conduit thread"],
+            ["NPT", "ASME B1.20.1", "Tapered pipe thread; nominal size is not measured OD"],
+            ["G / BSPP", "ISO 228-1", "Parallel pipe thread; normally seals outside the thread"]
+          ]
+        }
+      },
+      {
+        title: "M, PG, NPT, and G cable gland thread chart",
+        paragraphs: [
+          "The same cable diameter may be available in more than one entry thread because the sealing insert and the enclosure connection are separate parts of gland design. Never choose an adaptor from nominal labels alone; compare the exact thread standard, major diameter, pitch, taper, sealing method, engagement length, and enclosure wall thickness."
+        ],
+        table: {
+          headers: ["Thread family", "Common sizes covered", "Form", "Selection note"],
+          rows: [
+            ["Metric M", "M12 to M90", "Parallel", "Check pitch; 1.5 mm is common but not universal"],
+            ["PG", "PG7 to PG48", "Parallel", "Do not substitute a nearby metric diameter"],
+            ["NPT", "1/4 to 2 in", "Tapered 1:16", "Use matching NPT entry and approved sealing practice"],
+            ["G / BSPP", "G 1/4 to G 2", "Parallel", "Usually requires a gasket or sealing face outside the thread"]
           ]
         }
       },
