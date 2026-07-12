@@ -1193,7 +1193,7 @@ export const tools: ToolDefinition[] = [
     slug: "terminal-heating-calculator",
     title: "Electrical Terminal Heating Calculator",
     shortTitle: "Terminal Heating",
-    category: "power-distribution",
+    category: "panels-enclosures",
     description: "Calculate contact power loss, voltage drop, daily heat energy, and optional temperature-rise estimate from current and contact resistance.",
     intent: "Quantify why a small increase in terminal or joint resistance creates dangerous I²R heating.",
     fields: [

@@ -1,0 +1,23 @@
+---
+import { BatteryCharging, Cable, Calculator, Lightbulb, Network, PanelsTopLeft, PlugZap, Route, ShieldCheck, Gauge, Zap } from "@lucide/astro";
+import type { ToolCategory } from "../lib/types";
+
+type Props = { category: ToolCategory; size?: number; strokeWidth?: number };
+const { category, size = 24, strokeWidth = 1.9 } = Astro.props;
+const iconByCategory = {
+  "electrical-fundamentals": Calculator,
+  "power-distribution": Network,
+  "panels-enclosures": PanelsTopLeft,
+  "cable-wire": Cable,
+  "cable-management": Route,
+  "circuit-protection": ShieldCheck,
+  "motor-control": Gauge,
+  "solar-storage": BatteryCharging,
+  "surge-protection": Zap,
+  "ev-charging": PlugZap,
+  "lighting-design": Lightbulb
+} as const;
+const Icon = iconByCategory[category];
+---
+
+<Icon size={size} stroke-width={strokeWidth} aria-hidden="true" />

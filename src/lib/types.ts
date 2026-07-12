@@ -6,7 +6,9 @@ export type ToolCategory =
   | "motor-control"
   | "ev-charging"
   | "power-distribution"
+  | "panels-enclosures"
   | "electrical-fundamentals"
+  | "lighting-design"
   | "solar-storage";
 
 export type ToolFieldOption = {

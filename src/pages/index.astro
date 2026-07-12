@@ -2,6 +2,7 @@
 import Layout from "../components/Layout.astro";
 import ToolCard from "../components/ToolCard.astro";
 import ToolDiscovery from "../components/ToolDiscovery";
+import CategoryIcon from "../components/CategoryIcon.astro";
 import { categories } from "../lib/categories";
 import { tools } from "../lib/tools";
 import { breadcrumbSchema, site } from "../lib/seo";
@@ -63,15 +64,16 @@ const searchableTools = tools.map(({ slug, title, shortTitle, description, keywo
 
     <section class="section-shell">
       <div class="section-heading compact">
-        <span class="eyebrow">Product-aligned categories</span>
-        <h2>Organized around low-voltage panel and protection work.</h2>
+        <span class="eyebrow">Browse by task</span>
+        <h2>Choose an electrical calculator category.</h2>
       </div>
       <div class="category-grid">
         {Object.values(categories).map((category) => (
           <a class="category-card" href={`/category/${category.slug}/`}>
-            <span>{category.deck}</span>
+            <span class="category-card-icon"><CategoryIcon category={category.slug} size={27} /></span>
             <h3>{category.title}</h3>
-            <p>{category.description}</p>
+            <p>{category.deck}</p>
+            <i aria-hidden="true">→</i>
           </a>
         ))}
       </div>

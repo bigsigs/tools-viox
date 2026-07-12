@@ -5,6 +5,8 @@ import { categories } from "../../lib/categories";
 import { getToolsByCategory } from "../../lib/tools";
 import { breadcrumbSchema, site } from "../../lib/seo";
 import type { ToolCategory } from "../../lib/types";
+import { categoryContent } from "../../lib/categoryContent";
+import CategoryIcon from "../../components/CategoryIcon.astro";
 
 export function getStaticPaths() {
   return Object.values(categories).map((category) => ({ params: { slug: category.slug }, props: { category } }));
@@ -12,12 +14,23 @@ export function getStaticPaths() {
 
 const { category } = Astro.props;
 const categoryTools = getToolsByCategory(category.slug as ToolCategory);
+const content = categoryContent[category.slug as ToolCategory];
+const otherCategories = Object.values(categories).filter((item) => item.slug !== category.slug);
 const canonical = `${site.origin}/category/${category.slug}/`;
 const schema = [
   breadcrumbSchema([
     { name: "Electrical Tools", url: `${site.origin}/` },
     { name: category.title, url: canonical }
-  ])
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: content.faqs.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: { "@type": "Answer", text: item.answer }
+    }))
+  }
 ];
 ---
 
@@ -27,17 +40,53 @@ const schema = [
       <span class="eyebrow">{category.deck}</span>
       <h1>{category.title}</h1>
       <p>{category.description}</p>
+      <span class="category-tool-count">{categoryTools.length} calculators</span>
     </section>
 
-    <section class="section-shell">
+    <section class="section-shell category-tools" aria-label={`${category.title} calculators`}>
       <div class="tool-grid">
         {categoryTools.map((tool) => <ToolCard tool={tool} />)}
       </div>
     </section>
 
-    <section class="category-overview" aria-labelledby={`${category.slug}-overview-title`}>
-      <h2 id={`${category.slug}-overview-title`}>{category.overviewTitle}</h2>
-      {category.overview.map((paragraph) => <p>{paragraph}</p>)}
+    <section class="category-guide" aria-labelledby={`${category.slug}-overview-title`}>
+      <section class="category-content-block category-overview-block">
+        <header class="category-guide-header">
+          <span class="eyebrow">Engineering overview</span>
+          <h2 id={`${category.slug}-overview-title`}>{category.overviewTitle}</h2>
+        </header>
+        <div class="category-prose lead-prose">{content.overview.map((paragraph) => <p>{paragraph}</p>)}</div>
+      </section>
+
+      <div class="category-analysis-grid">
+        <article class="category-analysis">
+          <span>How to use this category</span>
+          <h2>{content.analysisTitle}</h2>
+          {content.analysis.map((paragraph) => <p>{paragraph}</p>)}
+        </article>
+        <aside class="category-checklist">
+          <span>Before using a result</span>
+          <h2>Selection and verification checklist</h2>
+          <ul>{content.checklist.map((item) => <li>{item}</li>)}</ul>
+        </aside>
+      </div>
+
+      <section class="category-applications" aria-labelledby={`${category.slug}-applications-title`}>
+        <div class="category-subheading"><span>Applications</span><h2 id={`${category.slug}-applications-title`}>Where these calculators fit</h2></div>
+        <div class="application-grid">{content.applications.map((item, index) => <article><b>{String(index + 1).padStart(2, "0")}</b><h3>{item.title}</h3><p>{item.text}</p></article>)}</div>
+      </section>
+
+      <section class="category-faq" aria-labelledby={`${category.slug}-faq-title`}>
+        <div class="category-subheading"><span id={`${category.slug}-faq-title`}>FAQ</span></div>
+        <div class="category-faq-list">{content.faqs.map((item) => <details><summary>{item.question}<i aria-hidden="true"></i></summary><p>{item.answer}</p></details>)}</div>
+      </section>
+    </section>
+
+    <section class="other-categories section-shell" aria-labelledby="other-categories-title">
+      <div class="category-section-heading"><span>Explore more</span><h2 id="other-categories-title">Other electrical calculator categories</h2></div>
+      <div class="other-category-grid">
+        {otherCategories.map((item) => <a href={`/category/${item.slug}/`}><i><CategoryIcon category={item.slug} size={20} /></i><span><strong>{item.title}</strong><small>{item.deck}</small></span><b aria-hidden="true">→</b></a>)}
+      </div>
     </section>
   </main>
 </Layout>

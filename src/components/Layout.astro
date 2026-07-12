@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import { site } from "../lib/seo";
 import { categories } from "../lib/categories";
+import CategoryIcon from "./CategoryIcon.astro";
 
 type Props = {
   title: string;
@@ -12,15 +13,17 @@ type Props = {
 
 const { title, description, canonical = site.origin, schema = [] } = Astro.props;
 const categoryNav = [
-  { slug: "electrical-fundamentals", label: "Fundamentals", mark: "Ω" },
-  { slug: "power-distribution", label: "Power Distribution", mark: "PD" },
-  { slug: "cable-wire", label: "Cable & Voltage Drop", mark: "VD" },
-  { slug: "cable-management", label: "Cable Management", mark: "CM" },
-  { slug: "circuit-protection", label: "Circuit Protection", mark: "CB" },
-  { slug: "motor-control", label: "Motors & Drives", mark: "M" },
-  { slug: "solar-storage", label: "Solar & Battery", mark: "PV" },
-  { slug: "surge-protection", label: "Surge & Lightning", mark: "SPD" },
-  { slug: "ev-charging", label: "EV Charging", mark: "EV" }
+  { slug: "electrical-fundamentals", label: "Fundamentals" },
+  { slug: "power-distribution", label: "Power Distribution" },
+  { slug: "panels-enclosures", label: "Panels & Enclosures" },
+  { slug: "cable-wire", label: "Cable & Voltage Drop" },
+  { slug: "cable-management", label: "Cable Management" },
+  { slug: "circuit-protection", label: "Circuit Protection" },
+  { slug: "motor-control", label: "Motors & Drives" },
+  { slug: "solar-storage", label: "Solar & Battery" },
+  { slug: "surge-protection", label: "Surge & Lightning" },
+  { slug: "ev-charging", label: "EV Charging" },
+  { slug: "lighting-design", label: "Lighting Design" }
 ] as const;
 ---
 
@@ -58,8 +61,8 @@ const categoryNav = [
       </a>
       <nav class="main-nav desktop-nav" aria-label="Main navigation">
         <a href="/#tools">All Tools</a>
-        <details class="category-menu">
-          <summary>Calculators</summary>
+        <div class="category-menu">
+          <button type="button" aria-haspopup="true">Calculators</button>
           <div class="category-menu-panel">
             <div class="category-menu-heading">
               <strong>Electrical calculators</strong>
@@ -68,14 +71,14 @@ const categoryNav = [
             <div class="category-menu-grid">
               {categoryNav.map((item) => (
                 <a href={`/category/${item.slug}/`}>
-                  <i aria-hidden="true">{item.mark}</i>
+                  <i><CategoryIcon category={item.slug} size={19} /></i>
                   <span><strong>{item.label}</strong><small>{categories[item.slug].deck}</small></span>
                 </a>
               ))}
               <a class="view-all-category" href="/#tools"><i aria-hidden="true">→</i><span><strong>View All Tools</strong><small>Search all 62 calculators</small></span></a>
             </div>
           </div>
-        </details>
+        </div>
         <a href="https://viox.com/products/">Products</a>
         <a href="https://viox.com/contact">Contact</a>
       </nav>
@@ -85,7 +88,7 @@ const categoryNav = [
           <summary class="header-icon header-menu" aria-label="Open navigation" title="Menu"><span></span></summary>
           <nav aria-label="Mobile navigation">
             <a class="mobile-all-tools" href="/#tools">All Tools</a>
-            {categoryNav.map((item) => <a href={`/category/${item.slug}/`}><i aria-hidden="true">{item.mark}</i><span>{item.label}</span></a>)}
+            {categoryNav.map((item) => <a href={`/category/${item.slug}/`}><i><CategoryIcon category={item.slug} size={19} /></i><span>{item.label}</span></a>)}
             <a href="https://viox.com/products/"><i aria-hidden="true">V</i><span>VIOX Products</span></a>
             <a href="https://viox.com/contact"><i aria-hidden="true">@</i><span>Contact</span></a>
           </nav>

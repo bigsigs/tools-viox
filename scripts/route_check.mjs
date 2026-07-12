@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const dist = fileURLToPath(new URL("../dist/", import.meta.url));
-const expectedCategories = new Set(["electrical-fundamentals", "solar-storage", "surge-protection", "circuit-protection", "cable-wire", "cable-management", "motor-control", "ev-charging", "power-distribution"]);
+const expectedCategories = new Set(["electrical-fundamentals", "solar-storage", "surge-protection", "circuit-protection", "cable-wire", "cable-management", "motor-control", "ev-charging", "power-distribution", "panels-enclosures", "lighting-design"]);
 
 if (!existsSync(join(dist, "index.html")) || !existsSync(join(dist, "robots.txt"))) {
   console.error("Build output is missing index.html or robots.txt. Run npm run build first.");
@@ -20,7 +20,7 @@ const missingEmbeds = toolSlugs.filter((slug) => !embedSlugs.includes(slug));
 const unexpectedCategories = categorySlugs.filter((slug) => !expectedCategories.has(slug));
 const missingCategories = [...expectedCategories].filter((slug) => !categorySlugs.includes(slug));
 
-if (!toolSlugs.length || toolSlugs.length !== embedSlugs.length || categorySlugs.length !== 9 || missingHtml.length || missingEmbeds.length || unexpectedCategories.length || missingCategories.length) {
+if (!toolSlugs.length || toolSlugs.length !== embedSlugs.length || categorySlugs.length !== expectedCategories.size || missingHtml.length || missingEmbeds.length || unexpectedCategories.length || missingCategories.length) {
   console.error("Route verification failed:", { toolCount: toolSlugs.length, embedCount: embedSlugs.length, categoryCount: categorySlugs.length, missingHtml, missingEmbeds, unexpectedCategories, missingCategories });
   process.exit(1);
 }
