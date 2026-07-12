@@ -57,6 +57,212 @@ export default function CalculatorIsland({ slug }: Props) {
     setCopied(true);
   }
 
+  async function downloadResultPdf() {
+    if ("error" in result) return;
+
+    const { jsPDF } = await import("jspdf");
+    const pdf = new jsPDF({ unit: "mm", format: "a4" });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 18;
+    const contentWidth = pageWidth - margin * 2;
+    let y = 18;
+
+    const clean = (text: string) => text
+      .replaceAll("²", "2")
+      .replaceAll("³", "3")
+      .replaceAll("Ω", "ohm")
+      .replaceAll("µ", "u")
+      .replaceAll("μ", "u")
+      .replaceAll("π", "pi")
+      .replaceAll("φ", "phi")
+      .replaceAll("ρ", "rho")
+      .replaceAll("η", "eta")
+      .replaceAll("τ", "tau")
+      .replaceAll("θ", "theta")
+      .replaceAll("Δ", "Delta")
+      .replaceAll("Σ", "sum")
+      .replaceAll("±", "+/-")
+      .replaceAll("≈", "~")
+      .replaceAll("∞", "infinity")
+      .replaceAll("↔", "<->")
+      .replaceAll("°", " deg ")
+      .replaceAll("×", "x")
+      .replaceAll("√", "sqrt")
+      .replaceAll("≤", "<=")
+      .replaceAll("≥", ">=")
+      .replaceAll("−", "-")
+      .replaceAll("–", "-")
+      .replaceAll("—", "-")
+      .replaceAll("→", "->");
+
+    const ensureSpace = (height: number) => {
+      if (y + height <= pageHeight - 18) return;
+      pdf.addPage();
+      y = 18;
+    };
+
+    const sectionTitle = (title: string) => {
+      ensureSpace(12);
+      pdf.setDrawColor(215, 25, 32);
+      pdf.setLineWidth(0.8);
+      pdf.line(margin, y, margin + 8, y);
+      pdf.setTextColor(29, 35, 42);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(11);
+      pdf.text(title, margin + 11, y + 1.2);
+      y += 8;
+    };
+
+    const row = (label: string, value: string, shaded = false) => {
+      const labelLines = pdf.splitTextToSize(clean(label), contentWidth * 0.4);
+      const valueLines = pdf.splitTextToSize(clean(value), contentWidth * 0.52);
+      const rowHeight = Math.max(8, Math.max(labelLines.length, valueLines.length) * 4 + 3);
+      ensureSpace(rowHeight + 1);
+      if (shaded) {
+        pdf.setFillColor(247, 248, 250);
+        pdf.rect(margin, y - 4.8, contentWidth, rowHeight, "F");
+      }
+      pdf.setFontSize(9);
+      pdf.setTextColor(95, 105, 116);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(labelLines, margin + 2, y);
+      pdf.setTextColor(29, 35, 42);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(valueLines, pageWidth - margin - 2, y, { align: "right" });
+      y += rowHeight;
+    };
+
+    const paragraph = (text: string) => {
+      const lines = pdf.splitTextToSize(clean(text), contentWidth - 8);
+      ensureSpace(lines.length * 4 + 4);
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(8.5);
+      pdf.setTextColor(69, 77, 86);
+      pdf.text(lines, margin + 2, y);
+      y += lines.length * 4 + 3;
+    };
+
+    const visibleInputRows = Array.from(document.querySelectorAll<HTMLElement>(".input-panel .field"))
+      .filter((field) => field.offsetParent !== null)
+      .map((field) => {
+        const label = field.querySelector<HTMLElement>(":scope > span")?.innerText.trim() ?? "Input";
+        const controls = Array.from(field.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input:not(:disabled), select:not(:disabled)"));
+        const values = controls.map((control) => {
+          if (control instanceof HTMLSelectElement) return control.selectedOptions[0]?.text.trim() ?? control.value;
+          if (control.type === "checkbox") return control.checked ? "Yes" : "No";
+          return control.value;
+        }).filter(Boolean);
+        const addon = field.querySelector<HTMLElement>(".unit-addon")?.innerText.trim();
+        if (addon && values.length === 1) values[0] = `${values[0]} ${addon}`;
+        return { label, value: values.join(" ") };
+      })
+      .filter((item) => item.value);
+
+    const selectedQuantityRows = Array.from(document.querySelectorAll<HTMLElement>(".ohms-quantity.selected"))
+      .filter((field) => field.offsetParent !== null)
+      .map((field) => ({
+        label: field.querySelector<HTMLElement>("button span")?.innerText.trim() ?? "Known quantity",
+        value: `${field.querySelector<HTMLInputElement>("input")?.value ?? ""} ${field.querySelector<HTMLElement>(".unit-addon")?.innerText.trim() ?? ""}`.trim()
+      }))
+      .filter((item) => item.value);
+
+    const inputRows = [...visibleInputRows, ...selectedQuantityRows];
+
+    pdf.setFillColor(215, 25, 32);
+    pdf.rect(0, 0, pageWidth, 7, "F");
+    pdf.setTextColor(215, 25, 32);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(22);
+    pdf.text("VIOX", margin, y + 2);
+    pdf.setTextColor(29, 35, 42);
+    pdf.setFontSize(15);
+    const reportTitleLines = pdf.splitTextToSize(clean(`${tool.title} Report`), contentWidth);
+    pdf.text(reportTitleLines, margin, y + 12);
+    const metadataY = y + 12 + reportTitleLines.length * 6;
+    pdf.setTextColor(95, 105, 116);
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(9);
+    pdf.text(`Generated ${new Date().toLocaleString("en-GB")}`, margin, metadataY);
+    pdf.text(`tools.viox.com/${slug}/`, pageWidth - margin, metadataY, { align: "right" });
+    y = metadataY + 11;
+
+    const primaryLines = pdf.splitTextToSize(clean(`${result.primary}${result.unit ? ` ${result.unit}` : ""}`), 58);
+    const summaryLines = pdf.splitTextToSize(clean(result.summary), contentWidth - 78);
+    const resultBoxHeight = Math.max(30, Math.max(primaryLines.length * 6 + 14, summaryLines.length * 4 + 15));
+    pdf.setFillColor(255, 247, 247);
+    pdf.setDrawColor(242, 198, 200);
+    pdf.roundedRect(margin, y, contentWidth, resultBoxHeight, 2, 2, "FD");
+    pdf.setTextColor(95, 105, 116);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(8);
+    pdf.text("CALCULATED RESULT", margin + 7, y + 8);
+    pdf.setTextColor(215, 25, 32);
+    pdf.setFontSize(20);
+    pdf.text(primaryLines, margin + 7, y + 19);
+    pdf.setTextColor(69, 77, 86);
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(8.5);
+    pdf.text(summaryLines, margin + 72, y + 9);
+    y += resultBoxHeight + 10;
+
+    sectionTitle("Inputs");
+    if (inputRows.length) {
+      inputRows.forEach((item, index) => row(item.label, item.value, index % 2 === 0));
+    } else {
+      tool.fields.filter((field) => !field.showWhen || field.showWhen.values.includes(String(values[field.showWhen.field]))).forEach((field, index) => {
+        const rawValue = String(values[field.id] ?? "");
+        const selectedLabel = field.options?.find((option) => option.value === rawValue)?.label ?? rawValue;
+        const selectedUnit = field.unitOptions?.find((option) => option.value === String(values[`${field.id}Unit`]))?.label ?? field.unit ?? "";
+        row(field.label, `${selectedLabel}${selectedUnit ? ` ${selectedUnit}` : ""}`, index % 2 === 0);
+      });
+    }
+
+    y += 4;
+    sectionTitle("Results");
+    result.metrics.forEach((metric, index) => row(metric.label, metric.value, index % 2 === 0));
+
+    y += 4;
+    sectionTitle("Formula and method");
+    paragraph(tool.formula);
+
+    y += 2;
+    sectionTitle("Engineering notes");
+    result.recommendations.forEach((recommendation) => {
+      const lines = pdf.splitTextToSize(clean(recommendation), contentWidth - 8);
+      ensureSpace(lines.length * 4 + 4);
+      pdf.setTextColor(215, 25, 32);
+      pdf.text("-", margin + 2, y);
+      pdf.setTextColor(69, 77, 86);
+      pdf.text(lines, margin + 7, y);
+      y += lines.length * 4 + 3;
+    });
+
+    ensureSpace(22);
+    y += 4;
+    pdf.setDrawColor(220, 224, 228);
+    pdf.line(margin, y, pageWidth - margin, y);
+    y += 6;
+    pdf.setTextColor(95, 105, 116);
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(7.5);
+    const disclaimer = "Preliminary engineering reference only. Verify all inputs, assumptions, operating conditions, equipment ratings, protection requirements, applicable standards, and manufacturer data before final design or product selection.";
+    pdf.text(pdf.splitTextToSize(disclaimer, contentWidth), margin, y);
+    const pageCount = pdf.getNumberOfPages();
+    for (let page = 1; page <= pageCount; page += 1) {
+      pdf.setPage(page);
+      pdf.setTextColor(95, 105, 116);
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(7.5);
+      pdf.text("VIOX Electric | viox.com", margin, pageHeight - 9);
+      pdf.text(`Page ${page} of ${pageCount}`, pageWidth - margin, pageHeight - 9, { align: "right" });
+    }
+
+    const now = new Date();
+    const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    pdf.save(`VIOX-${slug}-${date}.pdf`);
+  }
+
   function selectOhmsQuantity(symbol: string) {
     const selected = String(values.solveFrom);
     const order = ["v", "i", "r", "p"];
@@ -470,7 +676,7 @@ export default function CalculatorIsland({ slug }: Props) {
             </div>
             <div className="result-actions">
               <button type="button" onClick={copyResult}>{copied ? "Copied" : "Copy result"}</button>
-              <a href="https://viox.com/contact">Ask VIOX</a>
+              <button type="button" onClick={downloadResultPdf}>Download PDF</button>
             </div>
           </>
         )}
