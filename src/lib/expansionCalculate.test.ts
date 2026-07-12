@@ -65,6 +65,15 @@ describe("20-calculator expansion reference cases", () => {
     expect(calculateTool("electrical-unit-converter", defaults("electrical-unit-converter")).primary).toBe("1.341 hp");
   });
 
+  it("converts energy in both directions", () => {
+    expect(calculateTool("electrical-unit-converter", { ...defaults("electrical-unit-converter"), quantity: "energy", fromUnit: "kwh", toUnit: "mj", leftValue: 1, inputSide: "left" }).primary).toBe("3.600 MJ");
+    expect(calculateTool("electrical-unit-converter", { ...defaults("electrical-unit-converter"), quantity: "energy", fromUnit: "kwh", toUnit: "mj", rightValue: 7.2, inputSide: "right" }).primary).toBe("2.000 kWh");
+  });
+
+  it("calculates three-phase current in its own mode", () => {
+    expect(calculateTool("electrical-unit-converter", { ...defaults("electrical-unit-converter"), quantity: "current", phasePower: 10, phasePowerUnit: "kw", phase: "three", voltage: 400, powerFactor: 0.9 }).primary).toBe("16.04 A");
+  });
+
   it("selects the next contactor current class", () => {
     expect(calculateTool("contactor-selection-calculator", defaults("contactor-selection-calculator")).primary).toBe("32 A AC-3");
   });

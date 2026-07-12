@@ -961,6 +961,21 @@ select {
   font-size: 14px;
 }
 
+.converter-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; border: 1px solid var(--line); border-radius: var(--radius); padding: 4px; background: var(--soft); }
+.converter-tabs button { min-height: 40px; border: 0; border-radius: 4px; padding: 6px 8px; color: var(--muted); background: transparent; font-size: 13px; font-weight: 800; cursor: pointer; }
+.converter-tabs button.active { color: #fff; background: var(--red); }
+.bidirectional-converter { display: grid; grid-template-columns: minmax(0, 1fr) 38px minmax(0, 1fr); align-items: end; gap: 8px; }
+.bidirectional-converter > label { display: grid; gap: 6px; }
+.bidirectional-converter > label > span { color: var(--ink); font-size: 13px; font-weight: 800; }
+.converter-value { display: grid; grid-template-columns: minmax(0, 1fr) 82px; overflow: hidden; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper); }
+.converter-value:focus-within { border-color: var(--red); box-shadow: 0 0 0 3px rgba(215, 25, 32, 0.12); }
+.converter-value input, .converter-value select { min-width: 0; height: 48px; border: 0; background: transparent; }
+.converter-value input { padding: 0 10px; }
+.converter-value select { border-left: 1px solid var(--line); padding: 0 24px 0 8px; color: var(--red); background: rgba(215, 25, 32, 0.045); font-size: 13px; font-weight: 900; }
+.swap-units { display: grid; width: 38px; height: 38px; place-items: center; margin-bottom: 5px; border: 1px solid var(--line-strong); border-radius: var(--radius); color: var(--red); background: var(--paper); font-size: 20px; font-weight: 900; cursor: pointer; }
+.swap-units:hover { border-color: var(--red); background: rgba(215, 25, 32, 0.045); }
+.phase-current-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+
 .ohms-quantity {
   display: grid;
   gap: 10px;
@@ -1918,6 +1933,11 @@ select {
   .power-quantity-grid {
     grid-template-columns: 1fr;
   }
+
+  .bidirectional-converter,
+  .phase-current-fields { grid-template-columns: 1fr; }
+
+  .swap-units { margin: -2px auto; transform: rotate(90deg); }
 
   .symbol-list div {
     grid-template-columns: auto auto minmax(0, 1fr);

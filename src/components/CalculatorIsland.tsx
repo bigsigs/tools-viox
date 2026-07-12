@@ -90,6 +90,39 @@ export default function CalculatorIsland({ slug }: Props) {
     { id: "current", symbol: "I", key: "i", label: "Current", unit: "A" },
     { id: "voltage", symbol: "V", key: "v", label: "Voltage", unit: "V" }
   ];
+  const converterUnits = {
+    power: [{ value: "w", label: "W", factor: 1 }, { value: "kw", label: "kW", factor: 1e3 }, { value: "mw", label: "MW", factor: 1e6 }, { value: "hp", label: "hp", factor: 745.699872 }, { value: "btuh", label: "BTU/h", factor: 0.2930710702 }],
+    energy: [{ value: "j", label: "J", factor: 1 }, { value: "kj", label: "kJ", factor: 1e3 }, { value: "mj", label: "MJ", factor: 1e6 }, { value: "wh", label: "Wh", factor: 3600 }, { value: "kwh", label: "kWh", factor: 3.6e6 }, { value: "mwh", label: "MWh", factor: 3.6e9 }]
+  };
+  const converterMode = String(values.quantity) as "power" | "energy" | "current";
+  const activeUnits = converterMode === "energy" ? converterUnits.energy : converterUnits.power;
+  const fromFactor = activeUnits.find((unit) => unit.value === String(values.fromUnit))?.factor ?? 1;
+  const toFactor = activeUnits.find((unit) => unit.value === String(values.toUnit))?.factor ?? 1;
+  const leftNumber = Number(values.leftValue) || 0, rightNumber = Number(values.rightValue) || 0;
+  const editedRight = String(values.inputSide) === "right";
+  const convertedNumber = editedRight ? rightNumber * toFactor / fromFactor : leftNumber * fromFactor / toFactor;
+  const formatConverterValue = (value: number) => Number.isFinite(value) ? Number(value.toPrecision(7)).toString() : "";
+  const displayedLeft = editedRight ? formatConverterValue(convertedNumber) : String(values.leftValue);
+  const displayedRight = editedRight ? String(values.rightValue) : formatConverterValue(convertedNumber);
+
+  function chooseConverterMode(mode: "power" | "energy" | "current") {
+    setCopied(false);
+    setValues((current) => mode === "energy"
+      ? { ...current, quantity: mode, fromUnit: "kwh", toUnit: "mj", leftValue: 1, rightValue: 3.6, inputSide: "left" }
+      : mode === "power"
+        ? { ...current, quantity: mode, fromUnit: "kw", toUnit: "hp", leftValue: 1, rightValue: 1.34102, inputSide: "left" }
+        : { ...current, quantity: mode });
+  }
+
+  function updateConverterValue(side: "left" | "right", value: string) {
+    setCopied(false);
+    setValues((current) => ({ ...current, inputSide: side, [side === "left" ? "leftValue" : "rightValue"]: value }));
+  }
+
+  function swapConverterUnits() {
+    setCopied(false);
+    setValues((current) => ({ ...current, fromUnit: current.toUnit, toUnit: current.fromUnit, leftValue: displayedRight, rightValue: displayedLeft, inputSide: "left" }));
+  }
 
   return (
     <div className={`calculator-grid ${slug === "ohms-law-calculator" ? "ohms-calculator" : ""}`}>
@@ -151,6 +184,30 @@ export default function CalculatorIsland({ slug }: Props) {
                 </div>
               </label>
             ) : null}
+          </>
+        ) : slug === "electrical-unit-converter" ? (
+          <>
+            <div className="converter-tabs" role="tablist" aria-label="Conversion mode">
+              {(["power", "energy", "current"] as const).map((mode) => (
+                <button type="button" role="tab" aria-selected={converterMode === mode} className={converterMode === mode ? "active" : ""} onClick={() => chooseConverterMode(mode)} key={mode}>
+                  {mode === "current" ? "Phase current" : mode[0].toUpperCase() + mode.slice(1)}
+                </button>
+              ))}
+            </div>
+            {converterMode === "current" ? (
+              <div className="phase-current-fields">
+                <label className="field"><span>System</span><select value={String(values.phase)} onChange={(event) => update("phase", event.target.value)}><option value="dc">DC</option><option value="single">Single-phase AC</option><option value="three">Three-phase AC</option></select></label>
+                <label className="field"><span>Active power</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.phasePower)} onChange={(event) => update("phasePower", event.target.value)} /><select aria-label="Power unit" value={String(values.phasePowerUnit)} onChange={(event) => update("phasePowerUnit", event.target.value)}><option value="w">W</option><option value="kw">kW</option><option value="mw">MW</option></select></div></label>
+                <label className="field"><span>{String(values.phase) === "three" ? "Line-to-line voltage" : "Voltage"}</span><div className="unit-input"><input type="number" min="0" step="any" value={String(values.voltage)} onChange={(event) => update("voltage", event.target.value)} /><span className="unit-addon">V</span></div></label>
+                {String(values.phase) !== "dc" ? <label className="field"><span>Power factor</span><div className="unit-input"><input type="number" min="0.01" max="1" step="0.01" value={String(values.powerFactor)} onChange={(event) => update("powerFactor", event.target.value)} /><span className="unit-addon">pf</span></div></label> : null}
+              </div>
+            ) : (
+              <div className="bidirectional-converter">
+                <label><span>From</span><div className="converter-value"><input type="number" inputMode="decimal" min="0" step="any" value={displayedLeft} onChange={(event) => updateConverterValue("left", event.target.value)} /><select aria-label="From unit" value={String(values.fromUnit)} onChange={(event) => update("fromUnit", event.target.value)}>{activeUnits.map((unit) => <option value={unit.value} key={unit.value}>{unit.label}</option>)}</select></div></label>
+                <button className="swap-units" type="button" title="Swap units" aria-label="Swap units" onClick={swapConverterUnits}>↔</button>
+                <label><span>To</span><div className="converter-value"><input type="number" inputMode="decimal" min="0" step="any" value={displayedRight} onChange={(event) => updateConverterValue("right", event.target.value)} /><select aria-label="To unit" value={String(values.toUnit)} onChange={(event) => update("toUnit", event.target.value)}>{activeUnits.map((unit) => <option value={unit.value} key={unit.value}>{unit.label}</option>)}</select></div></label>
+              </div>
+            )}
           </>
         ) : tool.fields.filter((field) => !field.showWhen || field.showWhen.values.includes(String(values[field.showWhen.field]))).map((field) => (
           <label className="field" key={field.id}>

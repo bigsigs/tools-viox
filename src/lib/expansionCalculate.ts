@@ -103,17 +103,24 @@ function resistors(v: Values): CalculationResult {
 }
 
 const powerUnits: Record<string, number> = { w: 1, kw: 1e3, mw: 1e6, hp: 745.699872, btuh: 0.2930710702 };
-const energyUnits: Record<string, number> = { j: 1, kj: 1e3, wh: 3600, kwh: 3.6e6, mwh: 3.6e9 };
+const energyUnits: Record<string, number> = { j: 1, kj: 1e3, mj: 1e6, wh: 3600, kwh: 3.6e6, mwh: 3.6e9 };
 function units(v: Values): CalculationResult {
-  const value = nonneg(v.value, "Value"), from = s(v.fromUnit), to = s(v.toUnit), table = s(v.quantity) === "power" ? powerUnits : energyUnits;
-  if (!table[from] || !table[to]) throw new Error(`Choose two ${s(v.quantity)} units.`);
-  const converted = value * table[from] / table[to];
-  const metrics: [string, string][] = [["Base-unit value", `${f(value * table[from])} ${s(v.quantity) === "power" ? "W" : "J"}`], ["Conversion factor", f(table[from] / table[to])]];
-  if (s(v.quantity) === "power") {
-    const watts = value * table[from], voltage = pos(v.voltage, "Voltage"), pf = bounded(v.powerFactor, "Power factor", 0.01, 1);
-    metrics.push(["Single-phase current", `${f(watts / (voltage * pf))} A`], ["Three-phase current", `${f(watts / (Math.sqrt(3) * voltage * pf))} A`]);
+  const quantity = s(v.quantity);
+  if (quantity === "current") {
+    const watts = pos(v.phasePower, "Power") * (powerUnits[s(v.phasePowerUnit)] ?? 0);
+    if (!watts) throw new Error("Choose a valid power unit.");
+    const phase = s(v.phase), voltage = pos(v.voltage, "Voltage"), pf = phase === "dc" ? 1 : bounded(v.powerFactor, "Power factor", 0.01, 1);
+    const factor = phase === "three" ? Math.sqrt(3) * pf : phase === "single" ? pf : 1;
+    const current = watts / (voltage * factor);
+    const system = phase === "three" ? "Three-phase AC" : phase === "single" ? "Single-phase AC" : "DC";
+    return result(`${f(current)} A`, "ok", `${system} current calculated from active power and voltage.`, [["Active power", `${f(watts)} W`], ["Voltage", `${f(voltage)} V`], ["Power factor", f(pf)], ["System", system]], [phase === "three" ? "Use line-to-line voltage for three-phase calculations." : "Confirm the entered voltage at the load terminals."]);
   }
-  return result(`${f(converted)} ${toLabel(to)}`, "ok", `${f(value)} ${toLabel(from)} equals ${f(converted)} ${toLabel(to)}.`, metrics, ["Do not convert power units to energy units without a duration."]);
+  const table = quantity === "power" ? powerUnits : energyUnits, from = s(v.fromUnit), to = s(v.toUnit), inputSide = s(v.inputSide);
+  if (!table[from] || !table[to]) throw new Error(`Choose two valid ${quantity} units.`);
+  const source = nonneg(inputSide === "right" ? v.rightValue : v.leftValue, "Value");
+  const sourceUnit = inputSide === "right" ? to : from, targetUnit = inputSide === "right" ? from : to;
+  const converted = source * table[sourceUnit] / table[targetUnit];
+  return result(`${f(converted)} ${toLabel(targetUnit)}`, "ok", `${f(source)} ${toLabel(sourceUnit)} equals ${f(converted)} ${toLabel(targetUnit)}.`, [["Base-unit value", `${f(source * table[sourceUnit])} ${quantity === "power" ? "W" : "J"}`], ["Conversion factor", f(table[sourceUnit] / table[targetUnit])]], ["Power and energy are different quantities; converting between them requires a duration."]);
 }
 
 function contactor(v: Values): CalculationResult {
@@ -230,4 +237,4 @@ function s(value: unknown) { return String(value ?? ""); }
 function f(value: number) { if (!Number.isFinite(value)) return "0"; if (Math.abs(value) >= 1000) return value.toFixed(0); if (Math.abs(value) >= 100) return value.toFixed(1); if (Math.abs(value) >= 10) return value.toFixed(2); return value.toFixed(3); }
 function readable(value: string) { return value.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()); }
 function duration(hours: number) { const h = Math.floor(hours), minutes = Math.round((hours - h) * 60); return `${h} h ${minutes} min`; }
-function toLabel(unit: string) { return ({ w: "W", kw: "kW", mw: "MW", hp: "hp", btuh: "BTU/h", j: "J", kj: "kJ", wh: "Wh", kwh: "kWh", mwh: "MWh" } as Record<string, string>)[unit] ?? unit; }
+function toLabel(unit: string) { return ({ w: "W", kw: "kW", mw: "MW", hp: "hp", btuh: "BTU/h", j: "J", kj: "kJ", mj: "MJ", wh: "Wh", kwh: "kWh", mwh: "MWh" } as Record<string, string>)[unit] ?? unit; }
