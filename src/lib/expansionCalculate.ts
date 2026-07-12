@@ -8,6 +8,7 @@ const fuseSizes = [2, 4, 6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 160, 2
 
 export function calculateExpansionTool(slug: string, v: Values): CalculationResult {
   switch (slug) {
+    case "clearance-creepage-calculator": return clearanceCreepage(v);
     case "ohms-law-calculator": return ohms(v);
     case "watts-amps-volts-calculator": return wattsAmpsVolts(v);
     case "ev-charging-time-cost-calculator": return evCharge(v);
@@ -37,6 +38,53 @@ export function calculateExpansionTool(slug: string, v: Values): CalculationResu
     case "nema-ip-rating-converter": return nemaIp(v);
     default: throw new Error("Unknown calculator");
   }
+}
+
+function clearanceCreepage(v: Values): CalculationResult {
+  const system = bounded(v.systemVoltage, "Rated system voltage", 1, 600);
+  const working = bounded(v.workingVoltage, "Working voltage", 63, 1000);
+  const pollution = s(v.pollution), material = s(v.material), insulation = s(v.insulation);
+  const altitude = bounded(v.altitude, "Operating altitude", 0, 10000);
+  const margin = bounded(v.margin, "Design margin", 0, 100) / 100;
+  if (!["1", "2"].includes(pollution)) throw new Error("This verified release supports pollution degree 1 or 2 only.");
+
+  const voltageBand = system <= 50 ? 0 : system <= 150 ? 1 : system <= 300 ? 2 : 3;
+  const impulseTable = [[0.33, 0.5, 0.8, 1.5], [0.8, 1.5, 2.5, 4], [1.5, 2.5, 4, 6], [2.5, 4, 6, 8]];
+  const ovcIndex = ["i", "ii", "iii", "iv"].indexOf(s(v.ovc));
+  if (ovcIndex < 0) throw new Error("Select a valid overvoltage category.");
+  let impulse = impulseTable[voltageBand][ovcIndex];
+  const impulseSteps = [0.33, 0.5, 0.8, 1.5, 2.5, 4, 6];
+  if (impulse > 6) throw new Error("The derived impulse voltage is above this calculator's verified 6 kV lookup range. Use the complete applicable standard.");
+  const basicImpulse = impulse;
+  if (insulation === "reinforced") impulse = impulseSteps[impulseSteps.indexOf(impulse) + 1] ?? NaN;
+  if (!Number.isFinite(impulse) || impulse > 6) throw new Error("Reinforced clearance is above this calculator's verified lookup range. Use the complete applicable standard.");
+
+  const clearances: Record<number, Record<string, number>> = {
+    0.33: { "1": 0.01, "2": 0.2 }, 0.5: { "1": 0.04, "2": 0.2 }, 0.8: { "1": 0.1, "2": 0.2 },
+    1.5: { "1": 0.5, "2": 0.5 }, 2.5: { "1": 1.5, "2": 1.5 }, 4: { "1": 3, "2": 3 }, 6: { "1": 5.5, "2": 5.5 }
+  };
+  const altitudePoints = [[2000, 1], [3000, 1.14], [4000, 1.29], [5000, 1.48], [6000, 1.7], [10000, 3.02]] as const;
+  const interpolate = (x: number, points: readonly (readonly [number, number])[]) => {
+    if (x <= points[0][0]) return points[0][1];
+    const upper = points.findIndex(([px]) => px >= x); if (upper < 0) return points[points.length - 1][1];
+    const [x1, y1] = points[upper - 1], [x2, y2] = points[upper]; return y1 + (y2 - y1) * (x - x1) / (x2 - x1);
+  };
+  const altitudeFactor = interpolate(altitude, altitudePoints);
+  const basicClearance = clearances[impulse][pollution];
+  const correctedClearance = basicClearance * altitudeFactor;
+
+  const creepRows: Record<string, readonly (readonly [number, number])[]> = pollution === "1" ? {
+    i: [[63, .2], [400, 1], [800, 2.4], [1000, 3.2]], ii: [[63, .2], [400, 1], [800, 2.4], [1000, 3.2]], iiia: [[63, .2], [400, 1], [800, 2.4], [1000, 3.2]], iiib: [[63, .2], [400, 1], [800, 2.4], [1000, 3.2]]
+  } : {
+    i: [[63, .63], [400, 2], [800, 4], [1000, 5]], ii: [[63, .9], [400, 2.8], [800, 5.6], [1000, 7.1]], iiia: [[63, 1.25], [400, 4], [800, 8], [1000, 10]], iiib: [[63, 1.25], [400, 4], [800, 8], [1000, 10]]
+  };
+  if (!creepRows[material]) throw new Error("Select a valid CTI material group.");
+  const basicCreepage = interpolate(working, creepRows[material]);
+  const insulationFactor = insulation === "reinforced" ? 2 : 1;
+  const creepage = basicCreepage * insulationFactor;
+  const designClearance = correctedClearance * (1 + margin), designCreepage = creepage * (1 + margin);
+  const governing = designCreepage >= designClearance ? "Creepage" : "Clearance";
+  return result(`${f(designCreepage)} mm creepage`, insulation === "functional" ? "caution" : "ok", `IEC 60664-1 planning result: maintain at least ${f(designClearance)} mm clearance through air and ${f(designCreepage)} mm creepage along the insulating surface, including the entered margin.`, [["Minimum clearance before margin", `${f(correctedClearance)} mm`], ["Minimum creepage before margin", `${f(creepage)} mm`], ["Design clearance", `${f(designClearance)} mm`], ["Design creepage", `${f(designCreepage)} mm`], ["Rated impulse voltage", `${f(basicImpulse)} kV`], ["Clearance impulse step used", `${f(impulse)} kV`], ["Altitude correction factor", `${f(altitudeFactor)} ×`], ["Pollution degree", `PD${pollution}`], ["Material group", material.toUpperCase()], ["Insulation level", readable(insulation)], ["Governing distance", governing]], ["Verify the result against the product-specific safety standard and the current complete IEC 60664-1 edition before releasing the design.", "Confirm CTI from the exact insulating-material datasheet; do not assume every FR-4 laminate belongs to the same material group.", "Account for manufacturing tolerance, conductor geometry, slots and ribs, contamination, coating qualification, solid insulation, dielectric tests, and the shortest measured path on the finished assembly."]);
 }
 
 function ohms(v: Values): CalculationResult {

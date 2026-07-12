@@ -12,6 +12,25 @@ function metric(slug: string, label: string, overrides: Record<string, string | 
 }
 
 describe("20-calculator expansion reference cases", () => {
+  it("matches the published 800 V, PD2, Group IIIa, 5000 m insulation example", () => {
+    const result = calculateTool("clearance-creepage-calculator", {
+      ...defaults("clearance-creepage-calculator"), systemVoltage: 230, workingVoltage: 800,
+      ovc: "ii", pollution: "2", material: "iiia", insulation: "basic", altitude: 5000, margin: 0
+    });
+    expect(result.primary).toBe("8.000 mm creepage");
+    expect(result.metrics.find((item) => item.label === "Minimum clearance before margin")?.value).toBe("2.220 mm");
+    expect(result.metrics.find((item) => item.label === "Rated impulse voltage")?.value).toBe("2.500 kV");
+  });
+
+  it("uses the next impulse step and twice creepage for reinforced insulation", () => {
+    const result = calculateTool("clearance-creepage-calculator", {
+      ...defaults("clearance-creepage-calculator"), systemVoltage: 230, workingVoltage: 400,
+      ovc: "ii", pollution: "2", material: "ii", insulation: "reinforced", altitude: 2000, margin: 0
+    });
+    expect(result.primary).toBe("5.600 mm creepage");
+    expect(result.metrics.find((item) => item.label === "Clearance impulse step used")?.value).toBe("4.000 kV");
+    expect(result.metrics.find((item) => item.label === "Minimum clearance before margin")?.value).toBe("3.000 mm");
+  });
   it("solves Ohm's law from voltage and current", () => {
     expect(metric("ohms-law-calculator", "Resistance", { solveFrom: "vi", voltage: 12, current: 2, resistance: 1, power: 1 })).toBe("6.000 Ω");
     expect(metric("ohms-law-calculator", "Power", { solveFrom: "vi", voltage: 12, current: 2, resistance: 1, power: 1 })).toBe("24.00 W");

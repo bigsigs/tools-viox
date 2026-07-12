@@ -4,6 +4,7 @@ type Resources = Record<string, { articles: ToolLink[]; products: ToolLink[] }>;
 const resource = (articleLabel: string, article: string, productLabel: string, product: string) => ({ articles: [{ label: articleLabel, href: article }], products: [{ label: productLabel, href: product }] });
 
 export const expansionResources: Resources = {
+  "clearance-creepage-calculator": resource("Low-voltage panel design and electrical formulas", "https://viox.com/electrical-formulas-low-voltage-panel-design-maintenance/", "VIOX terminal blocks", "https://viox.com/terminal-block/"),
   "ohms-law-calculator": resource("Low-voltage electrical formulas guide", "https://viox.com/electrical-formulas-low-voltage-panel-design-maintenance/", "VIOX electrical terminal blocks", "https://viox.com/terminal-block/"),
   "watts-amps-volts-calculator": resource("Single-phase and three-phase power guide", "https://viox.com/the-technical-nuances-of-single-phase-and-three-phase-power-systems/", "VIOX miniature circuit breakers", "https://viox.com/mcb/"),
   "ev-charging-time-cost-calculator": resource("EV charger circuit protection guide", "https://viox.com/ev-charger-circuit-breaker-sizing-guide-7kw-22kw/", "VIOX EV charger protection products", "https://viox.com/rcbo/"),
