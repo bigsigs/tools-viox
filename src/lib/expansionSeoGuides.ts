@@ -53,6 +53,47 @@ export const expansionSeoGuides = Object.fromEntries(expansionTools.map((tool) =
   ]
 } satisfies SeoGuide])) as Record<string, SeoGuide>;
 
+expansionSeoGuides["pcb-conductor-spacing-calculator"] = {
+  sections: [
+    {
+      title: "How to use the PCB conductor spacing calculator",
+      paragraphs: ["Choose whether to calculate minimum spacing from voltage or reverse an available edge-to-edge spacing into a reference voltage. Select the conductor environment carefully because an internal trace, an exposed external trace, a polymer-coated conductor, and a component lead use different lookup columns."],
+      steps: ["Choose voltage-to-spacing or spacing-to-voltage mode.", "Enter DC, AC peak, or AC RMS voltage between adjacent conductors.", "Select the PCB or assembly conductor environment.", "Enter a fabrication and design margin.", "Review both millimetres and mils, then verify the current IPC edition and applicable product standard."]
+    },
+    {
+      title: "IPC PCB conductor categories",
+      paragraphs: ["The construction category is part of the calculation, not a cosmetic label. Coated categories should only be used when the material and completed process meet the required construction definition."],
+      table: {
+        headers: ["Category", "Conductor condition", "Typical interpretation"],
+        rows: [["B1", "Internal conductors", "Copper features separated within the PCB dielectric"], ["B2", "External, uncoated, up to 3050 m", "Exposed outer-layer conductors at normal and moderate altitude"], ["B3", "External, uncoated, above 3050 m", "Exposed outer-layer conductors at higher altitude"], ["B4", "Permanent polymer coating", "External PCB conductor with qualifying permanent polymer coating"], ["A5", "Conformal-coated assembly", "External conductor on the completed coated assembly"], ["A6", "Component lead, uncoated", "Exposed component lead or termination"], ["A7", "Component lead, conformal coated", "Coated component lead or termination"]]
+      }
+    },
+    {
+      title: "Voltage basis: DC, AC peak, and AC RMS",
+      paragraphs: ["The legacy IPC spacing table is indexed by DC voltage or AC peak voltage between conductors. When only a sinusoidal AC RMS value is known, the calculator uses Vpeak = √2 × Vrms. For example, 230 V RMS corresponds to approximately 325 V peak and therefore falls in the 301–500 V lookup band."],
+      callouts: ["230 V AC RMS → approximately 325 V peak", "400 V AC RMS → approximately 566 V peak", "Use the maximum repetitive or applicable transient voltage required by the governing design method"]
+    },
+    {
+      title: "Spacing above 500 volts",
+      paragraphs: ["For voltage above 500 V, the legacy method adds a category-specific distance for every volt above 500 V. The calculator shows the table value before margin and the final design spacing separately so the source of the result remains visible."],
+      table: {
+        headers: ["Category", "Spacing at 500 V", "Additional spacing above 500 V"],
+        rows: [["B1", "0.25 mm", "0.0025 mm/V"], ["B2", "2.50 mm", "0.0050 mm/V"], ["B3", "12.50 mm", "0.0250 mm/V"], ["B4", "0.80 mm", "0.00305 mm/V"], ["A5", "0.80 mm", "0.00305 mm/V"], ["A6", "1.50 mm", "0.00305 mm/V"], ["A7", "0.80 mm", "0.00305 mm/V"]]
+      }
+    },
+    {
+      title: "PCB spacing versus clearance and creepage",
+      paragraphs: ["PCB conductor spacing is a layout and manufacturability reference. Safety clearance is the shortest path through air, while creepage is the shortest path along an insulating surface. Equipment standards may also require pollution degree, material group, overvoltage category, altitude correction, reinforced insulation, slots, barriers, or dielectric testing."],
+      links: [{ label: "Use the IEC 60664-1 Clearance & Creepage Calculator", href: "/clearance-creepage-calculator/" }]
+    },
+    {
+      title: "PCB layout and manufacturing checks",
+      paragraphs: ["The number produced by a spacing calculator is not automatically the CAD rule to release. Add the board fabricator's conductor-position and etching tolerances, then inspect pads, vias, component leads, test points, board edges, slots, mounting hardware, and coating keep-out areas."],
+      bullets: ["Measure spacing between conductor edges, not centre lines.", "Use net classes and design-rule checks for every relevant voltage domain.", "Do not assume ordinary solder mask is certified safety insulation.", "Review humidity, contamination, condensation, altitude, and coating process capability.", "Apply the product-specific IEC, UL, or other safety standard when isolation protects users or accessible circuits."]
+    }
+  ]
+};
+
 expansionSeoGuides["nema-ip-rating-converter"] = {
   sections: [
     { title: "How to use the NEMA and IP rating tool", paragraphs: ["Use NEMA to IP when a verified NEMA enclosure Type is already specified. Use IP to NEMA to find common NEMA Types whose published ingress cross-reference matches or exceeds the selected IP digits; this does not establish equivalence. Use Industrial Sizing Engine to evaluate the environmental characteristics that IP does not express."], steps: ["Choose one of the three modes.", "Enter the known rating or environmental exposures.", "Read the ingress reference and equivalence warning together.", "Use Industrial Sizing for corrosion, icing, oil and site conditions.", "Verify the complete assembled product under the required certification system."] },

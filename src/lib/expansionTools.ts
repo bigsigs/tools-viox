@@ -211,6 +211,38 @@ export const expansionTools: ToolDefinition[] = [
     relatedTools: ["enclosure-temperature-rise-calculator", "terminal-heating-calculator", "nema-ip-rating-converter"], relatedProducts: [{ label: "VIOX engineering support", href: "https://viox.com/contact" }], keywords: ["clearance and creepage calculator", "creepage distance calculator", "IEC 60664-1 calculator", "PCB clearance calculator", "CTI creepage distance"]
   },
   {
+    slug: "pcb-conductor-spacing-calculator", title: "PCB Conductor Spacing Calculator", shortTitle: "PCB Conductor Spacing", category: "electrical-fundamentals",
+    description: "Estimate a PCB conductor-spacing reference from voltage and conductor environment, or calculate the maximum reference voltage for an available spacing.",
+    intent: "IPC-2221 legacy-table screening for PCB layout and DFM review, kept separate from IEC or UL safety-insulation coordination.",
+    fields: [
+      { id: "mode", label: "Calculate", type: "select", defaultValue: "spacing", options: [{ value: "spacing", label: "Spacing from voltage" }, { value: "voltage", label: "Voltage from spacing" }] },
+      { id: "voltage", label: "Voltage between conductors", type: "number", defaultValue: 400, min: 0, defaultUnit: "V", unitOptions: [{ value: "V", label: "V" }, { value: "kV", label: "kV" }], showWhen: { field: "mode", values: ["spacing"] } },
+      { id: "voltageBasis", label: "Voltage basis", type: "select", defaultValue: "dc-peak", options: [{ value: "dc-peak", label: "DC or AC peak" }, { value: "ac-rms", label: "AC RMS — converted to peak" }], showWhen: { field: "mode", values: ["spacing"] } },
+      { id: "spacing", label: "Available edge-to-edge spacing", type: "number", defaultValue: 2.5, min: 0, defaultUnit: "mm", unitOptions: [{ value: "mm", label: "mm" }, { value: "mil", label: "mil" }], showWhen: { field: "mode", values: ["voltage"] } },
+      { id: "environment", label: "Conductor environment", type: "select", defaultValue: "b2", options: [
+        { value: "b1", label: "B1 — internal PCB conductors" },
+        { value: "b2", label: "B2 — external, uncoated, up to 3050 m" },
+        { value: "b3", label: "B3 — external, uncoated, above 3050 m" },
+        { value: "b4", label: "B4 — external, permanent polymer coating" },
+        { value: "a5", label: "A5 — assembled board, conformal coating" },
+        { value: "a6", label: "A6 — component leads, uncoated" },
+        { value: "a7", label: "A7 — component leads, conformal coating" }
+      ] },
+      { id: "margin", label: "Additional design margin", type: "number", defaultValue: 20, unit: "%", min: 0, max: 200 }
+    ],
+    formula: "IPC-2221B legacy lookup: d = dtable for voltage bands through 500 V; above 500 V, d = d500 + k × (Vpeak − 500). AC RMS input is converted to peak using Vpeak = √2 × Vrms.",
+    assumptions: ["Voltage is the DC value or AC peak difference between adjacent conductors", "Spacing is measured edge to edge", "Lookup values reproduce the publicly verifiable IPC-2221B Table 6-1 conductor categories", "The optional margin is applied after the table lookup"],
+    warnings: ["IPC-2221C is the current edition and must be checked for final design; this calculator transparently identifies its legacy-table data basis.", "IPC conductor spacing is not a substitute for clearance, creepage, dielectric withstand, or reinforced-insulation requirements in the applicable IEC, UL, equipment, or product standard.", "Solder mask and conformal coating are different construction categories; coating effectiveness depends on material, process, coverage, qualification, contamination, humidity, and service life."],
+    faqs: [
+      { question: "Should AC voltage be entered as RMS or peak?", answer: "Choose the basis that matches your known value. IPC conductor-spacing tables use DC or AC peak voltage; the calculator multiplies AC RMS by √2 before lookup." },
+      { question: "Does solder mask guarantee the coated spacing value?", answer: "No. Select the category only when the permanent polymer coating and manufacturing process satisfy the applicable construction requirements. Ordinary solder mask should not automatically be treated as safety insulation." },
+      { question: "Can this result prove mains isolation compliance?", answer: "No. Mains and accessible-circuit isolation normally require the applicable product-safety standard, pollution degree, material group, overvoltage category, altitude, manufacturing tolerances, and dielectric testing." }
+    ],
+    relatedTools: ["clearance-creepage-calculator", "voltage-divider-calculator", "ohms-law-calculator"],
+    relatedProducts: [{ label: "VIOX terminal blocks", href: "https://viox.com/terminal-block/" }],
+    keywords: ["PCB conductor spacing calculator", "PCB trace spacing calculator", "PCB clearance calculator", "IPC 2221 spacing calculator", "high voltage PCB spacing", "PCB voltage clearance", "trace spacing voltage calculator"]
+  },
+  {
     slug: "ohms-law-calculator", title: "Ohm's Law Calculator", shortTitle: "Ohm's Law", category: "electrical-fundamentals",
     description: "Enter any two of voltage, current, resistance, and power to calculate the other two electrical quantities.", intent: "Solve DC or purely resistive Ohm's law relationships from any two known values.",
     fields: [{ id: "solveFrom", label: "Known quantities", type: "select", defaultValue: "vi", options: [{ value: "vi", label: "Voltage + current" }, { value: "vr", label: "Voltage + resistance" }, { value: "vp", label: "Voltage + power" }, { value: "ir", label: "Current + resistance" }, { value: "ip", label: "Current + power" }, { value: "rp", label: "Resistance + power" }] }, { id: "voltage", label: "Voltage", type: "number", defaultValue: 230, unit: "V", min: 0 }, { id: "current", label: "Current", type: "number", defaultValue: 2, unit: "A", min: 0 }, { id: "resistance", label: "Resistance", type: "number", defaultValue: 115, unit: "Ω", min: 0 }, { id: "power", label: "Power", type: "number", defaultValue: 460, unit: "W", min: 0 }],

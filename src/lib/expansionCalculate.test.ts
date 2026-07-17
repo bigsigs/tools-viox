@@ -95,6 +95,42 @@ describe("20-calculator expansion reference cases", () => {
     expect(result.metrics.find((item) => item.label === "Clearance impulse step used")?.value).toBe("4.000 kV");
     expect(result.metrics.find((item) => item.label === "Minimum clearance before margin")?.value).toBe("3.000 mm");
   });
+  it("looks up external uncoated PCB spacing and applies margin", () => {
+    const result = calculateTool("pcb-conductor-spacing-calculator", {
+      ...defaults("pcb-conductor-spacing-calculator"), mode: "spacing", voltage: 400,
+      voltageUnit: "V", voltageBasis: "dc-peak", environment: "b2", margin: 20
+    });
+    expect(result.primary).toBe("3.000 mm");
+    expect(result.metrics.find((item) => item.label === "Legacy table spacing")?.value).toBe("2.500 mm");
+    expect(result.metrics.find((item) => item.label === "Spacing with margin (mil)")?.value).toBe("118.1 mil");
+  });
+
+  it("uses the per-volt PCB spacing increment above 500 V", () => {
+    const result = calculateTool("pcb-conductor-spacing-calculator", {
+      ...defaults("pcb-conductor-spacing-calculator"), mode: "spacing", voltage: 600,
+      voltageUnit: "V", voltageBasis: "dc-peak", environment: "b1", margin: 0
+    });
+    expect(result.primary).toBe("0.500 mm");
+    expect(result.metrics.find((item) => item.label === "Legacy table spacing")?.value).toBe("0.500 mm");
+  });
+
+  it("converts RMS voltage to peak before PCB spacing lookup", () => {
+    const result = calculateTool("pcb-conductor-spacing-calculator", {
+      ...defaults("pcb-conductor-spacing-calculator"), mode: "spacing", voltage: 230,
+      voltageUnit: "V", voltageBasis: "ac-rms", environment: "b2", margin: 0
+    });
+    expect(result.metrics.find((item) => item.label === "Lookup voltage")?.value).toBe("325.3 V DC / AC peak");
+    expect(result.primary).toBe("2.500 mm");
+  });
+
+  it("reverses available PCB spacing into a voltage reference", () => {
+    const result = calculateTool("pcb-conductor-spacing-calculator", {
+      ...defaults("pcb-conductor-spacing-calculator"), mode: "voltage", spacing: 2.5,
+      spacingUnit: "mm", environment: "b2", margin: 0
+    });
+    expect(result.primary).toBe("500.0 V DC / AC peak");
+    expect(result.metrics.find((item) => item.label === "Approximate equivalent AC RMS")?.value).toBe("353.6 V");
+  });
   it("solves Ohm's law from voltage and current", () => {
     expect(metric("ohms-law-calculator", "Resistance", { solveFrom: "vi", voltage: 12, current: 2, resistance: 1, power: 1 })).toBe("6.000 Ω");
     expect(metric("ohms-law-calculator", "Power", { solveFrom: "vi", voltage: 12, current: 2, resistance: 1, power: 1 })).toBe("24.00 W");

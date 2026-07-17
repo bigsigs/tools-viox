@@ -33,6 +33,7 @@ export function calculateExpansionTool(slug: string, v: Values): CalculationResu
     case "power-energy-time-calculator": return powerEnergyTime(v);
     case "voltage-divider-calculator": return voltageDivider(v);
     case "clearance-creepage-calculator": return clearanceCreepage(v);
+    case "pcb-conductor-spacing-calculator": return pcbConductorSpacing(v);
     case "ohms-law-calculator": return ohms(v);
     case "watts-amps-volts-calculator": return wattsAmpsVolts(v);
     case "ev-charging-time-cost-calculator": return evCharge(v);
@@ -289,6 +290,59 @@ function clearanceCreepage(v: Values): CalculationResult {
   const designClearance = correctedClearance * (1 + margin), designCreepage = creepage * (1 + margin);
   const governing = designCreepage >= designClearance ? "Creepage" : "Clearance";
   return result(`${f(designCreepage)} mm creepage`, insulation === "functional" ? "caution" : "ok", `IEC 60664-1 planning result: maintain at least ${f(designClearance)} mm clearance through air and ${f(designCreepage)} mm creepage along the insulating surface, including the entered margin.`, [["Minimum clearance before margin", `${f(correctedClearance)} mm`], ["Minimum creepage before margin", `${f(creepage)} mm`], ["Design clearance", `${f(designClearance)} mm`], ["Design creepage", `${f(designCreepage)} mm`], ["Rated impulse voltage", `${f(basicImpulse)} kV`], ["Clearance impulse step used", `${f(impulse)} kV`], ["Altitude correction factor", `${f(altitudeFactor)} ×`], ["Pollution degree", `PD${pollution}`], ["Material group", material.toUpperCase()], ["Insulation level", readable(insulation)], ["Governing distance", governing]], ["Verify the result against the product-specific safety standard and the current complete IEC 60664-1 edition before releasing the design.", "Confirm CTI from the exact insulating-material datasheet; do not assume every FR-4 laminate belongs to the same material group.", "Account for manufacturing tolerance, conductor geometry, slots and ribs, contamination, coating qualification, solid insulation, dielectric tests, and the shortest measured path on the finished assembly."]);
+}
+
+const pcbSpacingRows = [
+  { max: 15, values: [0.05, 0.1, 0.1, 0.05, 0.13, 0.13, 0.13] },
+  { max: 30, values: [0.05, 0.1, 0.1, 0.05, 0.13, 0.25, 0.13] },
+  { max: 50, values: [0.1, 0.6, 0.6, 0.13, 0.13, 0.4, 0.13] },
+  { max: 100, values: [0.1, 0.6, 1.5, 0.13, 0.13, 0.5, 0.13] },
+  { max: 150, values: [0.2, 0.6, 3.2, 0.4, 0.4, 0.8, 0.4] },
+  { max: 170, values: [0.2, 1.25, 3.2, 0.4, 0.4, 0.8, 0.4] },
+  { max: 250, values: [0.2, 1.25, 6.4, 0.4, 0.4, 0.8, 0.4] },
+  { max: 300, values: [0.2, 1.25, 12.5, 0.4, 0.4, 0.8, 0.8] },
+  { max: 500, values: [0.25, 2.5, 12.5, 0.8, 0.8, 1.5, 0.8] }
+] as const;
+const pcbSpacingColumns = ["b1", "b2", "b3", "b4", "a5", "a6", "a7"] as const;
+const pcbSpacingIncrements = [0.0025, 0.005, 0.025, 0.00305, 0.00305, 0.00305, 0.00305] as const;
+const pcbSpacingLabels: Record<string, string> = {
+  b1: "B1 internal conductors", b2: "B2 external uncoated, up to 3050 m", b3: "B3 external uncoated, above 3050 m",
+  b4: "B4 permanent polymer coating", a5: "A5 conformal-coated assembly", a6: "A6 uncoated component leads", a7: "A7 conformal-coated component leads"
+};
+
+function pcbConductorSpacing(v: Values): CalculationResult {
+  const environment = s(v.environment);
+  const column = pcbSpacingColumns.indexOf(environment as typeof pcbSpacingColumns[number]);
+  if (column < 0) throw new Error("Select a valid conductor environment.");
+  const margin = bounded(v.margin, "Design margin", 0, 200) / 100;
+  const base500 = pcbSpacingRows[pcbSpacingRows.length - 1].values[column];
+  const increment = pcbSpacingIncrements[column];
+  const lookupSpacing = (voltage: number) => voltage <= 500
+    ? pcbSpacingRows.find((row) => voltage <= row.max)!.values[column]
+    : base500 + (voltage - 500) * increment;
+
+  if (s(v.mode) === "voltage") {
+    const entered = pos(v.spacing, "Available spacing");
+    const availableMm = s(v.spacingUnit) === "mil" ? entered * 0.0254 : entered;
+    const effectiveMm = availableMm / (1 + margin);
+    const first = pcbSpacingRows[0].values[column];
+    if (effectiveMm < first) throw new Error(`Available spacing after margin is below the ${f(first)} mm minimum lookup value for this category.`);
+    let maxVoltage: number;
+    if (effectiveMm >= base500) maxVoltage = 500 + (effectiveMm - base500) / increment;
+    else maxVoltage = pcbSpacingRows.filter((row) => row.values[column] <= effectiveMm).at(-1)?.max ?? 0;
+    const limited = Math.min(maxVoltage, 10000);
+    const severity = maxVoltage > 10000 ? "warning" : "caution";
+    return result(`${f(limited)} V DC / AC peak`, severity, `${f(availableMm)} mm available spacing in ${pcbSpacingLabels[environment]} supports a legacy-table reference of ${f(limited)} V DC or AC peak after the entered margin.`, [["Available spacing (mm)", `${f(availableMm)} mm`], ["Available spacing (mil)", `${f(availableMm / 0.0254)} mil`], ["Spacing used for reverse lookup", `${f(effectiveMm)} mm`], ["Maximum DC / AC peak reference", `${f(limited)} V`], ["Approximate equivalent AC RMS", `${f(limited / Math.sqrt(2))} V`], ["Design margin", `${f(margin * 100)}%`], ["Conductor category", pcbSpacingLabels[environment]], ["Data basis", "IPC-2221B legacy Table 6-1"]], ["Verify the result against IPC-2221C and the exact PCB construction before release.", "Do not use the reverse result as an equipment working-voltage or safety-isolation rating.", maxVoltage > 10000 ? "The mathematical result exceeds this tool's 10 kV reporting range; use a dedicated high-voltage design review." : "Include fabrication tolerances so the manufactured edge-to-edge spacing does not fall below the required value."]);
+  }
+
+  const enteredVoltage = pos(v.voltage, "Voltage");
+  const volts = s(v.voltageUnit) === "kV" ? enteredVoltage * 1000 : enteredVoltage;
+  const peakVoltage = s(v.voltageBasis) === "ac-rms" ? volts * Math.sqrt(2) : volts;
+  if (peakVoltage > 10000) throw new Error("This screening calculator is limited to 10 kV DC or AC peak.");
+  const tableMm = lookupSpacing(peakVoltage);
+  const designMm = tableMm * (1 + margin);
+  const severity = peakVoltage > 500 || environment === "b3" ? "caution" : "ok";
+  return result(`${f(designMm)} mm`, severity, `${f(peakVoltage)} V DC or AC peak in ${pcbSpacingLabels[environment]} gives ${f(tableMm)} mm from the legacy lookup and ${f(designMm)} mm after the entered margin.`, [["Entered voltage", `${f(volts)} V ${s(v.voltageBasis) === "ac-rms" ? "AC RMS" : "DC / AC peak"}`], ["Lookup voltage", `${f(peakVoltage)} V DC / AC peak`], ["Legacy table spacing", `${f(tableMm)} mm`], ["Spacing with margin (mm)", `${f(designMm)} mm`], ["Spacing with margin (mil)", `${f(designMm / 0.0254)} mil`], ["Additional design margin", `${f(margin * 100)}%`], ["Conductor category", pcbSpacingLabels[environment]], ["Data basis", "IPC-2221B legacy Table 6-1"]], ["Verify the result against IPC-2221C and the exact PCB construction before release.", "Apply the applicable IEC, UL, or product standard separately when the spacing provides safety isolation.", "Account for etched-conductor tolerance, pad geometry, vias, board edges, contamination, humidity, coating quality, and manufacturing capability."]);
 }
 
 function ohms(v: Values): CalculationResult {
