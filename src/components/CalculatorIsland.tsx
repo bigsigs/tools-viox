@@ -535,6 +535,40 @@ export default function CalculatorIsland({ slug, locale = "en", localizedTool }:
               </label>
             ) : null}
           </>
+        ) : slug === "enclosure-temperature-rise-calculator" ? (
+          <>
+            <div className="converter-tabs power-task-tabs enclosure-mode-tabs" role="tablist" aria-label="Enclosure cooling calculation mode">
+              {[
+                { value: "internal", label: "Internal temperature" },
+                { value: "airflow", label: "Required airflow" },
+                { value: "cooling", label: "Cooling capacity" }
+              ].map((mode) => <button type="button" role="tab" aria-selected={String(values.mode) === mode.value} className={String(values.mode) === mode.value ? "active" : ""} onClick={() => update("mode", mode.value)} key={mode.value}>{mode.label}</button>)}
+            </div>
+            <div className="energy-relationship-note enclosure-mode-note">
+              <strong>{String(values.mode) === "internal" ? "Heat load + airflow → Internal temperature" : String(values.mode) === "airflow" ? "Heat load + target temperature → Required airflow" : "Heat balance + target temperature → Cooling capacity"}</strong>
+              <span>{String(values.mode) === "internal" ? "Enter delivered airflow after filters, or use zero to screen passive heat transfer." : String(values.mode) === "airflow" ? "Open-loop ventilation can only approach a temperature above ambient." : "The result separates internal heat, solar allowance, wall transfer, and design margin."}</span>
+            </div>
+            {tool.fields.filter((field) => field.id !== "mode" && (!field.showWhen || field.showWhen.values.includes(String(values[field.showWhen.field])))).map((field) => (
+              <label className="field" key={field.id}>
+                <span>{field.label}</span>
+                {field.type === "select" ? (
+                  <select value={String(values[field.id])} onChange={(event) => update(field.id, event.target.value)}>
+                    {field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </select>
+                ) : (
+                  <div className="unit-input">
+                    <input type="number" inputMode="decimal" value={String(values[field.id])} min={field.min} max={field.max} step={field.step ?? "any"} onChange={(event) => update(field.id, event.target.value)} />
+                    {field.unitOptions?.length ? (
+                      <select aria-label={`${field.label} ${tr("unit")}`} value={String(values[`${field.id}Unit`] ?? field.defaultUnit ?? field.unitOptions[0].value)} onChange={(event) => update(`${field.id}Unit`, event.target.value)}>
+                        {field.unitOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                      </select>
+                    ) : field.unit ? <span className="unit-addon">{field.unit}</span> : null}
+                  </div>
+                )}
+                {field.help ? <small>{field.help}</small> : null}
+              </label>
+            ))}
+          </>
         ) : slug === "three-phase-power-calculator" ? (
           <>
             <div className="converter-tabs power-task-tabs three-phase-power-tabs" role="tablist" aria-label="Three-phase power calculation mode">

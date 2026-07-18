@@ -100,6 +100,10 @@ const toolSeoMeta: Record<string, { title: string; description: string }> = {
     title: "NEMA to IP Rating Converter & Enclosure Selector | VIOX",
     description: "Cross-reference NEMA enclosure Types to IP ratings, decode IP digits, and select a starting enclosure Type for water, dust, corrosion, oil, ice, and immersion."
   },
+  "enclosure-temperature-rise-calculator": {
+    title: "Enclosure Cooling Calculator: CFM, BTU/h & Temperature | VIOX",
+    description: "Calculate enclosure temperature rise, fan airflow in CFM or m³/h, and cooling capacity in W or BTU/h from panel heat, cabinet size, and ambient conditions."
+  },
   "motor-starter-selection-calculator": {
     title: "Motor Starter Selection Calculator | VIOX",
     description: "Estimate motor current and select a starting contactor, overload relay range, starter method, and short-circuit protection path from motor and load data."

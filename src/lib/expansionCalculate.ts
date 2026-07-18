@@ -458,10 +458,82 @@ function lightning(v: Values): CalculationResult {
 }
 
 function enclosure(v: Values): CalculationResult {
-  const W = pos(v.width, "Width") / 1000, H = pos(v.height, "Height") / 1000, D = pos(v.depth, "Depth") / 1000, heat = pos(v.heat, "Heat loss"), ambient = num(v.ambient, "Ambient"), airflow = nonneg(v.airflow, "Airflow");
-  const totalArea = 2 * (W * H + W * D + H * D), factor = s(v.mounting) === "free" ? 0.9 : s(v.mounting) === "wall" ? 0.7 : 0.5, effectiveArea = totalArea * factor; const natural = heat / (5.5 * effectiveArea), forced = airflow > 0 ? heat / (0.33 * airflow) : Infinity; const rise = Math.min(natural, forced); const internal = ambient + rise;
-  const cooling = internal > 55 ? "Active cooling review" : internal > 45 ? "Forced ventilation review" : "Natural cooling may be adequate";
-  return result(`${f(internal)} °C`, internal > 50 ? "warning" : internal > 40 ? "caution" : "ok", `Estimated average internal temperature is ambient ${f(ambient)}°C plus ${f(rise)}°C rise.`, [["Effective surface area", `${f(effectiveArea)} m²`], ["Natural-cooling rise", `${f(natural)}°C`], ["Forced-air rise", airflow > 0 ? `${f(forced)}°C` : "Not applied"], ["Cooling direction", cooling], ["Internal heat", `${f(heat)} W`]], [internal > 40 ? "Review fan, heat-exchanger, or air-conditioning capacity and component derating." : "Check local hot spots and component-specific temperature limits."]);
+  const dimension = (id: string) => pos(v[id], id) * (s(v[`${id}Unit`]) === "in" ? 0.0254 : 0.001);
+  const watts = (id: string) => {
+    const value = nonneg(v[id], id), unit = s(v[`${id}Unit`]);
+    return unit === "kw" ? value * 1000 : unit === "btuh" ? value / 3.412141633 : value;
+  };
+  const celsius = (id: string) => {
+    const value = num(v[id], id);
+    return s(v[`${id}Unit`]) === "f" ? (value - 32) * 5 / 9 : value;
+  };
+  const airflowM3h = (id: string) => nonneg(v[id], id) * (s(v[`${id}Unit`]) === "cfm" ? 1.69901082 : 1);
+
+  const W = dimension("width"), H = dimension("height"), D = dimension("depth");
+  const front = W * H, side = H * D, top = W * D;
+  const mounting = s(v.mounting);
+  const effectiveArea = mounting === "free" ? 2 * (front + side + top)
+    : mounting === "wall" ? front + 2 * side + 2 * top
+      : mounting === "grouped" ? front + 2 * top
+        : front;
+  const baseU = ({ "painted-steel": 5.5, stainless: 5.0, aluminum: 6.5, plastic: 3.5 } as Record<string, number>)[s(v.material)] ?? 5.5;
+  const insulationR = bounded(v.insulationR, "Insulation R-value", 0, 10);
+  const effectiveU = 1 / (1 / baseU + insulationR);
+  const ua = effectiveU * effectiveArea;
+  const heat = watts("heat"), solar = s(v.location) === "outdoor" ? watts("solarLoad") : 0;
+  const totalGenerated = heat + solar, ambient = celsius("ambient"), mode = s(v.mode);
+  const airQuality = s(v.airQuality), protection = s(v.protection);
+  const hazardous = airQuality === "hazardous";
+  const commonMetrics: Array<[string, string]> = [
+    ["Effective exposed area", `${f(effectiveArea)} m²`],
+    ["Effective heat-transfer coefficient", `${f(effectiveU)} W/m²K`],
+    ["Internal component heat", `${f(heat)} W`],
+    ["Solar heat allowance", `${f(solar)} W`]
+  ];
+  const commonRecommendations = [
+    "Verify component losses at the actual operating point and check local hot spots with the final panel layout.",
+    "Confirm fan or cooler performance at the design temperature, pressure loss, altitude, supply voltage, and enclosure rating."
+  ];
+  if (hazardous) commonRecommendations.unshift("Use cooling equipment certified for the exact hazardous-location classification, gas or dust group, and temperature class.");
+
+  if (mode === "internal") {
+    const airflow = airflowM3h("airflow");
+    const conductance = ua + 0.33 * airflow;
+    const rise = totalGenerated / conductance;
+    const internal = ambient + rise;
+    const method = airflow > 0 ? "Open-loop forced-air estimate" : "Passive enclosure heat transfer";
+    const protectionWarning = airflow > 0 && protection === "sealed";
+    return result(`${f(internal)} °C`, protectionWarning || hazardous ? "warning" : airflow > 0 ? "caution" : "ok", `Estimated average internal temperature is ${f(internal)}°C: ambient ${f(ambient)}°C plus a ${f(rise)}°C steady-state rise.`, [...commonMetrics, ["Delivered airflow", `${f(airflow)} m³/h (${f(airflow / 1.69901082)} CFM)`], ["Overall thermal conductance", `${f(conductance)} W/K`], ["Calculation path", method]], [...(protectionWarning ? ["Open-loop airflow conflicts with the selected sealed-enclosure constraint; use a rated closed-loop cooling path."] : []), ...commonRecommendations]);
+  }
+
+  const target = celsius("target"), deltaT = target - ambient;
+  const wallHeatAtTarget = ua * (ambient - target);
+  const netLoad = Math.max(0, totalGenerated + wallHeatAtTarget);
+  const margin = 1 + bounded(v.margin, "Cooling design margin", 0, 100) / 100;
+  const designLoad = netLoad * margin;
+  const naturalAdequate = netLoad <= 0.0001;
+  const cleanOpenAir = airQuality === "clean" && protection !== "sealed";
+  const method = naturalAdequate ? "Natural heat dissipation may be adequate"
+    : hazardous ? "Certified hazardous-location cooling required"
+      : deltaT <= 0 ? "Closed-loop enclosure air conditioner"
+        : cleanOpenAir ? "Filtered fan / forced ventilation"
+          : "Closed-loop heat exchanger";
+  const heatExchangerRating = deltaT > 0 ? designLoad / deltaT : Infinity;
+  const targetMetrics: Array<[string, string]> = [...commonMetrics,
+    ["Wall heat at target", `${wallHeatAtTarget >= 0 ? "+" : ""}${f(wallHeatAtTarget)} W`],
+    ["Net cooling load before margin", `${f(netLoad)} W`],
+    ["Cooling method screen", method]
+  ];
+
+  if (mode === "airflow") {
+    if (deltaT <= 0) {
+      return result("Active cooling required", "warning", `Ambient temperature ${f(ambient)}°C is not below the ${f(target)}°C target, so ambient-air ventilation cannot achieve the target.`, [...targetMetrics, ["Required active cooling", `${f(designLoad)} W (${f(designLoad * 3.412141633)} BTU/h)`], ["Required airflow", "Not physically applicable"]], ["Use a closed-loop refrigeration system rated at the actual ambient and internal design temperatures.", ...commonRecommendations]);
+    }
+    const requiredAirflow = designLoad / (0.33 * deltaT);
+    return result(`${f(requiredAirflow)} m³/h`, naturalAdequate ? "ok" : protection === "sealed" || !cleanOpenAir || hazardous ? "warning" : "caution", `Required delivered airflow is ${f(requiredAirflow)} m³/h (${f(requiredAirflow / 1.69901082)} CFM) for a ${f(deltaT)}°C allowable rise, including the entered design margin.`, [...targetMetrics, ["Allowable temperature rise", `${f(deltaT)}°C`], ["Required delivered airflow", `${f(requiredAirflow)} m³/h`], ["Required delivered airflow (imperial)", `${f(requiredAirflow / 1.69901082)} CFM`]], [...(protection === "sealed" || !cleanOpenAir ? ["The selected environment or enclosure constraint does not support open-loop ventilation; use the airflow value only as a heat-removal reference and evaluate closed-loop cooling."] : []), "Select the fan from its pressure-flow curve after filter, grille, duct, and contamination losses.", ...commonRecommendations]);
+  }
+
+  return result(`${f(designLoad)} W cooling`, hazardous || deltaT <= 0 ? "warning" : naturalAdequate ? "ok" : "caution", `Required design cooling capacity is ${f(designLoad)} W (${f(designLoad * 3.412141633)} BTU/h), including the entered margin.`, [...targetMetrics, ["Design cooling capacity", `${f(designLoad / 1000)} kW`], ["Design cooling capacity (imperial)", `${f(designLoad * 3.412141633)} BTU/h`], ["Heat-exchanger rating reference", Number.isFinite(heatExchangerRating) ? `${f(heatExchangerRating)} W/K` : "Not applicable below ambient"]], [naturalAdequate ? "The entered wall heat transfer can dissipate the load at the target temperature; still check local hot spots and transient conditions." : method === "Filtered fan / forced ventilation" ? "A filtered fan may be suitable if the required ingress rating and ambient-air quality permit open-loop ventilation." : method === "Closed-loop heat exchanger" ? "Select a closed-loop heat exchanger by its W/K performance at the available temperature difference." : "Select an enclosure air conditioner from capacity data at the actual ambient and internal design temperatures, not only its nominal rating.", ...commonRecommendations]);
 }
 
 function panelHeat(v: Values): CalculationResult {

@@ -53,6 +53,42 @@ export const expansionSeoGuides = Object.fromEntries(expansionTools.map((tool) =
   ]
 } satisfies SeoGuide])) as Record<string, SeoGuide>;
 
+expansionSeoGuides["enclosure-temperature-rise-calculator"] = {
+  sections: [
+    {
+      title: "How to use the enclosure cooling calculator",
+      paragraphs: ["Choose the result you need first: estimated internal temperature, required delivered airflow, or active cooling capacity. Enter enclosure dimensions, exposed surfaces, material, component heat loss, and the worst expected ambient condition. Outdoor projects can add a separately established solar heat allowance."],
+      steps: ["Choose Internal temperature, Required airflow, or Cooling capacity.", "Enter cabinet dimensions and select which surfaces are exposed to ambient air.", "Enter component losses as heat, not total connected load.", "Set maximum ambient and the permitted internal target temperature.", "Choose the air condition and whether open-loop airflow is allowed.", "Review the heat balance, cooling method screen, and every selection warning."]
+    },
+    {
+      title: "Enclosure heat-balance method",
+      paragraphs: ["The steady-state model adds component heat and the entered solar allowance, then accounts for heat transfer through exposed enclosure surfaces. When the cabinet is hotter than ambient, the wall rejects heat and reduces the active cooling load. When ambient is hotter than the target, heat enters through the wall and increases the required cooling capacity."],
+      table: { headers: ["Quantity", "Calculation role", "Important input rule"], rows: [["Internal heat", "Breaker, contactor, drive, power-supply, transformer, and other losses", "Use manufacturer loss data at the expected operating point"], ["Wall heat transfer", "Effective U-value × exposed area × temperature difference", "Exclude surfaces blocked by a wall or adjacent cabinets"], ["Solar allowance", "Additional outdoor heat entering the enclosure", "Use a project-derived value; do not assume zero in direct sun"], ["Airflow heat removal", "Approximately 0.33 × delivered m³/h × temperature rise", "Use airflow after filter and pressure losses"], ["Design margin", "Added to required airflow or cooling capacity", "It does not replace accurate heat-loss inputs"]] }
+    },
+    {
+      title: "Natural cooling, fan, heat exchanger, or air conditioner",
+      paragraphs: ["Natural cooling can be adequate when exposed wall area can reject the generated heat at the permitted internal temperature. A filter fan is an open-loop option for clean air when the target remains above ambient. Closed-loop heat exchangers preserve separation from dirty or wet ambient air but also require a positive temperature difference. An enclosure air conditioner or another refrigeration system is required when the target is at or below ambient."],
+      table: { headers: ["Cooling approach", "Best starting condition", "Key limitation"], rows: [["Natural convection", "Low heat load and useful exposed area", "Average temperature can hide internal hot spots"], ["Filtered fan", "Clean ambient and target above ambient", "Cannot cool below ambient; delivered airflow falls as filters load"], ["Closed-loop heat exchanger", "Sealed cabinet and target above ambient", "Capacity is governed by W/K and available temperature difference"], ["Enclosure air conditioner", "Target at or below ambient, or high heat load", "Use capacity at actual ambient/internal temperatures, not nominal rating alone"], ["Certified hazardous cooling", "Classified gas or dust location", "Ingress protection alone is not hazardous-location certification"]] }
+    },
+    {
+      title: "Fan airflow in CFM and cubic metres per hour",
+      paragraphs: ["The airflow result is the delivered airflow needed through the enclosure. A fan's free-air catalog rating is normally higher than its operating airflow because filters, grilles, louvers, ducts, altitude, and contamination add resistance. Use the manufacturer's pressure-flow curve and include the exhaust path when selecting the fan and filter combination."],
+      callouts: ["1 CFM ≈ 1.699 m³/h", "Ventilation requires target temperature above ambient", "Select from the pressure-flow curve, not free-air CFM alone"]
+    },
+    {
+      title: "Worked enclosure cooling example",
+      paragraphs: ["Consider an 800 × 1200 × 300 mm painted-steel wall-mounted enclosure with 250 W of internal loss, 35°C maximum ambient, and a 45°C target. The simplified exposed area is 2.16 m² and the wall can reject about 118.8 W at the 10°C temperature difference. After a 15% design margin, the remaining heat requires approximately 45.7 m³/h, or 26.9 CFM, of delivered airflow."],
+      bullets: ["Internal component heat: 250 W", "Passive wall heat rejection at target: approximately 118.8 W", "Net load before margin: approximately 131.2 W", "Required delivered airflow with 15% margin: approximately 45.7 m³/h or 26.9 CFM"]
+    },
+    {
+      title: "Thermal design limits and final checks",
+      paragraphs: ["This calculator estimates average steady-state behavior. It is not a full IEC 60890 verification, computational fluid-dynamics study, or substitute for the exact cooling-equipment selection software. Component spacing, internal circulation, hot spots, transient duty, humidity, condensation, altitude, filter loading, direct sun, surface finish, and component derating can govern the real design."],
+      bullets: ["Use the lowest relevant component temperature limit after derating.", "Confirm outdoor solar load, shade, color, and orientation for the installation.", "Check condensation risk when active cooling can take surfaces below dew point.", "Preserve the required NEMA or IP rating at fans, filters, drains, glands, and doors.", "Verify cooler capacity and electrical data from the exact manufacturer performance table."],
+      links: [{ label: "Build the internal heat load", href: "/panel-heat-loss-calculator/" }, { label: "Check enclosure NEMA and IP requirements", href: "/nema-ip-rating-converter/" }, { label: "Review VFD sizing and panel heat", href: "/vfd-sizing-protection-calculator/" }]
+    }
+  ]
+};
+
 expansionSeoGuides["pcb-conductor-spacing-calculator"] = {
   sections: [
     {

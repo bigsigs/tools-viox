@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { calculateTool } from "./calculate";
 import { toolsBySlug } from "./tools";
+import { localizeClientResult } from "./i18n-client";
 
 function defaults(slug: string) {
   return Object.fromEntries(toolsBySlug[slug].fields.map((field) => [field.id, field.defaultValue ?? ""]));
@@ -207,9 +208,33 @@ describe("20-calculator expansion reference cases", () => {
     expect(metric("lightning-risk-assessment-calculator", "Equivalent collection area")).toBe("6427 m²");
   });
 
-  it("calculates enclosure temperature from heat and effective area", () => {
-    expect(metric("enclosure-temperature-rise-calculator", "Internal heat")).toBe("250.0 W");
-    expect(calculateTool("enclosure-temperature-rise-calculator", defaults("enclosure-temperature-rise-calculator")).primary).toMatch(/°C$/);
+  it("calculates passive enclosure temperature from heat and exposed area", () => {
+    const result = calculateTool("enclosure-temperature-rise-calculator", defaults("enclosure-temperature-rise-calculator"));
+    expect(result.primary).toBe("56.04 °C");
+    expect(metric("enclosure-temperature-rise-calculator", "Internal component heat")).toBe("250.0 W");
+    expect(metric("enclosure-temperature-rise-calculator", "Effective exposed area")).toBe("2.160 m²");
+  });
+
+  it("calculates required delivered enclosure airflow with wall heat rejection", () => {
+    const result = calculateTool("enclosure-temperature-rise-calculator", { ...defaults("enclosure-temperature-rise-calculator"), mode: "airflow" });
+    expect(result.primary).toBe("45.72 m³/h");
+    expect(result.metrics.find((item) => item.label === "Required delivered airflow (imperial)")?.value).toBe("26.91 CFM");
+    expect(result.metrics.find((item) => item.label === "Wall heat at target")?.value).toBe("-118.8 W");
+  });
+
+  it("requires active cooling when enclosure target is below ambient", () => {
+    const result = calculateTool("enclosure-temperature-rise-calculator", { ...defaults("enclosure-temperature-rise-calculator"), mode: "airflow", ambient: 50, target: 45 });
+    expect(result.primary).toBe("Active cooling required");
+    expect(result.metrics.find((item) => item.label === "Required active cooling")?.value).toBe("355.8 W (1214 BTU/h)");
+    expect(result.metrics.find((item) => item.label === "Required airflow")?.value).toBe("Not physically applicable");
+  });
+
+  it("localizes enclosure cooling results for the Spanish page", () => {
+    const source = calculateTool("enclosure-temperature-rise-calculator", { ...defaults("enclosure-temperature-rise-calculator"), mode: "airflow" });
+    const translated = localizeClientResult(source, "es");
+    expect(translated.summary).toContain("El caudal suministrado necesario");
+    expect(translated.metrics.find((item) => item.label === "Caudal suministrado necesario")?.value).toBe("45.72 m³/h");
+    expect(translated.recommendations).toContain("Seleccione el ventilador a partir de su curva presión-caudal considerando las pérdidas de filtros, rejillas, conductos y contaminación.");
   });
 
   it("sums panel component losses with diversity", () => {

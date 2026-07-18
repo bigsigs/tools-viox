@@ -970,5 +970,25 @@
   {
     "source": "weight__V0__",
     "target": "peso__V0__"
+  },
+  {
+    "source": "Estimated average internal temperature is __V0__°C: ambient __V1__°C plus a __V2__°C steady-state rise.",
+    "target": "La temperatura interior media estimada es __V0__°C: ambiente de __V1__°C más un aumento estacionario de __V2__°C."
+  },
+  {
+    "source": "Required delivered airflow is __V0__ m³/h (__V1__ CFM) for a __V2__°C allowable rise, including the entered design margin.",
+    "target": "El caudal suministrado necesario es __V0__ m³/h (__V1__ CFM) para un aumento permitido de __V2__°C, incluido el margen de diseño introducido."
+  },
+  {
+    "source": "Ambient temperature __V0__°C is not below the __V1__°C target, so ambient-air ventilation cannot achieve the target.",
+    "target": "La temperatura ambiente de __V0__°C no es inferior al objetivo de __V1__°C, por lo que la ventilación con aire ambiente no puede alcanzarlo."
+  },
+  {
+    "source": "Required design cooling capacity is __V0__ W (__V1__ BTU/h), including the entered margin.",
+    "target": "La capacidad de refrigeración de diseño necesaria es __V0__ W (__V1__ BTU/h), incluido el margen introducido."
+  },
+  {
+    "source": "__V0__ W cooling",
+    "target": "__V0__ W de refrigeración"
   }
 ]
