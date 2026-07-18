@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from "react";
+import { clientLocalePath, clientT, type ClientLocale } from "../lib/i18n-client";
 
 type SearchTool = {
   slug: string;
@@ -10,11 +11,13 @@ type SearchTool = {
 
 type Props = {
   tools: SearchTool[];
+  locale?: ClientLocale;
 };
 
 const storageKey = "viox:last-used-calculators";
 
-export default function ToolDiscovery({ tools }: Props) {
+export default function ToolDiscovery({ tools, locale = "en" }: Props) {
+  const tr = (text: string) => clientT(locale, text);
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [recentSlugs, setRecentSlugs] = useState<string[]>([]);
@@ -58,7 +61,7 @@ export default function ToolDiscovery({ tools }: Props) {
 
   function openTool(tool: SearchTool) {
     remember(tool.slug);
-    window.location.assign(`/${tool.slug}/`);
+    window.location.assign(clientLocalePath(locale, `/${tool.slug}/`));
   }
 
   function submit(event: SyntheticEvent<HTMLFormElement>) {
@@ -67,21 +70,21 @@ export default function ToolDiscovery({ tools }: Props) {
   }
 
   return (
-    <section className={`tool-discovery-shell${recentTools.length ? " has-recent" : ""}`} aria-label="Find an electrical calculator">
+    <section className={`tool-discovery-shell${recentTools.length ? " has-recent" : ""}`} aria-label={tr("Find an electrical calculator")}>
       <div className="tool-discovery-top">
         <div className="calculator-count">
           <strong>{tools.length}</strong>
-          <b>Electrical<br />calculators</b>
+          <b>{tr("Electrical")}<br />{tr("calculators")}</b>
         </div>
         <div className="tool-search" ref={shellRef}>
           <form onSubmit={submit} role="search">
-            <label htmlFor="calculator-search">Find a calculator</label>
+            <label htmlFor="calculator-search">{tr("Find a calculator")}</label>
             <div className="tool-search-control">
               <input
                 id="calculator-search"
                 type="search"
                 value={query}
-                placeholder="Search calculators..."
+                placeholder={tr("Search calculators...")}
                 autoComplete="off"
                 onFocus={() => setOpen(true)}
                 onChange={(event) => {
@@ -91,7 +94,7 @@ export default function ToolDiscovery({ tools }: Props) {
                 aria-expanded={open}
                 aria-controls="calculator-search-results"
               />
-              <button type="submit" aria-label="Open first matching calculator"><span aria-hidden="true"></span></button>
+              <button type="submit" aria-label={tr("Open first matching calculator")}><span aria-hidden="true"></span></button>
             </div>
           </form>
           {open ? (
@@ -101,7 +104,7 @@ export default function ToolDiscovery({ tools }: Props) {
                   <span><strong>{tool.title}</strong><small>{tool.description}</small></span>
                   <i aria-hidden="true">→</i>
                 </button>
-              )) : <p>No calculator matches “{query}”.</p>}
+              )) : <p>{tr("No calculator matches")} “{query}”.</p>}
             </div>
           ) : null}
         </div>
@@ -110,11 +113,11 @@ export default function ToolDiscovery({ tools }: Props) {
         <div className="recent-calculators">
           <div className="recent-heading">
             <span className="recent-mark" aria-hidden="true"></span>
-            <strong>Last used calculators</strong>
+            <strong>{tr("Last used calculators")}</strong>
           </div>
           <div className="recent-list">
             {recentTools.map((tool) => (
-            <a href={`/${tool.slug}/`} key={tool.slug} onClick={() => remember(tool.slug)}>
+            <a href={clientLocalePath(locale, `/${tool.slug}/`)} key={tool.slug} onClick={() => remember(tool.slug)}>
               <span>{tool.shortTitle ?? tool.title}</span><i aria-hidden="true">→</i>
             </a>
             ))}

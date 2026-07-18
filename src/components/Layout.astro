@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import { site } from "../lib/seo";
 import { categories } from "../lib/categories";
+import { englishPath, localePath, localizeRecord, t, type Locale } from "../lib/i18n";
 import CategoryIcon from "./CategoryIcon.astro";
 
 type Props = {
@@ -9,9 +10,17 @@ type Props = {
   description: string;
   canonical?: string;
   schema?: unknown[];
+  locale?: Locale;
 };
 
-const { title, description, canonical = site.origin, schema = [] } = Astro.props;
+const { title, description, canonical = site.origin, schema = [], locale = "en" } = Astro.props;
+const currentPath = Astro.url.pathname;
+const baseEnglishPath = englishPath(currentPath);
+const englishUrl = `${site.origin}${baseEnglishPath}`;
+const spanishUrl = `${site.origin}${localePath("es", baseEnglishPath)}`;
+const targetLanguage = locale === "es"
+  ? { code: "EN", name: "English", flag: "🇺🇸", url: englishUrl }
+  : { code: "ES", name: "Español", flag: "🇪🇸", url: spanishUrl };
 const categoryNav = [
   { slug: "electrical-fundamentals", label: "Fundamentals" },
   { slug: "power-distribution", label: "Power Distribution" },
@@ -28,7 +37,7 @@ const categoryNav = [
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={locale}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -38,6 +47,9 @@ const categoryNav = [
     <link rel="icon" href="https://viox.com/wp-content/uploads/2024/01/cropped-icon-192x192.png" sizes="192x192" />
     <link rel="apple-touch-icon" href="https://viox.com/wp-content/uploads/2024/01/cropped-icon-180x180.png" />
     <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="en" href={englishUrl} />
+    <link rel="alternate" hreflang="es" href={spanishUrl} />
+    <link rel="alternate" hreflang="x-default" href={englishUrl} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
@@ -54,43 +66,54 @@ const categoryNav = [
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="/" aria-label="VIOX Electrical Tools home">
+      <a class="brand" href={localePath(locale, "/")} aria-label="VIOX Electrical Tools home">
         <span class="brand-logo-wrap">
           <img class="brand-logo" src={site.logo} alt="VIOX" width="140" height="42" loading="eager" decoding="async" />
         </span>
       </a>
       <nav class="main-nav desktop-nav" aria-label="Main navigation">
-        <a href="/#tools">All Tools</a>
+        <a href={`${localePath(locale, "/")}#tools`}>{t(locale, "All Tools")}</a>
         <div class="category-menu">
-          <button type="button" aria-haspopup="true">Calculators</button>
+          <button type="button" aria-haspopup="true">{t(locale, "Calculators")}</button>
           <div class="category-menu-panel">
             <div class="category-menu-heading">
-              <strong>Electrical calculators</strong>
-              <span>Browse by engineering task</span>
+              <strong>{t(locale, "Electrical calculators")}</strong>
+              <span>{t(locale, "Browse by engineering task")}</span>
             </div>
             <div class="category-menu-grid">
-              {categoryNav.map((item) => (
-                <a href={`/category/${item.slug}/`}>
+              {categoryNav.map((item) => {
+                const localizedCategory = localizeRecord(categories[item.slug], locale);
+                return (
+                <a href={localePath(locale, `/category/${item.slug}/`)}>
                   <i><CategoryIcon category={item.slug} size={19} /></i>
-                  <span><strong>{item.label}</strong><small>{categories[item.slug].deck}</small></span>
+                  <span><strong>{locale === "es" ? localizedCategory.title : item.label}</strong><small>{localizedCategory.deck}</small></span>
                 </a>
-              ))}
-              <a class="view-all-category" href="/#tools"><i aria-hidden="true">→</i><span><strong>View All Tools</strong><small>Search all 62 calculators</small></span></a>
+              )})}
+              <a class="view-all-category" href={`${localePath(locale, "/")}#tools`}><i aria-hidden="true">→</i><span><strong>{t(locale, "View All Tools")}</strong><small>{t(locale, "Search all 83 calculators")}</small></span></a>
             </div>
           </div>
         </div>
-        <a href="https://viox.com/products/">Products</a>
-        <a href="https://viox.com/contact">Contact</a>
+        <a href="https://viox.com/products/">{t(locale, "Products")}</a>
+        <a href="https://viox.com/contact">{t(locale, "Contact")}</a>
+        <a class="language-switch" href={targetLanguage.url} lang={locale === "es" ? "en" : "es"} aria-label={`Switch to ${targetLanguage.name}`} title={targetLanguage.name}>
+          <span class="language-flag" aria-hidden="true">{targetLanguage.flag}</span>
+          <span>{targetLanguage.code}</span>
+        </a>
       </nav>
       <div class="mobile-header-actions">
-        <a class="header-icon header-search" href="/#calculator-search" aria-label="Search calculators" title="Search calculators"></a>
+        <a class="header-icon header-search" href={`${localePath(locale, "/")}#calculator-search`} aria-label={t(locale, "Search calculators...")} title={t(locale, "Search calculators...")}></a>
+        <a class="mobile-language-switch" href={targetLanguage.url} lang={locale === "es" ? "en" : "es"} aria-label={`Switch to ${targetLanguage.name}`} title={targetLanguage.name}>
+          <span class="language-flag" aria-hidden="true">{targetLanguage.flag}</span>
+          <span>{targetLanguage.code}</span>
+        </a>
         <details class="mobile-menu">
           <summary class="header-icon header-menu" aria-label="Open navigation" title="Menu"><span></span></summary>
           <nav aria-label="Mobile navigation">
-            <a class="mobile-all-tools" href="/#tools">All Tools</a>
-            {categoryNav.map((item) => <a href={`/category/${item.slug}/`}><i><CategoryIcon category={item.slug} size={19} /></i><span>{item.label}</span></a>)}
-            <a href="https://viox.com/products/"><i aria-hidden="true">V</i><span>VIOX Products</span></a>
-            <a href="https://viox.com/contact"><i aria-hidden="true">@</i><span>Contact</span></a>
+            <a class="mobile-all-tools" href={`${localePath(locale, "/")}#tools`}>{t(locale, "All Tools")}</a>
+            {categoryNav.map((item) => <a href={localePath(locale, `/category/${item.slug}/`)}><i><CategoryIcon category={item.slug} size={19} /></i><span>{locale === "es" ? localizeRecord(categories[item.slug], locale).title : item.label}</span></a>)}
+            <a href="https://viox.com/products/"><i aria-hidden="true">V</i><span>{t(locale, "VIOX Products")}</span></a>
+            <a href="https://viox.com/contact"><i aria-hidden="true">@</i><span>{t(locale, "Contact")}</span></a>
+            <a href={targetLanguage.url} lang={locale === "es" ? "en" : "es"}><i class="menu-language-flag" aria-hidden="true">{targetLanguage.flag}</i><span>{targetLanguage.name}</span></a>
           </nav>
         </details>
       </div>
@@ -98,16 +121,16 @@ const categoryNav = [
     <slot />
     <footer class="site-footer">
       <div class="footer-simple">
-        <a class="footer-brand" href="/" aria-label="VIOX Electrical Tools home">
+        <a class="footer-brand" href={localePath(locale, "/")} aria-label="VIOX Electrical Tools home">
           <img src={site.logo} alt="VIOX" width="132" height="40" loading="lazy" decoding="async" />
-          <span>Electrical Tools</span>
+          <span>{t(locale, "Electrical Tools")}</span>
         </a>
         <nav class="footer-links" aria-label="Footer navigation">
-          <a href="/#tools">Tools</a>
-          <a href="/category/circuit-protection/">Protection</a>
-          <a href="/category/cable-wire/">Cable</a>
+          <a href={`${localePath(locale, "/")}#tools`}>{t(locale, "Tools")}</a>
+          <a href={localePath(locale, "/category/circuit-protection/")}>{t(locale, "Protection")}</a>
+          <a href={localePath(locale, "/category/cable-wire/")}>{t(locale, "Cable")}</a>
           <a href="https://viox.com/">VIOX.com</a>
-          <a href="https://viox.com/contact">Contact</a>
+          <a href="https://viox.com/contact">{t(locale, "Contact")}</a>
         </nav>
         <p class="footer-contact">
           <a href="mailto:sales@viox.com">sales@viox.com</a>
@@ -119,10 +142,10 @@ const categoryNav = [
           © 2026 VIOX Electric.
           <span class="footer-credit">Design By <a href="https://si.gs/" target="_blank" rel="noopener">SIGS</a></span>
         </p>
-        <p>Calculator results are for preliminary selection only. Final design must follow local codes, standards, and qualified engineering review.</p>
+        <p>{t(locale, "Calculator results are for preliminary selection only. Final design must follow local codes, standards, and qualified engineering review.")}</p>
         <nav aria-label="Footer legal links">
-          <a href="https://viox.com/terms-use/">Terms Use</a>
-          <a href="https://viox.com/privacy-policy/">Privacy</a>
+          <a href="https://viox.com/terms-use/">{t(locale, "Terms Use")}</a>
+          <a href="https://viox.com/privacy-policy/">{t(locale, "Privacy")}</a>
         </nav>
       </div>
     </footer>

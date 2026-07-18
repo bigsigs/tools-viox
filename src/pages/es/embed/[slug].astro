@@ -1,0 +1,49 @@
+---
+import CalculatorIsland from "../../../components/CalculatorIsland";
+import "../../../styles/global.css";
+import { localizeTool, localePath, t } from "../../../lib/i18n";
+import { tools } from "../../../lib/tools";
+import { site } from "../../../lib/seo";
+
+export function getStaticPaths() {
+  return tools.map((tool) => ({ params: { slug: tool.slug }, props: { sourceTool: tool } }));
+}
+
+const locale = "es" as const;
+const { sourceTool } = Astro.props;
+const tool = localizeTool(sourceTool, locale);
+const fullUrl = `${site.origin}${localePath(locale, `/${sourceTool.slug}/`)}`;
+const embedUrl = `${site.origin}${localePath(locale, `/embed/${sourceTool.slug}/`)}`;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{tool.title} | VIOX</title>
+    <meta name="description" content={tool.description} />
+    <meta name="robots" content="noindex, follow" />
+    <link rel="canonical" href={fullUrl} />
+  </head>
+  <body class="embed-body">
+    <main class="embed-shell" data-viox-embed data-embed-url={embedUrl}>
+      <header class="embed-header"><h1>{tool.title}</h1></header>
+      <CalculatorIsland slug={sourceTool.slug} locale={locale} localizedTool={tool} client:only="react" />
+      <footer class="embed-footer">
+        <span>{t(locale, "Preliminary engineering reference only. Verify final selection against local codes, applicable standards, manufacturer data, and site conditions.")}</span>
+        <a class="embed-full-link" href={fullUrl} target="_blank" rel="noopener">{t(locale, "Open full page")}</a>
+      </footer>
+    </main>
+    <script is:inline>
+      const sendHeight = () => {
+        const root = document.querySelector("[data-viox-embed]");
+        const height = Math.ceil((root?.scrollHeight || document.documentElement.scrollHeight) + 8);
+        window.parent?.postMessage({ type: "viox-tool-height", height }, "*");
+      };
+      window.addEventListener("load", sendHeight);
+      window.addEventListener("resize", sendHeight);
+      new ResizeObserver(sendHeight).observe(document.documentElement);
+    </script>
+  </body>
+</html>

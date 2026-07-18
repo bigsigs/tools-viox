@@ -1,0 +1,67 @@
+---
+import Layout from "../../../components/Layout.astro";
+import ToolCard from "../../../components/ToolCard.astro";
+import CategoryIcon from "../../../components/CategoryIcon.astro";
+import { categories } from "../../../lib/categories";
+import { categoryContent } from "../../../lib/categoryContent";
+import { localizeRecord, localePath, t } from "../../../lib/i18n";
+import { getToolsByCategory } from "../../../lib/tools";
+import { breadcrumbSchema, site } from "../../../lib/seo";
+import type { ToolCategory } from "../../../lib/types";
+
+export function getStaticPaths() {
+  return Object.values(categories).map((category) => ({ params: { slug: category.slug }, props: { sourceCategory: category } }));
+}
+
+const locale = "es" as const;
+const { sourceCategory } = Astro.props;
+const category = localizeRecord(sourceCategory, locale);
+const categoryTools = getToolsByCategory(category.slug as ToolCategory);
+const content = localizeRecord(categoryContent[category.slug as ToolCategory], locale);
+const otherCategories = Object.values(categories).filter((item) => item.slug !== category.slug).map((item) => localizeRecord(item, locale));
+const canonical = `${site.origin}${localePath(locale, `/category/${category.slug}/`)}`;
+const schema = [
+  breadcrumbSchema([{ name: t(locale, "Electrical Tools"), url: `${site.origin}/es/` }, { name: category.title, url: canonical }]),
+  { "@context": "https://schema.org", "@type": "FAQPage", inLanguage: "es", mainEntity: content.faqs.map((item) => ({ "@type": "Question", name: item.question, acceptedAnswer: { "@type": "Answer", text: item.answer } })) }
+];
+---
+
+<Layout locale={locale} title={category.seoTitle} description={category.seoDescription} canonical={canonical} schema={schema}>
+  <main>
+    <section class="category-hero">
+      <span class="eyebrow">{category.deck}</span><h1>{category.title}</h1><p>{category.description}</p>
+      <span class="category-tool-count">{categoryTools.length} {t(locale, "calculators")}</span>
+    </section>
+
+    <section class="section-shell category-tools" aria-label={`${category.title} ${t(locale, "calculators")}`}>
+      <div class="tool-grid">{categoryTools.map((tool) => <ToolCard tool={tool} locale={locale} />)}</div>
+    </section>
+
+    <section class="category-guide" aria-labelledby={`${category.slug}-overview-title`}>
+      <section class="category-content-block category-overview-block">
+        <header class="category-guide-header"><span class="eyebrow">{t(locale, "Engineering overview")}</span><h2 id={`${category.slug}-overview-title`}>{category.overviewTitle}</h2></header>
+        <div class="category-prose lead-prose">{content.overview.map((paragraph) => <p>{paragraph}</p>)}</div>
+      </section>
+
+      <div class="category-analysis-grid">
+        <article class="category-analysis"><span>{t(locale, "How to use this category")}</span><h2>{content.analysisTitle}</h2>{content.analysis.map((paragraph) => <p>{paragraph}</p>)}</article>
+        <aside class="category-checklist"><span>{t(locale, "Before using a result")}</span><h2>{t(locale, "Selection and verification checklist")}</h2><ul>{content.checklist.map((item) => <li>{item}</li>)}</ul></aside>
+      </div>
+
+      <section class="category-applications" aria-labelledby={`${category.slug}-applications-title`}>
+        <div class="category-subheading"><span>{t(locale, "Applications")}</span><h2 id={`${category.slug}-applications-title`}>{t(locale, "Where these calculators fit")}</h2></div>
+        <div class="application-grid">{content.applications.map((item, index) => <article><b>{String(index + 1).padStart(2, "0")}</b><h3>{item.title}</h3><p>{item.text}</p></article>)}</div>
+      </section>
+
+      <section class="category-faq" aria-labelledby={`${category.slug}-faq-title`}>
+        <div class="category-subheading"><span id={`${category.slug}-faq-title`}>FAQ</span></div>
+        <div class="category-faq-list">{content.faqs.map((item) => <details><summary>{item.question}<i aria-hidden="true"></i></summary><p>{item.answer}</p></details>)}</div>
+      </section>
+    </section>
+
+    <section class="other-categories section-shell" aria-labelledby="other-categories-title">
+      <div class="category-section-heading"><span>{t(locale, "Explore more")}</span><h2 id="other-categories-title">{t(locale, "Other electrical calculator categories")}</h2></div>
+      <div class="other-category-grid">{otherCategories.map((item) => <a href={localePath(locale, `/category/${item.slug}/`)}><i><CategoryIcon category={item.slug} size={20} /></i><span><strong>{item.title}</strong><small>{item.deck}</small></span><b aria-hidden="true">→</b></a>)}</div>
+    </section>
+  </main>
+</Layout>

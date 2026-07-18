@@ -1,0 +1,974 @@
+[
+  {
+    "source": "__V0__ __V1__ equals __V2__ __V3__.",
+    "target": "__V0__ __V1__ es igual a __V2__ __V3__."
+  },
+  {
+    "source": "__V0__ __V1__ termination; approximate conductor area is __V2__ mm².",
+    "target": "__V0__ __V1__ terminación; El área aproximada del conductor es __V2__ mm²."
+  },
+  {
+    "source": "__V0__ /km²/year",
+    "target": "__V0__ /km²/año"
+  },
+  {
+    "source": "__V0__ × __V1__ mm²",
+    "target": "__V0__ × __V1__ mm²"
+  },
+  {
+    "source": "__V0__ × __V1__ mm² __V2__ reference cable has a published nominal OD of __V3__ mm. Verify the actual cable before ordering.",
+    "target": "El cable de referencia __V0__ × __V1__ mm² __V2__ tiene un diámetro exterior nominal publicado de __V3__ mm. Verifique el cable real antes de realizar el pedido."
+  },
+  {
+    "source": "__V0__ × In",
+    "target": "__V0__ × In"
+  },
+  {
+    "source": "__V0__ × In for __V1__ ms",
+    "target": "__V0__ × In durante __V1__ ms"
+  },
+  {
+    "source": "__V0__ A (__V1__ x FLC)",
+    "target": "__V0__ A (__V1__ x FLC)"
+  },
+  {
+    "source": "__V0__ A AC-3",
+    "target": "__V0__ A AC-3"
+  },
+  {
+    "source": "__V0__ A aM",
+    "target": "__V0__ A aM"
+  },
+  {
+    "source": "__V0__ A corresponds to approximately __V1__ kW for the selected system.",
+    "target": "__V0__ A corresponde aproximadamente a __V1__ kW para el sistema seleccionado."
+  },
+  {
+    "source": "__V0__ A DC-rated isolator/breaker basis",
+    "target": "__V0__ A base de aislador/disyuntor con clasificación CC"
+  },
+  {
+    "source": "__V0__ A demand",
+    "target": "__V0__ A de demanda"
+  },
+  {
+    "source": "__V0__ A feeder reference",
+    "target": "__V0__ A como referencia del alimentador"
+  },
+  {
+    "source": "__V0__ A gG",
+    "target": "__V0__ A gG"
+  },
+  {
+    "source": "__V0__ A gPV",
+    "target": "__V0__ A gPV"
+  },
+  {
+    "source": "__V0__ A in R1",
+    "target": "__V0__ A en R1"
+  },
+  {
+    "source": "__V0__ A inrush equals __V1__ × In. The selected __V2__ curve magnetic band is __V3__-__V4__ × In.",
+    "target": "Una corriente de irrupción de __V0__ A equivale a __V1__ × In. La banda magnética de la curva __V2__ seleccionada es de __V3__ a __V4__ × In."
+  },
+  {
+    "source": "__V0__ A is a preliminary aM candidate based on the entered __V1__% current factor; curve verification at __V2__ A for __V3__ s is mandatory.",
+    "target": "__V0__ A es un candidato aM preliminar basado en el factor actual ingresado __V1__%; La verificación de la curva en __V2__ A durante __V3__ s es obligatoria."
+  },
+  {
+    "source": "__V0__ A is the first listed gG rating at or above the __V1__ A corrected design current.",
+    "target": "__V0__ A es la primera clasificación gG listada igual o superior a la corriente de diseño corregida __V1__ A."
+  },
+  {
+    "source": "__V0__ A is the first listed gPV rating at or above __V1__ A and does not exceed the module's __V2__ A maximum series fuse rating.",
+    "target": "__V0__ A es la primera clasificación gPV listada igual o superior a __V1__ A y no excede la clasificación máxima de fusible en serie de __V2__ A del módulo."
+  },
+  {
+    "source": "__V0__ A over entered service",
+    "target": "__V0__ Un servicio ingresado en exceso"
+  },
+  {
+    "source": "__V0__ A splits across __V1__ resistive branches; the lower-resistance branches carry more current.",
+    "target": "__V0__ A se divide en __V1__ ramas resistivas; las ramas de menor resistencia transportan más corriente."
+  },
+  {
+    "source": "__V0__ A through __V1__ produces __V2__ W localized contact loss.",
+    "target": "__V0__ A a __V1__ produce __V2__ W pérdida de contacto localizada."
+  },
+  {
+    "source": "__V0__ A, __V1__ m, __V2__ mm² total",
+    "target": "__V0__ A, __V1__ m, __V2__ mm² total"
+  },
+  {
+    "source": "__V0__ A; exact VFD manual governs",
+    "target": "__V0__ A; El manual exacto del VFD gobierna"
+  },
+  {
+    "source": "__V0__ Ah",
+    "target": "__V0__ Ah"
+  },
+  {
+    "source": "__V0__ Ah at __V1__ V",
+    "target": "__V0__ Ah en __V1__ V"
+  },
+  {
+    "source": "__V0__ Ah required",
+    "target": "__V0__ Ah requerido"
+  },
+  {
+    "source": "__V0__ at __V1__ °C",
+    "target": "__V0__ a __V1__ °C"
+  },
+  {
+    "source": "__V0__ at __V1__ mm OD",
+    "target": "__V0__ a __V1__ mm DE"
+  },
+  {
+    "source": "__V0__ AWG",
+    "target": "__V0__ AWG"
+  },
+  {
+    "source": "__V0__ AWG / __V1__ mm²",
+    "target": "__V0__ AWG / __V1__ mm²"
+  },
+  {
+    "source": "__V0__ AWG has a nominal solid-wire cross-sectional area of approximately __V1__ mm².",
+    "target": "__V0__ AWG tiene un área transversal nominal de cable sólido de aproximadamente __V1__ mm²."
+  },
+  {
+    "source": "__V0__ cable(s) occupy __V1__% of __V2__ __V3__. The applicable fill limit is __V4__%.",
+    "target": "Los cables __V0__ ocupan el __V1__% de __V2__ __V3__. El límite de llenado aplicable es __V4__%."
+  },
+  {
+    "source": "__V0__ cal/cm²",
+    "target": "__V0__cal/cm²"
+  },
+  {
+    "source": "__V0__ calculated for a __V1__ system using the entered known values.",
+    "target": "__V0__ calculado para un sistema __V1__ utilizando los valores conocidos ingresados."
+  },
+  {
+    "source": "__V0__ charger(s) at __V1__ kW each create approximately __V2__ A planned load with simultaneity applied.",
+    "target": "Los cargadores __V0__ a __V1__ kW cada uno crean aproximadamente __V2__ una carga planificada con simultaneidad aplicada."
+  },
+  {
+    "source": "__V0__ circuit__V1__",
+    "target": "__V0__ circuito__V1__"
+  },
+  {
+    "source": "__V0__ circuits",
+    "target": "__V0__ circuitos"
+  },
+  {
+    "source": "__V0__ current calculated from active power and voltage.",
+    "target": "__V0__ corriente calculada a partir de la potencia activa y el voltaje."
+  },
+  {
+    "source": "__V0__ curve: __V1__",
+    "target": "Curva __V0__: __V1__"
+  },
+  {
+    "source": "__V0__ days",
+    "target": "__V0__ días"
+  },
+  {
+    "source": "__V0__ entry reference. The cable range is product-dependent, not defined by the thread standard.",
+    "target": "__V0__ referencia de entrada. La gama de cables depende del producto y no está definida por el estándar de rosca."
+  },
+  {
+    "source": "__V0__ equivalent resistance for four entered resistors.",
+    "target": "__V0__ resistencia equivalente para cuatro resistencias ingresadas."
+  },
+  {
+    "source": "__V0__ fixtures",
+    "target": "__V0__ partidos"
+  },
+  {
+    "source": "__V0__ fixtures rated __V1__ lm each provide approximately __V2__ lx maintained average illuminance under the entered factors.",
+    "target": "Las luminarias __V0__ con clasificación __V1__ lm cada una proporcionan aproximadamente __V2__ lx de iluminancia promedio mantenida según los factores ingresados."
+  },
+  {
+    "source": "__V0__ fixtures require __V1__ Wh at the load and __V2__ Wh nominal battery capacity after entered factors.",
+    "target": "Los accesorios __V0__ requieren __V1__ Wh en la carga y __V2__ Wh de capacidad nominal de la batería después de los factores ingresados."
+  },
+  {
+    "source": "__V0__ fixtures total __V1__ W / __V2__ VA and draw __V3__ A steady state.",
+    "target": "__V0__ accesorios suman __V1__ W / __V2__ VA y dibujan __V3__ Un estado estable."
+  },
+  {
+    "source": "__V0__ gives __V1__ general-load circuits plus __V2__ entered mandatory and __V3__ other dedicated circuits.",
+    "target": "__V0__ proporciona __V1__ circuitos de carga general más __V2__ ingresados ​​obligatoriamente y __V3__ otros circuitos dedicados."
+  },
+  {
+    "source": "__V0__ h __V1__ min",
+    "target": "__V0__ h __V1__ min"
+  },
+  {
+    "source": "__V0__ h/day, __V1__ days/month, __V2__ months/year",
+    "target": "__V0__ h/día, __V1__ días/mes, __V2__ meses/año"
+  },
+  {
+    "source": "__V0__ Hz",
+    "target": "__V0__Hz"
+  },
+  {
+    "source": "__V0__ in",
+    "target": "__V0__ en"
+  },
+  {
+    "source": "__V0__ in2",
+    "target": "__V0__ en2"
+  },
+  {
+    "source": "__V0__ is __V1__% and total RMS is __V2__ in the entered unit.",
+    "target": "__V0__ es __V1__% y el RMS total es __V2__ en la unidad ingresada."
+  },
+  {
+    "source": "__V0__ is not available for the selected cable.",
+    "target": "__V0__ no está disponible para el cable seleccionado."
+  },
+  {
+    "source": "__V0__ is the first passing size in this conduit family.",
+    "target": "__V0__ es el primer tamaño de paso en esta familia de conductos."
+  },
+  {
+    "source": "__V0__ is the smallest listed conductor that passes __V1__ A required ampacity and __V2__% voltage-drop limit.",
+    "target": "__V0__ es el conductor más pequeño listado que pasa __V1__ A de ampacidad requerida y __V2__% de límite de caída de voltaje."
+  },
+  {
+    "source": "__V0__ is the starting FCP18 function for the selected monitoring requirement. FCP18-style voltage asymmetry is __V1__%.",
+    "target": "__V0__ es la función FCP18 inicial para el requisito de monitoreo seleccionado. La asimetría de voltaje estilo FCP18 es __V1__%."
+  },
+  {
+    "source": "__V0__ K; __V1__ °C estimated",
+    "target": "__V0__ K; __V1__ °C estimado"
+  },
+  {
+    "source": "__V0__ kA",
+    "target": "__V0__ kA"
+  },
+  {
+    "source": "__V0__ kA ≥ __V1__ kA",
+    "target": "__V0__ kA ≥ __V1__ kA"
+  },
+  {
+    "source": "__V0__ kA minimum reference",
+    "target": "__V0__ kA referencia mínima"
+  },
+  {
+    "source": "__V0__ kA peak current produces approximately __V1__ N on a __V2__ mm parallel-busbar span.",
+    "target": "La corriente máxima de __V0__ kA produce aproximadamente __V1__ N en un tramo de barra colectora paralela de __V2__ mm."
+  },
+  {
+    "source": "__V0__ kA prospective; verify backup SCPD and SPD SCCR/Isccr",
+    "target": "__V0__ kA prospectivo; verificar la copia de seguridad SCPD y SPD SCCR/Isccr"
+  },
+  {
+    "source": "__V0__ kcmil",
+    "target": "__V0__ kcmil"
+  },
+  {
+    "source": "__V0__ kg/m",
+    "target": "__V0__kg/m"
+  },
+  {
+    "source": "__V0__ kV",
+    "target": "__V0__kV"
+  },
+  {
+    "source": "__V0__ kVA",
+    "target": "__V0__kVA"
+  },
+  {
+    "source": "__V0__ kVA at __V1__ V equals approximately __V2__ A.",
+    "target": "__V0__ kVA en __V1__ V equivale aproximadamente a __V2__ A."
+  },
+  {
+    "source": "__V0__ kVA corresponds to __V1__ A at __V2__ V. __V3__",
+    "target": "__V0__ kVA corresponde a __V1__ A en __V2__ V. __V3__"
+  },
+  {
+    "source": "__V0__ kvar",
+    "target": "__V0__kvar"
+  },
+  {
+    "source": "__V0__ kvar capacitive",
+    "target": "__V0__ kvar capacitivo"
+  },
+  {
+    "source": "__V0__ kvar of capacitive compensation raises power factor from __V1__ to __V2__ at a constant __V3__ kW load.",
+    "target": "__V0__ kvar de compensación capacitiva aumenta el factor de potencia de __V1__ a __V2__ con una carga constante de __V3__ kW."
+  },
+  {
+    "source": "__V0__ kW",
+    "target": "__V0__ kilovatios"
+  },
+  {
+    "source": "__V0__ kW / __V1__ kVA",
+    "target": "__V0__ kW / __V1__ kVA"
+  },
+  {
+    "source": "__V0__ kW corresponds to approximately __V1__ A for the selected system.",
+    "target": "__V0__ kW corresponde aproximadamente a __V1__ A para el sistema seleccionado."
+  },
+  {
+    "source": "__V0__ kW shaft output at __V1__ rpm corresponds to __V2__ N·m (__V3__ lb-ft).",
+    "target": "La potencia del eje __V0__ kW a __V1__ rpm corresponde a __V2__ N·m (__V3__ lb-ft)."
+  },
+  {
+    "source": "__V0__ kWh",
+    "target": "__V0__ kWh"
+  },
+  {
+    "source": "__V0__ kWh / __V1__ __V2__",
+    "target": "__V0__ kWh / __V1__ __V2__"
+  },
+  {
+    "source": "__V0__ kWh/day",
+    "target": "__V0__ kWh/día"
+  },
+  {
+    "source": "__V0__ kWp",
+    "target": "__V0__kWp"
+  },
+  {
+    "source": "__V0__ kWp PV",
+    "target": "__V0__ kWp fotovoltaica"
+  },
+  {
+    "source": "__V0__ lb-ft",
+    "target": "__V0__ libras-pie"
+  },
+  {
+    "source": "__V0__ lm",
+    "target": "__V0__lm"
+  },
+  {
+    "source": "__V0__ lm/W",
+    "target": "__V0__lm/W"
+  },
+  {
+    "source": "__V0__ lx",
+    "target": "__V0__ lx"
+  },
+  {
+    "source": "__V0__ mA",
+    "target": "__V0__ mA"
+  },
+  {
+    "source": "__V0__ mAh",
+    "target": "__V0__mAh"
+  },
+  {
+    "source": "__V0__ mechanical lug",
+    "target": "__V0__ terminal mecánico"
+  },
+  {
+    "source": "__V0__ mH",
+    "target": "__V0__ mH"
+  },
+  {
+    "source": "__V0__ mH has __V1__ Ω ideal reactance at __V2__ Hz and stores __V3__ J at __V4__ A.",
+    "target": "__V0__ mH tiene __V1__ Ω reactancia ideal a __V2__ Hz y almacena __V3__ J en __V4__ A."
+  },
+  {
+    "source": "__V0__ mil",
+    "target": "__V0__ mil"
+  },
+  {
+    "source": "__V0__ min",
+    "target": "__V0__ min"
+  },
+  {
+    "source": "__V0__ mm",
+    "target": "__V0__mm"
+  },
+  {
+    "source": "__V0__ mm at entered depth/limit",
+    "target": "__V0__ mm a la profundidad/límite introducido"
+  },
+  {
+    "source": "__V0__ mm available spacing in __V1__ supports a legacy-table reference of __V2__ V DC or AC peak after the entered margin.",
+    "target": "El espacio disponible de __V0__ mm en __V1__ admite una referencia de tabla heredada de __V2__ V CC o CA pico después del margen ingresado."
+  },
+  {
+    "source": "__V0__ mm creepage",
+    "target": "__V0__ mm fuga"
+  },
+  {
+    "source": "__V0__ mm spacing, __V1__ mm span",
+    "target": "__V0__ mm de separación, __V1__ mm de amplitud"
+  },
+  {
+    "source": "__V0__ mm²",
+    "target": "__V0__ mm²"
+  },
+  {
+    "source": "__V0__ mm² conductor __V1__ the __V2__ mm² adiabatic minimum.",
+    "target": "__V0__ mm² conductor __V1__ el __V2__ mm² mínimo adiabático."
+  },
+  {
+    "source": "__V0__ mm² is mathematically closest to __V1__ AWG at __V2__ mm².",
+    "target": "__V0__ mm² es matemáticamente más cercano a __V1__ AWG en __V2__ mm²."
+  },
+  {
+    "source": "__V0__ mm² of cable area uses __V1__% of the entered allowed capacity and __V2__% after reserve.",
+    "target": "__V0__ mm² de área de cable utiliza __V1__% de la capacidad permitida ingresada y __V2__% después de la reserva."
+  },
+  {
+    "source": "__V0__ ms",
+    "target": "__V0__ ms"
+  },
+  {
+    "source": "__V0__ must be a valid number.",
+    "target": "__V0__ debe ser un número válido."
+  },
+  {
+    "source": "__V0__ must be a whole number.",
+    "target": "__V0__ debe ser un número entero."
+  },
+  {
+    "source": "__V0__ must be at least __V1__.",
+    "target": "__V0__ debe ser al menos __V1__."
+  },
+  {
+    "source": "__V0__ must be between __V1__ and __V2__.",
+    "target": "__V0__ debe estar entre __V1__ y __V2__."
+  },
+  {
+    "source": "__V0__ must be greater than zero.",
+    "target": "__V0__ debe ser mayor que cero."
+  },
+  {
+    "source": "__V0__ must be zero or greater.",
+    "target": "__V0__ debe ser cero o mayor."
+  },
+  {
+    "source": "__V0__ mV",
+    "target": "__V0__ mV"
+  },
+  {
+    "source": "__V0__ MVA",
+    "target": "__V0__ MVA"
+  },
+  {
+    "source": "__V0__ mW",
+    "target": "__V0__ mW"
+  },
+  {
+    "source": "__V0__ MWh",
+    "target": "__V0__MWh"
+  },
+  {
+    "source": "__V0__ MWh at __V1__ MW provides __V2__ h after SOC window, SOH, and efficiency adjustments.",
+    "target": "__V0__ MWh a __V1__ MW proporciona __V2__ h después de los ajustes de ventana SOC, SOH y eficiencia."
+  },
+  {
+    "source": "__V0__ MΩ at __V1__°C",
+    "target": "__V0__ MΩ a __V1__°C"
+  },
+  {
+    "source": "__V0__ MΩ measured at __V1__°C corrects to __V2__ MΩ at __V3__°C using a __V4__°C doubling interval.",
+    "target": "__V0__ MΩ medido a __V1__°C se corrige a __V2__ MΩ a __V3__°C usando un intervalo de duplicación de __V4__°C."
+  },
+  {
+    "source": "__V0__ N / __V1__ kgf equivalent",
+    "target": "__V0__ N / __V1__ kgf equivalente"
+  },
+  {
+    "source": "__V0__ N exit tension",
+    "target": "__V0__ N tensión de salida"
+  },
+  {
+    "source": "__V0__ ohm mm²/m",
+    "target": "__V0__ ohmios mm²/m"
+  },
+  {
+    "source": "__V0__ ohm/1000 ft",
+    "target": "__V0__ ohmios/1000 pies"
+  },
+  {
+    "source": "__V0__ rad",
+    "target": "__V0__ rad"
+  },
+  {
+    "source": "__V0__ rad/s",
+    "target": "__V0__ rad/s"
+  },
+  {
+    "source": "__V0__ RLC impedance is __V1__ Ω at __V2__ Hz with __V3__° phase angle.",
+    "target": "__V0__ La impedancia del RLC es __V1__ Ω a __V2__ Hz con un ángulo de fase de __V3__°."
+  },
+  {
+    "source": "__V0__ rpm",
+    "target": "__V0__ rpm"
+  },
+  {
+    "source": "__V0__ starting current is approximately __V1__ A and leaves __V2__% estimated bus voltage.",
+    "target": "La corriente de arranque __V0__ es aproximadamente __V1__ A y deja un __V2__% de voltaje de bus estimado."
+  },
+  {
+    "source": "__V0__ starting selection: __V1__, __V2____V3__.",
+    "target": "__V0__ selección inicial: __V1__, __V2____V3__."
+  },
+  {
+    "source": "__V0__ unit(s) average __V1__ kW and use approximately __V2__ kWh in an operating month.",
+    "target": "__V0__ unidad(es) promedian __V1__ kW y utilizan aproximadamente __V2__ kWh en un mes de funcionamiento."
+  },
+  {
+    "source": "__V0__ V × __V1__ Ah = __V2__ Wh nominal battery energy.",
+    "target": "__V0__ V × __V1__ Ah = __V2__ Wh energía nominal de la batería."
+  },
+  {
+    "source": "__V0__ V applied to R1 = __V1__ kΩ and R2 = __V2__ kΩ produces __V3__ V__V4__.",
+    "target": "__V0__ V aplicado a R1 = __V1__ kΩ y R2 = __V2__ kΩ produce __V3__ V__V4__."
+  },
+  {
+    "source": "__V0__ V DC",
+    "target": "__V0__ V CC"
+  },
+  {
+    "source": "__V0__ V DC / AC peak",
+    "target": "__V0__ V CC / CA pico"
+  },
+  {
+    "source": "__V0__ V DC or AC peak in __V1__ gives __V2__ mm from the legacy lookup and __V3__ mm after the entered margin.",
+    "target": "__V0__ V CC o pico de CA en __V1__ da __V2__ mm de la búsqueda heredada y __V3__ mm después del margen ingresado."
+  },
+  {
+    "source": "__V0__ V drop leaves about __V1__ V at the load from a __V2__ V DC source.",
+    "target": "La caída de __V0__ V deja aproximadamente __V1__ V en la carga de una fuente de CC de __V2__ V."
+  },
+  {
+    "source": "__V0__ V drop on a __V1__ V circuit. Compare this result with the project voltage-drop limit.",
+    "target": "Caída de __V0__ V en un circuito de __V1__ V. Compare este resultado con el límite de caída de voltaje del proyecto."
+  },
+  {
+    "source": "__V0__ V is the next listed reference",
+    "target": "__V0__ V es la siguiente referencia en la lista"
+  },
+  {
+    "source": "__V0__ V line-to-line at __V1__ A and PF __V2__ corresponds to __V3__ kW, __V4__ kVA, and __V5__ kvar.",
+    "target": "__V0__ V línea a línea en __V1__ A y PF __V2__ corresponde a __V3__ kW, __V4__ kVA y __V5__ kvar."
+  },
+  {
+    "source": "__V0__ V, __V1__ Ah at __V2__ A provides __V3__ h after operating-window and loss adjustments.",
+    "target": "__V0__ V, __V1__ Ah en __V2__ A proporciona __V3__ h después de los ajustes de pérdida y ventana operativa."
+  },
+  {
+    "source": "__V0__ VA",
+    "target": "__V0__VA"
+  },
+  {
+    "source": "__V0__ VDC",
+    "target": "__V0__ VCC"
+  },
+  {
+    "source": "__V0__ W operating for __V1__ seconds corresponds to __V2__ joules.",
+    "target": "__V0__ W funcionando durante __V1__ segundos corresponde a __V2__ julios."
+  },
+  {
+    "source": "__V0__ Wh",
+    "target": "__V0__ ¿Qué?"
+  },
+  {
+    "source": "__V0__ Wh/day",
+    "target": "__V0__ Wh/día"
+  },
+  {
+    "source": "__V0__ x FLC for __V1__ s",
+    "target": "__V0__ x FLC para __V1__ s"
+  },
+  {
+    "source": "__V0__ µF has __V1__ Ω reactance at __V2__ Hz and stores __V3__ J at __V4__ V.",
+    "target": "__V0__ µF tiene __V1__ Ω reactancia a __V2__ Hz y almacena __V3__ J en __V4__ V."
+  },
+  {
+    "source": "__V0__ Ω/km",
+    "target": "__V0__ Ω/km"
+  },
+  {
+    "source": "__V0__ Ω/phase",
+    "target": "__V0__ Ω/fase"
+  },
+  {
+    "source": "__V0__-__V1__ modules",
+    "target": "Módulos __V0__-__V1__"
+  },
+  {
+    "source": "__V0__; __V1__ is the one-way minimum ingress cross-reference shown for comparison.",
+    "target": "__V0__; __V1__ es la referencia cruzada de ingreso mínimo unidireccional que se muestra para comparación."
+  },
+  {
+    "source": "__V0__. Start with Uc/Ucpv not below __V1__ V; __V2__.",
+    "target": "__V0__. Comience con Uc/Ucpv no por debajo de __V1__ V; __V2__."
+  },
+  {
+    "source": "__V0__/month",
+    "target": "__V0__/mes"
+  },
+  {
+    "source": "__V0__% after addition",
+    "target": "__V0__% después de la adición"
+  },
+  {
+    "source": "__V0__% dip",
+    "target": "__V0__% caída"
+  },
+  {
+    "source": "__V0__% of entered __V1__ N",
+    "target": "__V0__% de ingresado __V1__ N"
+  },
+  {
+    "source": "__V0__% THD",
+    "target": "__V0__% THD"
+  },
+  {
+    "source": "__V0__× at the same current",
+    "target": "__V0__× a la misma corriente"
+  },
+  {
+    "source": "≥ __V0__ A output",
+    "target": "Salida ≥ __V0__ A"
+  },
+  {
+    "source": "A __V0__ A / __V1__ mV shunt requires __V2__ µΩ and dissipates __V3__ W at rated current.",
+    "target": "Una derivación de __V0__ A / __V1__ mV requiere __V2__ µΩ y disipa __V3__ W a la corriente nominal."
+  },
+  {
+    "source": "Adiabatic minimum is __V0__ mm²; entered installed PE is __V1__ mm².",
+    "target": "El mínimo adiabático es __V0__ mm²; El PE instalado introducido es __V1__ mm²."
+  },
+  {
+    "source": "At least __V0__ kA at __V1__ V",
+    "target": "Al menos __V0__ kA en __V1__ V"
+  },
+  {
+    "source": "At least __V0__ kA DC at __V1__ V DC",
+    "target": "Al menos __V0__ kA CC a __V1__ V CC"
+  },
+  {
+    "source": "Available __V0__ fault current is estimated from transformer full-load current divided by total per-unit source impedance.",
+    "target": "La corriente de falla __V0__ disponible se estima a partir de la corriente de carga completa del transformador dividida por la impedancia total de la fuente por unidad."
+  },
+  {
+    "source": "Available spacing after margin is below the __V0__ mm minimum lookup value for this category.",
+    "target": "El espacio disponible después del margen está por debajo del valor de búsqueda mínimo de __V0__ mm para esta categoría."
+  },
+  {
+    "source": "Balanced three-phase current is approximately __V0__ A at __V1__ V line voltage.",
+    "target": "La corriente trifásica equilibrada es de aproximadamente __V0__ A con un voltaje de línea de __V1__ V."
+  },
+  {
+    "source": "Branch __V0__ current",
+    "target": "Rama __V0__ actual"
+  },
+  {
+    "source": "Branch __V0__ power",
+    "target": "Potencia de rama __V0__"
+  },
+  {
+    "source": "Cable group __V0__ outside diameter",
+    "target": "Grupo de cables __V0__ diámetro exterior"
+  },
+  {
+    "source": "Cable group __V0__ quantity",
+    "target": "Grupo de cables __V0__ cantidad"
+  },
+  {
+    "source": "Cable group __V0__ weight",
+    "target": "Peso del grupo de cables __V0__"
+  },
+  {
+    "source": "Calculated demand is __V0__ A now and __V1__ A after the entered __V2__ kW addition.",
+    "target": "La demanda calculada es __V0__ A ahora y __V1__ A después de la suma de __V2__ kW ingresada."
+  },
+  {
+    "source": "Calculated from the selected __V0__ values.",
+    "target": "Calculado a partir de los valores __V0__ seleccionados."
+  },
+  {
+    "source": "Calculated load current is __V0__ A. Minimum breaker rating after sizing factor is __V1__ A.",
+    "target": "La corriente de carga calculada es __V0__ A. La clasificación mínima del disyuntor después del factor de dimensionamiento es __V1__ A."
+  },
+  {
+    "source": "Calculated Zs is __V0__ Ω versus the governing entered/formula limit of __V1__ Ω.",
+    "target": "La Z calculada es __V0__ Ω versus el límite de fórmula/ingreso vigente de __V1__ Ω."
+  },
+  {
+    "source": "Charging from __V0__% to __V1__% requires about __V2__ kWh from the supply.",
+    "target": "La carga de __V0__% a __V1__% requiere aproximadamente __V2__ kWh del suministro."
+  },
+  {
+    "source": "Choose two valid __V0__ units.",
+    "target": "Elija dos unidades __V0__ válidas."
+  },
+  {
+    "source": "Class __V0__",
+    "target": "Clase __V0__"
+  },
+  {
+    "source": "Cold Voc exceeds or reaches the __V0__ V inverter limit. Reduce modules per string or redesign the array.",
+    "target": "Cold Voc excede o alcanza el límite del inversor __V0__ V. Reduzca los módulos por cadena o rediseñe la matriz."
+  },
+  {
+    "source": "Cold Voc limits the absolute series count to __V0__; the temperature-corrected MPPT window gives __V1__-__V2__.",
+    "target": "Cold Voc limita el recuento absoluto de series a __V0__; la ventana MPPT con temperatura corregida da __V1__-__V2__."
+  },
+  {
+    "source": "Cold Voc remains below the __V0__ V inverter input limit; retain manufacturer voltage margin and verify every DC component.",
+    "target": "Cold Voc permanece por debajo del límite de entrada del inversor __V0__ V; conserve el margen de voltaje del fabricante y verifique cada componente de CC."
+  },
+  {
+    "source": "Cold-corrected string Voc is __V0__ V. The preliminary combiner voltage class is __V1__.",
+    "target": "La Voc de cadena corregida en frío es __V0__ V. La clase de voltaje preliminar del combinador es __V1__."
+  },
+  {
+    "source": "Combined typical screening factor is __V0__, reducing __V1__ A reference ampacity to __V2__ A.",
+    "target": "El factor de detección típico combinado es __V0__, lo que reduce la ampacidad de referencia de __V1__ A a __V2__ A."
+  },
+  {
+    "source": "Connected load __V0__ kW becomes __V1__ kW maximum demand after category and simultaneity factors.",
+    "target": "La carga conectada __V0__ kW se convierte en __V1__ kW de demanda máxima después de la categoría y los factores de simultaneidad."
+  },
+  {
+    "source": "Connected load is __V0__ kVA. After demand, growth, loading margin, and ambient derating, the required rating is __V1__ kVA.",
+    "target": "La carga conectada es __V0__ kVA. Después de la demanda, el crecimiento, el margen de carga y la reducción de potencia ambiental, la clasificación requerida es __V1__ kVA."
+  },
+  {
+    "source": "Continuous inverter reference is __V0__ kW (__V1__ kVA), with at least __V2__ kW entered surge capability.",
+    "target": "La referencia continua del inversor es __V0__ kW (__V1__ kVA), con al menos __V2__ kW de capacidad de sobretensión ingresada."
+  },
+  {
+    "source": "Estimated average internal temperature is ambient __V0__°C plus __V1__°C rise.",
+    "target": "La temperatura interna promedio estimada es ambiente __V0__°C más __V1__°C de aumento."
+  },
+  {
+    "source": "Estimated current from __V0__ mm² cross-section and __V1__ A/mm² current-density reference.",
+    "target": "Corriente estimada a partir de __V0__ mm² de sección transversal y __V1__ A/mm² de referencia de densidad de corriente."
+  },
+  {
+    "source": "Estimated load current is __V0__ A and the preliminary utilization-category selection current is __V1__ A.",
+    "target": "La corriente de carga estimada es __V0__ A y la corriente de selección de categoría de utilización preliminar es __V1__ A."
+  },
+  {
+    "source": "Estimated motor full-load current is __V0__ A. A __V1__% reference gives __V2__ A.",
+    "target": "La corriente estimada a plena carga del motor es __V0__ A. Una referencia de __V1__% da __V2__ A."
+  },
+  {
+    "source": "Existing __V0__ A protection does not exceed the entered SPD maximum backup value.",
+    "target": "La protección __V0__ A existente no excede el valor máximo de respaldo de SPD ingresado."
+  },
+  {
+    "source": "Existing __V0__ A protection exceeds the SPD's __V1__ A maximum backup value.",
+    "target": "La protección __V0__ A existente excede el valor máximo de respaldo __V1__ A del SPD."
+  },
+  {
+    "source": "For ingress only, __V0__ __V1__ the closest common cross-reference for IP__V2____V3__. This is not an equivalent conversion or certification.",
+    "target": "Solo para ingreso, __V0__ __V1__ la referencia cruzada común más cercana para IP__V2____V3__. Esta no es una conversión o certificación equivalente."
+  },
+  {
+    "source": "H__V0__ at __V1__%",
+    "target": "H__V0__ a __V1__%"
+  },
+  {
+    "source": "IEC 60664-1 planning result: maintain at least __V0__ mm clearance through air and __V1__ mm creepage along the insulating surface, including the entered margin.",
+    "target": "Resultado de la planificación IEC 60664-1: mantener al menos __V0__ mm de espacio libre a través del aire y __V1__ mm de fuga a lo largo de la superficie aislante, incluido el margen ingresado."
+  },
+  {
+    "source": "Included at __V0__",
+    "target": "Incluido en __V0__"
+  },
+  {
+    "source": "Increase pathway size. __V0__",
+    "target": "Aumentar el tamaño de la vía. __V0__"
+  },
+  {
+    "source": "Infinite-bus secondary fault current is __V0__ kA from __V1__ A full-load current and __V2__% nameplate impedance.",
+    "target": "La corriente de falla secundaria del bus infinito es __V0__ kA de __V1__ A de corriente de carga completa y __V2__% de impedancia de placa."
+  },
+  {
+    "source": "IP__V0____V1__",
+    "target": "IP__V0____V1__"
+  },
+  {
+    "source": "NEMA __V0__",
+    "target": "NEMA __V0__"
+  },
+  {
+    "source": "NEMA Type __V0__",
+    "target": "Tipo NEMA __V0__"
+  },
+  {
+    "source": "NEMA Type __V0__ meets or exceeds the shown IEC ingress cross-reference; this is not an equivalent certification.",
+    "target": "NEMA Tipo __V0__ cumple o excede la referencia cruzada de ingreso IEC mostrada; Esta no es una certificación equivalente."
+  },
+  {
+    "source": "No size within __V0__ A limit",
+    "target": "Sin tamaño dentro del límite __V0__ A"
+  },
+  {
+    "source": "od__V0__",
+    "target": "od__V0__"
+  },
+  {
+    "source": "PD__V0__",
+    "target": "PD__V0__"
+  },
+  {
+    "source": "Preliminary system requires __V0__ kWp PV, __V1__ entered-size modules, __V2__ kWh nominal battery, and at least __V3__ kW inverter capacity.",
+    "target": "El sistema preliminar requiere __V0__ kWp PV, __V1__ módulos del tamaño ingresado, __V2__ kWh de batería nominal y al menos __V3__ kW de capacidad del inversor."
+  },
+  {
+    "source": "PV __V0__",
+    "target": "VP __V0__"
+  },
+  {
+    "source": "qty__V0__",
+    "target": "cantidad__V0__"
+  },
+  {
+    "source": "Rating ratio is __V0__:1; generic magnetic bands __V1__.",
+    "target": "La relación de calificación es __V0__:1; bandas magnéticas genéricas __V1__."
+  },
+  {
+    "source": "Reference conductor size based on __V0__ A required ampacity after sizing and derating.",
+    "target": "Tamaño del conductor de referencia basado en __V0__ A ampacidad requerida después del dimensionamiento y reducción de potencia."
+  },
+  {
+    "source": "Required current basis is __V0__ A. Use __V1__ switching and verify at least __V2__ kA WCR/SCCR under the documented protective-device conditions.",
+    "target": "La base de corriente requerida es __V0__ A. Utilice la conmutación __V1__ y verifique al menos __V2__ kA WCR/SCCR bajo las condiciones documentadas del dispositivo de protección."
+  },
+  {
+    "source": "Select a __V0__-duty VFD whose continuous output rating is at least __V1__ A and whose overload curve meets __V2__% for the required manufacturer-specified duration.",
+    "target": "Seleccione un VFD de servicio __V0__ cuya clasificación de salida continua sea de al menos __V1__ A y cuya curva de sobrecarga alcance el __V2__% durante la duración requerida especificada por el fabricante."
+  },
+  {
+    "source": "Select protective equipment with interrupting capacity above the calculated value; next common reference is __V0__ kA.",
+    "target": "Seleccionar equipo de protección con capacidad de interrupción superior al valor calculado; La siguiente referencia común es __V0__ kA."
+  },
+  {
+    "source": "Selected relay range must include __V0__ A",
+    "target": "El rango de relé seleccionado debe incluir __V0__ A"
+  },
+  {
+    "source": "Simplified annual direct-strike exposure is __V0__ before line and consequence weighting.",
+    "target": "La exposición anual simplificada a impacto directo es __V0__ antes de la ponderación de línea y consecuencia."
+  },
+  {
+    "source": "Starting gland reference for __V0__ mm cable OD. __V1__",
+    "target": "Referencia del casquillo de arranque para cable de __V0__ mm de diámetro exterior. __V1__"
+  },
+  {
+    "source": "The __V0__ A corrected output cable ampacity is below the __V1__ A design current.",
+    "target": "La ampacidad del cable de salida corregida __V0__ A está por debajo de la corriente de diseño __V1__ A."
+  },
+  {
+    "source": "The __V0__ s acceleration time may conflict with the selected Class __V1__; verify the overload curve and motor thermal limit.",
+    "target": "El tiempo de aceleración del __V0__ puede entrar en conflicto con la Clase __V1__ seleccionada; verificar la curva de sobrecarga y el límite térmico del motor."
+  },
+  {
+    "source": "The __V0__-current clearing-time scenario produces the higher predicted incident energy. This is an engineering calculation result, not a PPE category or permission for energized work.",
+    "target": "El escenario de tiempo de limpieza actual __V0__ produce la energía incidente más alta prevista. Este es el resultado de un cálculo de ingeniería, no una categoría de EPI ni un permiso para trabajos energizados."
+  },
+  {
+    "source": "The closest gauge is smaller than the entered area; use at least __V0__ AWG when cross-sectional area must not decrease.",
+    "target": "El ancho de vía más cercano es más pequeño que el área ingresada; use al menos __V0__ AWG cuando el área de la sección transversal no deba disminuir."
+  },
+  {
+    "source": "The energy-method estimate provides __V0__ kWh delivered and approximately __V1__ at __V2__ W.",
+    "target": "La estimación del método de energía proporciona __V0__ kWh entregados y aproximadamente __V1__ a __V2__ W."
+  },
+  {
+    "source": "The entered cables require __V0__ mm of side-by-side width in a __V1__ mm usable tray.",
+    "target": "Los cables ingresados ​​requieren __V0__ mm de ancho de lado a lado en una bandeja utilizable __V1__ mm."
+  },
+  {
+    "source": "The entered load basis gives __V0__ A before spare and __V1__ A after __V2__% planning spare.",
+    "target": "La base de carga ingresada da __V0__ A antes del repuesto y __V1__ A después del __V2__% del repuesto de planificación."
+  },
+  {
+    "source": "The first standard rating above __V0__ A exceeds the __V1__ A corrected cable ampacity.",
+    "target": "La primera clasificación estándar superior a __V0__ A excede la ampacidad del cable corregida __V1__ A."
+  },
+  {
+    "source": "The governing screen is __V0__; after generic environmental derating the reference is __V1__ kW / __V2__ kVA.",
+    "target": "La pantalla gobernante es __V0__; después de la reducción ambiental genérica, la referencia es __V1__ kW / __V2__ kVA."
+  },
+  {
+    "source": "The idealized __V0__% SOC increase takes __V1__ at the entered average rate.",
+    "target": "El aumento de SOC idealizado del __V0__% toma __V1__ a la tasa promedio ingresada."
+  },
+  {
+    "source": "The load power factor is __V0__ with a phase angle of __V1__° for the entered power triangle.",
+    "target": "El factor de potencia de carga es __V0__ con un ángulo de fase de __V1__° para el triángulo de potencia ingresado."
+  },
+  {
+    "source": "The nearest metric size is smaller by area; use at least __V0__ mm² when cross-sectional area must not decrease.",
+    "target": "El tamaño métrico más cercano es menor por área; utilice al menos __V0__ mm² cuando el área de la sección transversal no deba disminuir."
+  },
+  {
+    "source": "The optional-method screening general load is __V0__ VA before the first-10-kVA and 40% demand step.",
+    "target": "La carga general de detección del método opcional es __V0__ VA antes del primer paso de demanda de 10 kVA y 40 %."
+  },
+  {
+    "source": "The preliminary __V0__ screen requires __V1__ Ah; __V2__ parallel __V3__ Ah string__V4__ provide __V5__ Ah.",
+    "target": "La pantalla preliminar __V0__ requiere __V1__ Ah; __V2__ paralelo __V3__ Ah cadena__V4__ proporciona __V5__ Ah."
+  },
+  {
+    "source": "The RC time constant is __V0__ ms and the first-order cutoff frequency is __V1__ Hz.",
+    "target": "La constante de tiempo RC es __V0__ ms y la frecuencia de corte de primer orden es __V1__ Hz."
+  },
+  {
+    "source": "The required current basis rounds above the module's __V0__ A maximum series fuse rating.",
+    "target": "La base de corriente requerida se redondea por encima de la clasificación máxima del fusible en serie __V0__ A del módulo."
+  },
+  {
+    "source": "The simplified straight-plus-bend route produces __V0__ N exit tension and __V1__ N/m sidewall pressure.",
+    "target": "La ruta simplificada recta más curva produce __V0__ N tensión de salida y __V1__ N/m presión en la pared lateral."
+  },
+  {
+    "source": "The simultaneous cabinet heat load is __V0__ W from __V1__ W entered losses.",
+    "target": "La carga térmica simultánea del gabinete es __V0__ W de __V1__ W pérdidas ingresadas."
+  },
+  {
+    "source": "Three equal cables have a conduit-ID/cable-OD ratio of __V0__; this is in the common 2.8-3.2 cable-jam risk zone.",
+    "target": "Tres cables iguales tienen una relación ID de conducto/OD de cable de __V0__; esto se encuentra en la zona común de riesgo de atasco de cables 2,8-3,2."
+  },
+  {
+    "source": "Type __V0__ → __V1__",
+    "target": "Escriba __V0__ → __V1__"
+  },
+  {
+    "source": "Uniform-soil screening gives __V0__ Ω per rod and approximately __V1__ Ω for __V2__ rod__V3__.",
+    "target": "El cribado uniforme del suelo proporciona __V0__ Ω por varilla y aproximadamente __V1__ Ω para __V2__ varilla__V3__."
+  },
+  {
+    "source": "Up + lead voltage must remain below __V0__ kV equipment withstand",
+    "target": "El voltaje del cable superior + debe permanecer por debajo de __V0__ kV que soporta el equipo"
+  },
+  {
+    "source": "Upsize to at least __V0__ for the selected threshold.",
+    "target": "Aumente el tamaño a al menos __V0__ para el umbral seleccionado."
+  },
+  {
+    "source": "Use __V0__ kvar as the mathematical requirement, then select practical automatic steps around the real load profile rather than blindly rounding to one fixed bank.",
+    "target": "Utilice __V0__ kvar como requisito matemático, luego seleccione pasos automáticos prácticos alrededor del perfil de carga real en lugar de redondear ciegamente a un banco fijo."
+  },
+  {
+    "source": "Use __V0__ W as a starting input to the enclosure temperature-rise calculator.",
+    "target": "Utilice __V0__ W como entrada inicial para la calculadora de aumento de temperatura del gabinete."
+  },
+  {
+    "source": "Use a contactor with at least __V0__ A __V1__ motor-duty rating; __V2__ A is the next listed current reference, not a model substitution table.",
+    "target": "Utilice un contactor con al menos __V0__ A __V1__ clasificación de servicio de motor; __V2__ A es la siguiente referencia actual en la lista, no una tabla de sustitución de modelos."
+  },
+  {
+    "source": "WCR/SCCR ≥ __V0__ kA with specified upstream protection",
+    "target": "WCR/SCCR ≥ __V0__ kA con protección aguas arriba especificada"
+  },
+  {
+    "source": "weight__V0__",
+    "target": "peso__V0__"
+  }
+]

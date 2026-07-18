@@ -1,0 +1,115 @@
+---
+import CalculatorIsland from "../../components/CalculatorIsland";
+import Layout from "../../components/Layout.astro";
+import ToolCard from "../../components/ToolCard.astro";
+import ToolSeoGuide from "../../components/ToolSeoGuide.astro";
+import { categories } from "../../lib/categories";
+import { equationsBySlug } from "../../lib/equations";
+import { localizeEquation, localizeRecord, localizeSeoGuide, localizeTool, localePath, t } from "../../lib/i18n";
+import { seoGuidesBySlug } from "../../lib/seoGuides";
+import { tools, toolsBySlug } from "../../lib/tools";
+import { vioxResourcesByTool } from "../../lib/vioxResources";
+import { breadcrumbSchema, site, softwareSchema } from "../../lib/seo";
+
+export function getStaticPaths() {
+  return tools.map((tool) => ({ params: { slug: tool.slug }, props: { sourceTool: tool } }));
+}
+
+const locale = "es" as const;
+const { sourceTool } = Astro.props;
+const tool = localizeTool(sourceTool, locale);
+const category = localizeRecord(categories[tool.category], locale);
+const relatedTools = sourceTool.relatedTools.map((slug) => toolsBySlug[slug]).filter(Boolean);
+const equation = localizeEquation(equationsBySlug[sourceTool.slug], locale);
+const seoGuide = localizeSeoGuide(seoGuidesBySlug[sourceTool.slug], locale);
+const sourceResources = vioxResourcesByTool[sourceTool.slug] ?? { products: sourceTool.relatedProducts, articles: [] };
+const vioxResources = localizeRecord(sourceResources, locale);
+const canonical = `${site.origin}${localePath(locale, `/${sourceTool.slug}/`)}`;
+const embedUrl = `${site.origin}${localePath(locale, `/embed/${sourceTool.slug}/`)}`;
+const embedCode = `<div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,.1);">
+  <iframe src="${embedUrl}" width="100%" height="760" loading="lazy" frameborder="0" style="display:block;width:100%;border:0;"></iframe>
+</div>`;
+const appSchema = softwareSchema(tool);
+appSchema.url = canonical;
+const schema = [
+  { ...appSchema, inLanguage: "es" },
+  breadcrumbSchema([
+    { name: t(locale, "Electrical Tools"), url: `${site.origin}/es/` },
+    { name: category.title, url: `${site.origin}${localePath(locale, `/category/${category.slug}/`)}` },
+    { name: tool.title, url: canonical }
+  ])
+];
+---
+
+<Layout locale={locale} title={`${tool.title} | VIOX`} description={tool.description} canonical={canonical} schema={schema}>
+  <main>
+    <section class="tool-hero">
+      <div>
+        <a class="back-link" href={localePath(locale, `/category/${category.slug}/`)}>{category.title}</a>
+        <h1>{tool.title}</h1><p>{tool.description}</p>
+      </div>
+      <aside class="intent-panel"><span class="eyebrow">{t(locale, "Use case")}</span><p>{tool.intent}</p></aside>
+    </section>
+
+    <section class="calculator-shell"><CalculatorIsland slug={sourceTool.slug} locale={locale} localizedTool={tool} client:only="react" /></section>
+
+    <section class="detail-grid">
+      <article class="detail-main">
+        <h2>{equation?.title ?? t(locale, "Formula and Method")}</h2>
+        {equation ? (
+          <section class="equation-section" aria-labelledby={`${tool.slug}-equation-title`}>
+            <p id={`${tool.slug}-equation-title`} class="equation-intro">{equation.intro}</p>
+            <div class="equation-stack">
+              {equation.equations.map((item) => (
+                <figure class="equation-card">
+                  {item.label ? <figcaption>{item.label}</figcaption> : null}
+                  {item.mathml ? <div class="equation-math" set:html={item.mathml} /> : <code>{item.expression}</code>}
+                  {item.note ? <p>{item.note}</p> : null}
+                </figure>
+              ))}
+            </div>
+            <h3 class="where-heading">{t(locale, "where:")}</h3>
+            <dl class="symbol-list">
+              {equation.symbols.map((item) => <div><dt>{item.symbol}</dt><dd>{item.meaning}{item.unit ? <span>[{item.unit}]</span> : null}</dd></div>)}
+            </dl>
+            {equation.conclusion ? <p class="equation-note">{equation.conclusion}</p> : null}
+            {tool.slug === "ohms-law-calculator" ? (
+              <section class="formula-wheel" aria-labelledby="ohms-law-formula-wheel-title">
+                <div>
+                  <h3 id="ohms-law-formula-wheel-title">{t(locale, "Ohm's Law Formula Wheel")}</h3>
+                  <p>{t(locale, "This formula wheel is a visual reference for the relationships between power (P), current (I), voltage (V), and resistance (R). It represents the same algebra used by the calculator above. Find the quantity you want to calculate in the center, then choose the equation in that section that contains your two known values.")}</p>
+                </div>
+                <figure>
+                  <a href="/images/ohms-law-formula-wheel.webp"><img src="/images/ohms-law-formula-wheel.webp" alt="Rueda de fórmulas de la ley de Ohm" width="778" height="682" loading="lazy" decoding="async" /></a>
+                  <figcaption>{t(locale, "Choose P, I, V, or R, then read the matching equation for the two values you already know.")}</figcaption>
+                </figure>
+              </section>
+            ) : null}
+          </section>
+        ) : <p>{tool.formula}</p>}
+
+        {seoGuide ? <ToolSeoGuide guide={seoGuide} /> : null}
+        <h2>{t(locale, "Assumptions")}</h2><ul>{tool.assumptions.map((item) => <li>{item}</li>)}</ul>
+        <h2>{t(locale, "Important Warnings")}</h2><ul>{tool.warnings.map((item) => <li>{item}</li>)}</ul>
+      </article>
+
+      <aside class="detail-side">
+        <section><h2>{t(locale, "VIOX Products")}</h2><div class="link-list">{vioxResources.products.map((link) => <a href={link.href}>{link.label}</a>)}</div></section>
+        <section><h2>{t(locale, "VIOX Guides")}</h2><div class="link-list">{vioxResources.articles.map((link) => <a href={link.href}>{link.label}</a>)}</div></section>
+        <section><h2>{t(locale, "Related Tools")}</h2><div class="link-list">{relatedTools.map((related) => <a href={localePath(locale, `/${related.slug}/`)}>{localizeTool(related, locale).title}</a>)}</div></section>
+        <section><h2>{t(locale, "Embed This Calculator")}</h2><p class="embed-note">{t(locale, "Use the clean embed URL inside WordPress articles without loading the full tools page layout.")}</p><code class="embed-url">{embedUrl}</code><pre class="embed-code"><code>{embedCode}</code></pre></section>
+      </aside>
+    </section>
+
+    <section class="section-shell faq-section" aria-labelledby={`${tool.slug}-faq-title`}>
+      <div class="faq-panel"><div class="faq-heading"><h2 id={`${tool.slug}-faq-title`}>FAQ</h2></div><div class="faq-list">
+        {tool.faqs.map((faq) => <details><summary><span>{faq.question}</span><i aria-hidden="true"></i></summary><div class="faq-answer"><p>{faq.answer}</p></div></details>)}
+      </div></div>
+    </section>
+
+    <section class="section-shell related-section">
+      <div class="section-heading compact"><span class="eyebrow">{t(locale, "Next calculators")}</span><h2>{t(locale, "Continue the selection workflow.")}</h2></div>
+      <div class="tool-grid small">{relatedTools.map((related) => <ToolCard tool={related} locale={locale} />)}</div>
+    </section>
+  </main>
+</Layout>

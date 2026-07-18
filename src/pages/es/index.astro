@@ -1,0 +1,89 @@
+---
+import Layout from "../../components/Layout.astro";
+import ToolCard from "../../components/ToolCard.astro";
+import ToolDiscovery from "../../components/ToolDiscovery";
+import CategoryIcon from "../../components/CategoryIcon.astro";
+import { categories } from "../../lib/categories";
+import { localizeRecord, localizeTool, localePath, t } from "../../lib/i18n";
+import { tools } from "../../lib/tools";
+import { breadcrumbSchema, site } from "../../lib/seo";
+
+const locale = "es" as const;
+const localizedTools = tools.map((tool) => localizeTool(tool, locale));
+const localizedCategories = Object.values(categories).map((category) => localizeRecord(category, locale));
+const canonical = `${site.origin}/es/`;
+const description = `Utilice ${tools.length} calculadoras eléctricas gratuitas para tensión, cables, envolventes, iluminación, MCB, MCCB, SPD, motores, VFD, energía solar, baterías, carga de vehículos eléctricos y diseño de paneles.`;
+const schema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    inLanguage: "es",
+    name: "Herramientas eléctricas VIOX",
+    url: canonical,
+    description,
+    publisher: { "@type": "Organization", name: "VIOX", url: "https://viox.com/", logo: site.logo }
+  },
+  breadcrumbSchema([{ name: "Herramientas eléctricas", url: canonical }])
+];
+const searchableTools = localizedTools.map(({ slug, title, shortTitle, description, keywords }) => ({ slug, title, shortTitle, description, keywords }));
+---
+
+<Layout locale={locale} title="Calculadoras eléctricas gratuitas para diseño de baja tensión | VIOX" description={description} canonical={canonical} schema={schema}>
+  <main>
+    <section class="hero-shell">
+      <div class="hero-copy">
+        <div class="eyebrow">{t(locale, "VIOX engineering tools")}</div>
+        <h1>{t(locale, "Low-voltage calculation tools for practical product selection.")}</h1>
+        <p>{t(locale, "Support panel builders, OEMs, distributors, and electrical engineers with quick reference checks for surge protection, circuit protection, cable sizing, motor control, and EV charging loads.")}</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#tools">{t(locale, "Browse tools")}</a>
+          <a class="button secondary" href="https://viox.com/">{t(locale, "Visit VIOX.com")}</a>
+        </div>
+      </div>
+      <div class="hero-workbench" aria-label="Flujo de dimensionamiento de circuitos en cuatro pasos">
+        <div class="workbench-header">
+          <span>{t(locale, "Guided workflow")}</span>
+          <strong>{t(locale, "Size a circuit in four steps")}</strong>
+          <p>{t(locale, "Move from connected load to a checked conductor.")}</p>
+        </div>
+        <ol class="workflow-list">
+          <li><a href={localePath(locale, "/kw-kva-amp-calculator/")}><span class="workflow-number">01</span><span class="workflow-copy"><strong>{t(locale, "Calculate Load Current")}</strong><small>{t(locale, "Power → operating current")}</small></span><b>Ib</b><i aria-hidden="true">→</i></a></li>
+          <li><a href={localePath(locale, "/circuit-breaker-size-calculator/")}><span class="workflow-number">02</span><span class="workflow-copy"><strong>{t(locale, "Select Breaker Rating")}</strong><small>{t(locale, "Current → MCB or MCCB")}</small></span><b>In</b><i aria-hidden="true">→</i></a></li>
+          <li><a href={localePath(locale, "/cable-size-calculator/")}><span class="workflow-number">03</span><span class="workflow-copy"><strong>{t(locale, "Size the Conductor")}</strong><small>{t(locale, "Current + installation")}</small></span><b>Iz</b><i aria-hidden="true">→</i></a></li>
+          <li><a href={localePath(locale, "/voltage-drop-calculator/")}><span class="workflow-number">04</span><span class="workflow-copy"><strong>{t(locale, "Check Voltage Drop")}</strong><small>{t(locale, "Cable + route length")}</small></span><b>Vd%</b><i aria-hidden="true">→</i></a></li>
+        </ol>
+        <div class="workflow-rule"><span>{t(locale, "Protection relationship")}</span><strong>Ib ≤ In ≤ Iz</strong><i aria-hidden="true">→</i><b>{t(locale, "Check Vd%")}</b></div>
+      </div>
+    </section>
+
+    <ToolDiscovery tools={searchableTools} locale={locale} client:load />
+
+    <section class="section-shell" id="tools">
+      <div class="tool-grid">{tools.map((tool) => <ToolCard tool={tool} locale={locale} />)}</div>
+    </section>
+
+    <section class="section-shell">
+      <div class="section-heading compact">
+        <span class="eyebrow">{t(locale, "Browse by task")}</span>
+        <h2>{t(locale, "Choose an electrical calculator category.")}</h2>
+      </div>
+      <div class="category-grid">
+        {localizedCategories.map((category) => (
+          <a class="category-card" href={localePath(locale, `/category/${category.slug}/`)}>
+            <span class="category-card-icon"><CategoryIcon category={category.slug} size={27} /></span>
+            <h3>{category.title}</h3><p>{category.deck}</p><i aria-hidden="true">→</i>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="cta-strip">
+      <div>
+        <span class="eyebrow">{t(locale, "Factory selection support")}</span>
+        <h2>{t(locale, "Need a product recommendation after the calculation?")}</h2>
+        <p>{t(locale, "Send the result to VIOX for SPD, MCB, MCCB, RCBO, contactor, cable gland, busbar, and EV charging protection support.")}</p>
+      </div>
+      <a class="cta-button" href="https://viox.com/contact">{t(locale, "Contact")}</a>
+    </section>
+  </main>
+</Layout>

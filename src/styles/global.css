@@ -159,6 +159,36 @@ select {
   background: rgba(215, 25, 32, 0.07);
 }
 
+.main-nav .language-switch,
+.mobile-language-switch {
+  gap: 7px;
+  border: 1px solid var(--line);
+  background: #fff;
+  letter-spacing: 0;
+}
+
+.main-nav .language-switch {
+  min-width: 70px;
+  padding-inline: 11px;
+}
+
+.main-nav .language-switch:hover,
+.mobile-language-switch:hover {
+  border-color: rgba(215, 25, 32, 0.35);
+  color: var(--red);
+  background: rgba(215, 25, 32, 0.04);
+}
+
+.language-flag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1;
+}
+
 .category-menu {
   position: relative;
 }
@@ -328,6 +358,24 @@ select {
   display: none;
   align-items: center;
   gap: 8px;
+}
+
+.mobile-language-switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 42px;
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.menu-language-flag {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  font-size: 16px;
+  font-style: normal;
 }
 
 .header-icon {

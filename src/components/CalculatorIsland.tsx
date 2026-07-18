@@ -1,14 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { calculateTool } from "../lib/calculate";
+import { clientExactT, clientLocalePath, clientT, localizeClientResult, type ClientLocale } from "../lib/i18n-client";
 import { toolsBySlug } from "../lib/tools";
-import type { CalculationResult } from "../lib/types";
+import type { CalculationResult, ToolDefinition } from "../lib/types";
 
 type Props = {
   slug: string;
+  locale?: ClientLocale;
+  localizedTool?: ToolDefinition;
 };
 
-export default function CalculatorIsland({ slug }: Props) {
-  const tool = toolsBySlug[slug];
+export default function CalculatorIsland({ slug, locale = "en", localizedTool }: Props) {
+  const tool = localizedTool ?? toolsBySlug[slug];
+  const rootRef = useRef<HTMLDivElement>(null);
+  const tr = (text: string) => clientT(locale, text);
   const defaults = useMemo<Record<string, string | number>>(() => {
     return Object.fromEntries(tool.fields.flatMap((field) => {
       const entries: Array<[string, string | number]> = [[field.id, field.defaultValue ?? ""]];
@@ -32,13 +37,37 @@ export default function CalculatorIsland({ slug }: Props) {
     }
   }, [slug]);
 
+  useEffect(() => {
+    if (locale === "en" || !rootRef.current) return;
+    const translateDom = (root: Node) => {
+      if (root.nodeType === Node.TEXT_NODE) {
+        const original = root.textContent ?? "";
+        const value = original.trim();
+        if (!value) return;
+        const translated = clientExactT(locale, value);
+        if (translated !== value) root.textContent = original.replace(value, translated);
+        return;
+      }
+      if (!(root instanceof Element)) return;
+      ["aria-label", "title", "placeholder"].forEach((attribute) => {
+        const value = root.getAttribute(attribute);
+        if (!value) return;
+        const translated = clientExactT(locale, value);
+        if (translated !== value) root.setAttribute(attribute, translated);
+      });
+      root.childNodes.forEach(translateDom);
+    };
+    const frame = requestAnimationFrame(() => rootRef.current && translateDom(rootRef.current));
+    return () => cancelAnimationFrame(frame);
+  }, [locale, values]);
+
   const result = useMemo<CalculationResult | { error: string }>(() => {
     try {
-      return calculateTool(slug, values);
+      return localizeClientResult(calculateTool(slug, values), locale);
     } catch (error) {
-      return { error: error instanceof Error ? error.message : "Check the input values." };
+      return { error: clientT(locale, error instanceof Error ? error.message : "Check the input values.") };
     }
-  }, [slug, values]);
+  }, [slug, values, locale]);
 
   function update(id: string, value: string) {
     setCopied(false);
@@ -48,7 +77,7 @@ export default function CalculatorIsland({ slug }: Props) {
   async function copyResult() {
     if ("error" in result) return;
     const text = [
-      `${tool.title} result`,
+      `${tool.title} ${tr("result")}`,
       `${result.primary}${result.unit ? ` ${result.unit}` : ""}`,
       result.summary,
       ...result.metrics.map((metric) => `${metric.label}: ${metric.value}`)
@@ -64,9 +93,20 @@ export default function CalculatorIsland({ slug }: Props) {
     const pdf = new jsPDF({ unit: "mm", format: "a4" });
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 18;
+    const margin = 16;
     const contentWidth = pageWidth - margin * 2;
-    let y = 18;
+    const pageBottom = pageHeight - 20;
+    const colors = {
+      red: [215, 25, 32] as const,
+      ink: [24, 29, 35] as const,
+      text: [68, 78, 89] as const,
+      muted: [105, 116, 128] as const,
+      line: [222, 226, 231] as const,
+      soft: [247, 248, 250] as const,
+      redSoft: [255, 246, 246] as const,
+      white: [255, 255, 255] as const
+    };
+    let y = 16;
 
     const clean = (text: string) => text
       .replaceAll("²", "2")
@@ -96,51 +136,86 @@ export default function CalculatorIsland({ slug }: Props) {
       .replaceAll("—", "-")
       .replaceAll("→", "->");
 
-    const ensureSpace = (height: number) => {
-      if (y + height <= pageHeight - 18) return;
+    const drawPageTop = (continued = false) => {
+      pdf.setFillColor(...colors.red);
+      pdf.rect(0, 0, pageWidth, 3, "F");
+      if (!continued) return;
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(8.5);
+      pdf.setTextColor(...colors.red);
+      pdf.text("VIOX ELECTRIC", margin, 13);
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(7.5);
+      pdf.setTextColor(...colors.muted);
+      pdf.text(clean(tool.shortTitle ?? tool.title), pageWidth - margin, 13, { align: "right" });
+      pdf.setDrawColor(...colors.line);
+      pdf.setLineWidth(0.25);
+      pdf.line(margin, 17, pageWidth - margin, 17);
+    };
+
+    const addPage = () => {
       pdf.addPage();
-      y = 18;
+      drawPageTop(true);
+      y = 24;
+    };
+
+    const ensureSpace = (height: number) => {
+      if (y + height <= pageBottom) return false;
+      addPage();
+      return true;
     };
 
     const sectionTitle = (title: string) => {
-      ensureSpace(12);
-      pdf.setDrawColor(215, 25, 32);
-      pdf.setLineWidth(0.8);
-      pdf.line(margin, y, margin + 8, y);
-      pdf.setTextColor(29, 35, 42);
+      ensureSpace(14);
+      pdf.setDrawColor(...colors.red);
+      pdf.setLineWidth(0.9);
+      pdf.line(margin, y + 1.2, margin + 9, y + 1.2);
+      pdf.setTextColor(...colors.ink);
       pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(11);
-      pdf.text(title, margin + 11, y + 1.2);
-      y += 8;
+      pdf.setFontSize(12.5);
+      pdf.text(clean(title), margin + 12, y + 2.2);
+      y += 10;
     };
 
-    const row = (label: string, value: string, shaded = false) => {
-      const labelLines = pdf.splitTextToSize(clean(label), contentWidth * 0.4);
-      const valueLines = pdf.splitTextToSize(clean(value), contentWidth * 0.52);
-      const rowHeight = Math.max(8, Math.max(labelLines.length, valueLines.length) * 4 + 3);
-      ensureSpace(rowHeight + 1);
-      if (shaded) {
-        pdf.setFillColor(247, 248, 250);
-        pdf.rect(margin, y - 4.8, contentWidth, rowHeight, "F");
+    const drawDataCard = (x: number, top: number, width: number, height: number, label: string, value: string) => {
+      pdf.setFillColor(...colors.soft);
+      pdf.setDrawColor(...colors.line);
+      pdf.setLineWidth(0.25);
+      pdf.roundedRect(x, top, width, height, 1.8, 1.8, "FD");
+      pdf.setDrawColor(...colors.red);
+      pdf.setLineWidth(0.7);
+      pdf.line(x + 5, top + 5, x + 12, top + 5);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(7.2);
+      pdf.setTextColor(...colors.muted);
+      const labelLines = pdf.splitTextToSize(clean(label).toUpperCase(), width - 20);
+      pdf.text(labelLines, x + 15, top + 5.8);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(10.2);
+      pdf.setTextColor(...colors.ink);
+      const valueLines = pdf.splitTextToSize(clean(value), width - 10);
+      pdf.text(valueLines, x + 5, top + 12.5);
+    };
+
+    const drawDataGrid = (title: string, rows: Array<{ label: string; value: string }>) => {
+      sectionTitle(title);
+      const gap = 4;
+      const cardWidth = (contentWidth - gap) / 2;
+      for (let index = 0; index < rows.length; index += 2) {
+        const pair = rows.slice(index, index + 2);
+        const heights = pair.map((item) => {
+          const labelLines = pdf.splitTextToSize(clean(item.label).toUpperCase(), cardWidth - 20).length;
+          const valueLines = pdf.splitTextToSize(clean(item.value), cardWidth - 10).length;
+          return Math.max(20, 9 + labelLines * 2.8 + valueLines * 4.2);
+        });
+        const cardHeight = Math.max(...heights);
+        if (y + cardHeight > pageBottom) {
+          addPage();
+          sectionTitle(`${title} continued`);
+        }
+        pair.forEach((item, pairIndex) => drawDataCard(margin + pairIndex * (cardWidth + gap), y, cardWidth, cardHeight, item.label, item.value));
+        y += cardHeight + 4;
       }
-      pdf.setFontSize(9);
-      pdf.setTextColor(95, 105, 116);
-      pdf.setFont("helvetica", "normal");
-      pdf.text(labelLines, margin + 2, y);
-      pdf.setTextColor(29, 35, 42);
-      pdf.setFont("helvetica", "bold");
-      pdf.text(valueLines, pageWidth - margin - 2, y, { align: "right" });
-      y += rowHeight;
-    };
-
-    const paragraph = (text: string) => {
-      const lines = pdf.splitTextToSize(clean(text), contentWidth - 8);
-      ensureSpace(lines.length * 4 + 4);
-      pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(8.5);
-      pdf.setTextColor(69, 77, 86);
-      pdf.text(lines, margin + 2, y);
-      y += lines.length * 4 + 3;
     };
 
     const visibleInputRows = Array.from(document.querySelectorAll<HTMLElement>(".input-panel .field"))
@@ -169,96 +244,142 @@ export default function CalculatorIsland({ slug }: Props) {
 
     const inputRows = [...visibleInputRows, ...selectedQuantityRows];
 
-    pdf.setFillColor(215, 25, 32);
-    pdf.rect(0, 0, pageWidth, 7, "F");
-    pdf.setTextColor(215, 25, 32);
+    drawPageTop();
+    pdf.setTextColor(...colors.red);
     pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(22);
-    pdf.text("VIOX", margin, y + 2);
-    pdf.setTextColor(29, 35, 42);
-    pdf.setFontSize(15);
-    const reportTitleLines = pdf.splitTextToSize(clean(`${tool.title} Report`), contentWidth);
-    pdf.text(reportTitleLines, margin, y + 12);
-    const metadataY = y + 12 + reportTitleLines.length * 6;
-    pdf.setTextColor(95, 105, 116);
+    pdf.setFontSize(17);
+    pdf.text("VIOX", margin, y);
+    pdf.setFontSize(7.5);
+    pdf.setTextColor(...colors.muted);
+    pdf.text("ENGINEERING TOOLS", margin + 25, y - 0.4);
+      pdf.text(clean(tr("CALCULATION REPORT")), pageWidth - margin, y - 0.4, { align: "right" });
+    y += 10;
+
+    pdf.setTextColor(...colors.ink);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(21);
+    const reportTitleLines = pdf.splitTextToSize(clean(tool.title), contentWidth - 8);
+    pdf.text(reportTitleLines, margin, y);
+    y += reportTitleLines.length * 8 + 2;
+
+    const now = new Date();
+    const generated = now.toLocaleString(locale === "es" ? "es-ES" : "en-GB", { dateStyle: "medium", timeStyle: "short" });
+    pdf.setTextColor(...colors.muted);
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(8);
+    pdf.text(`${tr("Generated")} ${generated}`, margin, y);
+    pdf.text(`tools.viox.com${clientLocalePath(locale, `/${slug}/`)}`, pageWidth - margin, y, { align: "right" });
+    y += 6;
+    pdf.setDrawColor(...colors.line);
+    pdf.setLineWidth(0.3);
+    pdf.line(margin, y, pageWidth - margin, y);
+    y += 8;
+
+    const primaryLines = pdf.splitTextToSize(clean(`${result.primary}${result.unit ? ` ${result.unit}` : ""}`), contentWidth - 14);
+    const summaryLines = pdf.splitTextToSize(clean(result.summary), contentWidth - 14);
+    const resultBoxHeight = 25 + primaryLines.length * 9 + summaryLines.length * 4.2;
+    pdf.setFillColor(...colors.white);
+    pdf.setDrawColor(...colors.line);
+    pdf.setLineWidth(0.3);
+    pdf.roundedRect(margin, y, contentWidth, resultBoxHeight, 2.2, 2.2, "FD");
+    pdf.setFillColor(...colors.red);
+    pdf.roundedRect(margin, y, contentWidth, 2.2, 2.2, 2.2, "F");
+    pdf.rect(margin, y + 1.2, contentWidth, 1, "F");
+    pdf.setTextColor(...colors.red);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(7.5);
+    pdf.text(clean(tr("CALCULATED RESULT")), margin + 7, y + 10);
+    pdf.setTextColor(...colors.ink);
+    pdf.setFontSize(24);
+    pdf.text(primaryLines, margin + 7, y + 21);
+    const summaryY = y + 21 + primaryLines.length * 9;
+    pdf.setTextColor(...colors.text);
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(9);
-    pdf.text(`Generated ${new Date().toLocaleString("en-GB")}`, margin, metadataY);
-    pdf.text(`tools.viox.com/${slug}/`, pageWidth - margin, metadataY, { align: "right" });
-    y = metadataY + 11;
+    pdf.text(summaryLines, margin + 7, summaryY);
+    y += resultBoxHeight + 9;
 
-    const primaryLines = pdf.splitTextToSize(clean(`${result.primary}${result.unit ? ` ${result.unit}` : ""}`), 58);
-    const summaryLines = pdf.splitTextToSize(clean(result.summary), contentWidth - 78);
-    const resultBoxHeight = Math.max(30, Math.max(primaryLines.length * 6 + 14, summaryLines.length * 4 + 15));
-    pdf.setFillColor(255, 247, 247);
-    pdf.setDrawColor(242, 198, 200);
-    pdf.roundedRect(margin, y, contentWidth, resultBoxHeight, 2, 2, "FD");
-    pdf.setTextColor(95, 105, 116);
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(8);
-    pdf.text("CALCULATED RESULT", margin + 7, y + 8);
-    pdf.setTextColor(215, 25, 32);
-    pdf.setFontSize(20);
-    pdf.text(primaryLines, margin + 7, y + 19);
-    pdf.setTextColor(69, 77, 86);
-    pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(8.5);
-    pdf.text(summaryLines, margin + 72, y + 9);
-    y += resultBoxHeight + 10;
-
-    sectionTitle("Inputs");
-    if (inputRows.length) {
-      inputRows.forEach((item, index) => row(item.label, item.value, index % 2 === 0));
-    } else {
-      tool.fields.filter((field) => !field.showWhen || field.showWhen.values.includes(String(values[field.showWhen.field]))).forEach((field, index) => {
+    const fallbackInputs = tool.fields
+      .filter((field) => !field.showWhen || field.showWhen.values.includes(String(values[field.showWhen.field])))
+      .map((field) => {
         const rawValue = String(values[field.id] ?? "");
         const selectedLabel = field.options?.find((option) => option.value === rawValue)?.label ?? rawValue;
         const selectedUnit = field.unitOptions?.find((option) => option.value === String(values[`${field.id}Unit`]))?.label ?? field.unit ?? "";
-        row(field.label, `${selectedLabel}${selectedUnit ? ` ${selectedUnit}` : ""}`, index % 2 === 0);
+        return { label: field.label, value: `${selectedLabel}${selectedUnit ? ` ${selectedUnit}` : ""}` };
       });
-    }
-
-    y += 4;
-    sectionTitle("Results");
-    result.metrics.forEach((metric, index) => row(metric.label, metric.value, index % 2 === 0));
-
-    y += 4;
-    sectionTitle("Formula and method");
-    paragraph(tool.formula);
-
+    drawDataGrid(tr("Inputs"), inputRows.length ? inputRows : fallbackInputs);
     y += 2;
-    sectionTitle("Engineering notes");
-    result.recommendations.forEach((recommendation) => {
-      const lines = pdf.splitTextToSize(clean(recommendation), contentWidth - 8);
-      ensureSpace(lines.length * 4 + 4);
-      pdf.setTextColor(215, 25, 32);
-      pdf.text("-", margin + 2, y);
-      pdf.setTextColor(69, 77, 86);
-      pdf.text(lines, margin + 7, y);
-      y += lines.length * 4 + 3;
+    drawDataGrid(tr("Result details"), result.metrics);
+    y += 2;
+
+    pdf.setFont("courier", "bold");
+    const formulaLines = pdf.splitTextToSize(clean(tool.formula), contentWidth - 14);
+    const formulaHeight = Math.max(24, formulaLines.length * 4.4 + 16);
+    ensureSpace(formulaHeight + 14);
+    sectionTitle(tr("Formula and method"));
+    pdf.setFillColor(...colors.soft);
+    pdf.setDrawColor(...colors.line);
+    pdf.setLineWidth(0.25);
+    pdf.roundedRect(margin, y, contentWidth, formulaHeight, 2, 2, "FD");
+    pdf.setFillColor(...colors.red);
+    pdf.rect(margin, y, 2.2, formulaHeight, "F");
+    pdf.setFont("courier", "bold");
+    pdf.setFontSize(9);
+    pdf.setTextColor(...colors.ink);
+    pdf.text(formulaLines, margin + 8, y + 9);
+    y += formulaHeight + 7;
+
+    sectionTitle(tr("Engineering notes"));
+    result.recommendations.forEach((recommendation, index) => {
+      const lines = pdf.splitTextToSize(clean(recommendation), contentWidth - 18);
+      const noteHeight = Math.max(14, lines.length * 4 + 8);
+      if (ensureSpace(noteHeight + 3)) sectionTitle(`${tr("Engineering notes")} ${tr("continued")}`);
+      pdf.setFillColor(...colors.redSoft);
+      pdf.setDrawColor(245, 218, 220);
+      pdf.setLineWidth(0.25);
+      pdf.roundedRect(margin, y, contentWidth, noteHeight, 1.6, 1.6, "FD");
+      pdf.setFillColor(...colors.red);
+      pdf.circle(margin + 7, y + 7, 3.2, "F");
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(7.5);
+      pdf.setTextColor(...colors.white);
+      pdf.text(String(index + 1), margin + 7, y + 8, { align: "center" });
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(8.5);
+      pdf.setTextColor(...colors.text);
+      pdf.text(lines, margin + 14, y + 6.5);
+      y += noteHeight + 3;
     });
 
-    ensureSpace(22);
-    y += 4;
-    pdf.setDrawColor(220, 224, 228);
-    pdf.line(margin, y, pageWidth - margin, y);
-    y += 6;
-    pdf.setTextColor(95, 105, 116);
+    const disclaimer = tr("Preliminary engineering reference only. Verify all inputs, assumptions, operating conditions, equipment ratings, protection requirements, applicable standards, and manufacturer data before final design or product selection.");
+    const disclaimerLines = pdf.splitTextToSize(disclaimer, contentWidth - 34);
+    const disclaimerHeight = disclaimerLines.length * 3.8 + 13;
+    ensureSpace(disclaimerHeight + 5);
+    y += 3;
+    pdf.setFillColor(...colors.ink);
+    pdf.roundedRect(margin, y, contentWidth, disclaimerHeight, 1.8, 1.8, "F");
+    pdf.setTextColor(...colors.red);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(7.2);
+    pdf.text(tr("IMPORTANT"), margin + 7, y + 7);
+    pdf.setTextColor(...colors.white);
     pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(7.5);
-    const disclaimer = "Preliminary engineering reference only. Verify all inputs, assumptions, operating conditions, equipment ratings, protection requirements, applicable standards, and manufacturer data before final design or product selection.";
-    pdf.text(pdf.splitTextToSize(disclaimer, contentWidth), margin, y);
+    pdf.setFontSize(8);
+    pdf.text(disclaimerLines, margin + 25, y + 7);
+
     const pageCount = pdf.getNumberOfPages();
     for (let page = 1; page <= pageCount; page += 1) {
       pdf.setPage(page);
-      pdf.setTextColor(95, 105, 116);
+      pdf.setDrawColor(...colors.line);
+      pdf.setLineWidth(0.25);
+      pdf.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
+      pdf.setTextColor(...colors.muted);
       pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(7.5);
-      pdf.text("VIOX Electric | viox.com", margin, pageHeight - 9);
-      pdf.text(`Page ${page} of ${pageCount}`, pageWidth - margin, pageHeight - 9, { align: "right" });
+      pdf.setFontSize(7.2);
+      pdf.text("VIOX Electrical Tools  |  tools.viox.com", margin, pageHeight - 9);
+      pdf.text(`${tr("Page")} ${page} / ${pageCount}`, pageWidth - margin, pageHeight - 9, { align: "right" });
     }
 
-    const now = new Date();
     const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     pdf.save(`VIOX-${slug}-${date}.pdf`);
   }
@@ -354,9 +475,9 @@ export default function CalculatorIsland({ slug }: Props) {
   }
 
   return (
-    <div className={`calculator-grid ${slug === "ohms-law-calculator" ? "ohms-calculator" : ""}`}>
+    <div ref={rootRef} className={`calculator-grid ${slug === "ohms-law-calculator" ? "ohms-calculator" : ""}`}>
       <form className="input-panel" onSubmit={(event) => event.preventDefault()}>
-        <div className="panel-label">Inputs</div>
+        <div className="panel-label">{tr("Inputs")}</div>
         {slug === "ohms-law-calculator" ? (
           <>
             <p className="ohms-instruction">Choose two known quantities, then enter their values.</p>
@@ -628,7 +749,7 @@ export default function CalculatorIsland({ slug }: Props) {
                 />
                 {field.unitOptions?.length ? (
                   <select
-                    aria-label={`${field.label} unit`}
+                    aria-label={`${field.label} ${tr("unit")}`}
                     value={String(values[`${field.id}Unit`] ?? field.defaultUnit ?? field.unitOptions[0].value)}
                     onChange={(event) => update(`${field.id}Unit`, event.target.value)}
                   >
@@ -647,7 +768,7 @@ export default function CalculatorIsland({ slug }: Props) {
       </form>
 
       <section className="result-panel" aria-live="polite">
-        <div className="panel-label">Result</div>
+        <div className="panel-label">{tr("Result")}</div>
         {"error" in result ? (
           <div className="result-error">{result.error}</div>
         ) : (
@@ -667,7 +788,7 @@ export default function CalculatorIsland({ slug }: Props) {
             </div>
             {slug === "mm2-to-awg-converter" ? <p className="ampacity-disclaimer">Current figures use common circular-mil rules of thumb for comparison only. They are not code ampacities or cable ratings; verify the applicable wiring standard, insulation, terminals, ambient temperature and installation method.</p> : null}
             <div className="recommendations">
-              <div className="panel-label">Next checks</div>
+              <div className="panel-label">{tr("Next checks")}</div>
               <ul>
                 {result.recommendations.map((item) => (
                   <li key={item}>{item}</li>
@@ -675,8 +796,8 @@ export default function CalculatorIsland({ slug }: Props) {
               </ul>
             </div>
             <div className="result-actions">
-              <button type="button" onClick={copyResult}>{copied ? "Copied" : "Copy result"}</button>
-              <button type="button" onClick={downloadResultPdf}>Download PDF</button>
+              <button type="button" onClick={copyResult}>{copied ? tr("Copied") : tr("Copy result")}</button>
+              <button type="button" onClick={downloadResultPdf}>{tr("Download PDF")}</button>
             </div>
           </>
         )}

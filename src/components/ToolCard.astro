@@ -1,13 +1,16 @@
 ---
 import { categories } from "../lib/categories";
+import { localizeRecord, localizeTool, localePath, t, type Locale } from "../lib/i18n";
 import type { ToolDefinition } from "../lib/types";
 
 type Props = {
   tool: ToolDefinition;
+  locale?: Locale;
 };
 
-const { tool } = Astro.props;
-const category = categories[tool.category];
+const { tool: sourceTool, locale = "en" } = Astro.props;
+const tool = localizeTool(sourceTool, locale);
+const category = localizeRecord(categories[tool.category], locale);
 const icons: Record<string, string> = {
   "spd-calculator": "SPD",
   "voltage-drop-calculator": "Vd",
@@ -69,7 +72,7 @@ const icons: Record<string, string> = {
     <span class="tool-icon" aria-hidden="true">{icons[tool.slug] ?? "V"}</span>
     <span class="tool-tag">{category.deck}</span>
   </div>
-  <h3><a href={`/${tool.slug}/`}>{tool.title}</a></h3>
+  <h3><a href={localePath(locale, `/${tool.slug}/`)}>{tool.title}</a></h3>
   <p>{tool.description}</p>
-  <a class="card-link" href={`/${tool.slug}/`}>Open calculator</a>
+  <a class="card-link" href={localePath(locale, `/${tool.slug}/`)}>{t(locale, "Open calculator")}</a>
 </article>
