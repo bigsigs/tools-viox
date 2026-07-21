@@ -56,5 +56,6 @@ export const expansionResources: Resources = {
   "cable-tray-fill-calculator": resource("IEC cable sizing and installation guide", "https://viox.com/iec-60204-1-cable-sizing-formulas-voltage-drop-trunking-capacity-tables/", "VIOX cable glands", "https://viox.com/cable-gland/"),
   "stationary-battery-sizing-calculator": resource("BESS DC, AC and signal surge protection guide", "https://viox.com/bess-surge-protection-dc-ac-signal-spd-selection-guide/", "VIOX DC circuit breakers", "https://viox.com/dc-mcb/"),
   "residential-electrical-load-calculator": resource("Circuit breaker load and wire sizing guide", "https://viox.com/homeowners-guide-to-circuit-breaker-sizing-and-load-calculation/", "VIOX residential RCBOs", "https://viox.com/rcbo/"),
-  "nema-ip-rating-converter": resource("IP rating selection guide", "https://viox.com/ip-rating-chart/", "VIOX electrical enclosures", "https://viox.com/enclosures/")
+  "nema-ip-rating-converter": resource("IP rating selection guide", "https://viox.com/ip-rating-chart/", "VIOX electrical enclosures", "https://viox.com/enclosures/"),
+  "solid-state-relay-calculator": resource("Understanding solid state relays", "https://viox.com/understanding-solid-state-relays/", "VIOX relay and control products", "https://viox.com/products/")
 };

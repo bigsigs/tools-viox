@@ -535,6 +535,46 @@ export default function CalculatorIsland({ slug, locale = "en", localizedTool }:
               </label>
             ) : null}
           </>
+        ) : slug === "solid-state-relay-calculator" ? (
+          <>
+            <div className="converter-tabs power-task-tabs ssr-mode-tabs" role="tablist" aria-label={tr("Solid state relay calculation mode")}>
+              {[
+                { value: "select", label: "Select an SSR" },
+                { value: "thermal", label: "Size a heatsink" },
+                { value: "verify", label: "Check an existing SSR" }
+              ].map((mode) => <button type="button" role="tab" aria-selected={String(values.mode) === mode.value} className={String(values.mode) === mode.value ? "active" : ""} onClick={() => update("mode", mode.value)} key={mode.value}>{tr(mode.label)}</button>)}
+            </div>
+            <div className="energy-relationship-note ssr-mode-note">
+              <strong>{String(values.mode) === "select" ? tr("Load → SSR electrical screen") : String(values.mode) === "thermal" ? tr("SSR loss → Heatsink and junction temperature") : tr("Candidate SSR → Datasheet limit checks")}</strong>
+              <span>{String(values.mode) === "select" ? tr("Start with the load, then replace the utilization input with the exact manufacturer derating curve.") : String(values.mode) === "thermal" ? tr("Use worst-case on-state data at operating temperature, not a typical room-temperature value.") : tr("Enter limits from one exact SSR datasheet on the same waveform and duration basis.")}</span>
+            </div>
+            {tool.fields.filter((field) => {
+              if (field.id === "mode") return false;
+              const modeFields: Record<string, string[]> = {
+                select: ["system", "inputMethod", "loadPower", "loadCurrent", "loadVoltage", "powerFactor", "efficiency", "loadType", "expectedInrush", "ratedUtilization", "voltageMargin", "controlVoltage"],
+                thermal: ["outputTechnology", "thermalCurrent", "poles", "sharedDevices", "conductionDuty", "onStateVoltage", "onResistance", "thermalAmbient", "maxJunction", "rJc", "rCs", "installedRsa"],
+                verify: ["actualCurrent", "allowedCurrent", "actualVoltage", "ratedVoltage", "inrushCurrent", "surgeRating", "pulseDuration", "ssrI2t", "fuseI2t", "offLeakage", "minimumLoad", "actualMinimumLoad"]
+              };
+              if (!modeFields[String(values.mode)]?.includes(field.id)) return false;
+              if (field.id === "powerFactor" && values.system === "dc") return false;
+              return !field.showWhen || field.showWhen.values.includes(String(values[field.showWhen.field]));
+            }).map((field) => (
+              <label className="field" key={field.id}>
+                <span>{field.label}</span>
+                {field.type === "select" ? (
+                  <select value={String(values[field.id])} onChange={(event) => update(field.id, event.target.value)}>
+                    {field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </select>
+                ) : (
+                  <div className="unit-input">
+                    <input type="number" inputMode="decimal" value={String(values[field.id])} min={field.min} max={field.max} step={field.step ?? "any"} onChange={(event) => update(field.id, event.target.value)} />
+                    {field.unit ? <span className="unit-addon">{field.unit}</span> : null}
+                  </div>
+                )}
+                {field.help ? <small>{field.help}</small> : null}
+              </label>
+            ))}
+          </>
         ) : slug === "enclosure-temperature-rise-calculator" ? (
           <>
             <div className="converter-tabs power-task-tabs enclosure-mode-tabs" role="tablist" aria-label="Enclosure cooling calculation mode">

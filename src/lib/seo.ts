@@ -104,6 +104,10 @@ const toolSeoMeta: Record<string, { title: string; description: string }> = {
     title: "Enclosure Cooling Calculator: CFM, BTU/h & Temperature | VIOX",
     description: "Calculate enclosure temperature rise, fan airflow in CFM or m³/h, and cooling capacity in W or BTU/h from panel heat, cabinet size, and ambient conditions."
   },
+  "solid-state-relay-calculator": {
+    title: "Solid State Relay & SSR Heatsink Calculator | VIOX",
+    description: "Select or verify an AC or DC solid state relay. Calculate SSR current, heat loss, heatsink °C/W, junction temperature, surge margin, leakage and I²t checks."
+  },
   "motor-starter-selection-calculator": {
     title: "Motor Starter Selection Calculator | VIOX",
     description: "Estimate motor current and select a starting contactor, overload relay range, starter method, and short-circuit protection path from motor and load data."

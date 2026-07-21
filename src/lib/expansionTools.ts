@@ -539,5 +539,64 @@ export const expansionTools: ToolDefinition[] = [
     warnings: [standardWarning, "NEMA states that an IP rating cannot be converted into an equivalent NEMA Type because NEMA Types include additional construction and environmental requirements.", "Neither an IP code nor a NEMA Type by itself proves UV, chemical, impact, hazardous-location, arc-flash, temperature, condensation, EMC, fire, or seismic suitability."],
     faqs: [{ question: "Is NEMA Type 4X the same as IP66?", answer: "No. Type 4X can meet or exceed the referenced IP ingress requirements, but it also includes corrosion-related requirements that IP66 does not express. An IP66 product is not automatically Type 4X." }, { question: "Can I convert an IP rating to a NEMA Type?", answer: "No. NEMA explicitly states that its NEMA-to-IP correlation cannot be used in reverse. Decode the IP rating, then perform a separate NEMA selection using the complete environment and required certification." }, { question: "What is the difference between Type 3 and Type 3R?", answer: "Both address outdoor weather exposure, but Type 3 includes windblown dust protection while Type 3R primarily addresses falling rain and sleet. Type 3S additionally addresses operation of external mechanisms when ice-laden." }, { question: "Does IP68 define one universal immersion depth?", answer: "No. IPX8 test conditions are agreed or specified for the product and must be more severe than IPX7. Check the manufacturer's stated depth, duration, orientation, and installation conditions." }, { question: "Does an enclosure rating remain valid after drilling cable entries?", answer: "Only when every opening, gland, conduit fitting, drain, vent, operator, and seal preserves the required rating and the assembly is installed according to its certification and instructions." }],
     relatedTools: ["enclosure-temperature-rise-calculator", "cable-gland-size-calculator", "panel-heat-loss-calculator"], relatedProducts: [{ label: "VIOX electrical enclosures", href: "https://viox.com/enclosures/" }, { label: "VIOX cable glands", href: "https://viox.com/cable-gland/" }], keywords: ["NEMA to IP converter", "IP to NEMA rating", "NEMA enclosure rating chart", "IP rating calculator", "NEMA 4X vs IP66", "NEMA 3R IP equivalent", "enclosure rating selector"]
+  },
+  {
+    slug: "solid-state-relay-calculator", title: "Solid State Relay Selection & Heatsink Calculator", shortTitle: "SSR Selection", category: "motor-control",
+    description: "Calculate SSR load current, minimum nameplate-current screen, conduction loss, heatsink thermal resistance, junction temperature, surge margin, and semiconductor-fuse I²t checks.", intent: "Select or verify an AC or DC solid state relay without hiding load compatibility, thermal derating, leakage current, or datasheet limits.",
+    fields: [
+      { id: "mode", label: "Calculation mode", type: "select", defaultValue: "select", options: [{ value: "select", label: "Select an SSR" }, { value: "thermal", label: "Size a heatsink" }, { value: "verify", label: "Check an existing SSR" }] },
+
+      { id: "system", label: "Load circuit", type: "select", defaultValue: "single-ac", options: [{ value: "single-ac", label: "Single-phase AC" }, { value: "three-ac", label: "Three-phase AC" }, { value: "dc", label: "DC" }] },
+      { id: "inputMethod", label: "Known load value", type: "select", defaultValue: "power", options: [{ value: "power", label: "Power" }, { value: "current", label: "Current" }] },
+      { id: "loadPower", label: "Load power", type: "number", defaultValue: 5, unit: "kW", min: 0, showWhen: { field: "inputMethod", values: ["power"] } },
+      { id: "loadCurrent", label: "Load current", type: "number", defaultValue: 21.74, unit: "A", min: 0, showWhen: { field: "inputMethod", values: ["current"] } },
+      { id: "loadVoltage", label: "Load voltage", type: "number", defaultValue: 230, unit: "V", min: 0 },
+      { id: "powerFactor", label: "Power factor", type: "number", defaultValue: 1, min: 0.01, max: 1, step: 0.01, showWhen: { field: "inputMethod", values: ["power"] } },
+      { id: "efficiency", label: "Load efficiency", type: "number", defaultValue: 100, unit: "%", min: 1, max: 100, showWhen: { field: "inputMethod", values: ["power"] } },
+      { id: "loadType", label: "Load type", type: "select", defaultValue: "heater", options: [{ value: "heater", label: "Resistive heater" }, { value: "motor", label: "Motor / compressor" }, { value: "transformer", label: "Transformer" }, { value: "lamp", label: "Incandescent / infrared lamp" }, { value: "solenoid", label: "Solenoid / valve" }, { value: "capacitive", label: "Capacitive / LED driver" }] },
+      { id: "expectedInrush", label: "Expected peak inrush", type: "number", defaultValue: 25, unit: "A peak", min: 0, help: "Use measured current or load-manufacturer data. The calculator does not invent a universal inrush multiplier." },
+      { id: "ratedUtilization", label: "Allowed datasheet current utilization", type: "number", defaultValue: 70, unit: "%", min: 1, max: 100, help: "Enter the permitted percentage from the candidate SSR derating curve at the real ambient and mounting condition." },
+      { id: "voltageMargin", label: "Voltage headroom", type: "number", defaultValue: 20, unit: "%", min: 0, max: 200 },
+      { id: "controlVoltage", label: "Available control signal", type: "number", defaultValue: 24, unit: "V", min: 0 },
+
+      { id: "outputTechnology", label: "Output technology", type: "select", defaultValue: "ac-drop", options: [{ value: "ac-drop", label: "AC TRIAC / SCR – on-state voltage" }, { value: "dc-resistance", label: "DC MOSFET – on resistance" }] },
+      { id: "thermalCurrent", label: "RMS / DC load current per pole", type: "number", defaultValue: 25, unit: "A", min: 0 },
+      { id: "poles", label: "Conducting output poles", type: "number", defaultValue: 1, min: 1, max: 3, step: 1 },
+      { id: "sharedDevices", label: "SSR modules sharing one heatsink", type: "number", defaultValue: 1, min: 1, max: 20, step: 1 },
+      { id: "conductionDuty", label: "Conduction duty cycle", type: "number", defaultValue: 100, unit: "%", min: 0.1, max: 100 },
+      { id: "onStateVoltage", label: "Maximum on-state voltage drop", type: "number", defaultValue: 1.2, unit: "V", min: 0, showWhen: { field: "outputTechnology", values: ["ac-drop"] } },
+      { id: "onResistance", label: "Maximum on resistance", type: "number", defaultValue: 20, unit: "mΩ", min: 0, showWhen: { field: "outputTechnology", values: ["dc-resistance"] } },
+      { id: "thermalAmbient", label: "Maximum air temperature at heatsink", type: "number", defaultValue: 40, unit: "°C", help: "Use the local temperature around the heatsink inside the enclosure, not a remote room temperature." },
+      { id: "maxJunction", label: "Maximum permitted junction temperature", type: "number", defaultValue: 125, unit: "°C" },
+      { id: "rJc", label: "Junction-to-case thermal resistance RθJC", type: "number", defaultValue: 0.8, unit: "°C/W", min: 0 },
+      { id: "rCs", label: "Case-to-sink thermal resistance RθCS", type: "number", defaultValue: 0.2, unit: "°C/W", min: 0 },
+      { id: "installedRsa", label: "Existing sink-to-air resistance RθSA", type: "number", defaultValue: 1.5, unit: "°C/W", min: 0, help: "Enter the heatsink rating for its actual orientation and airflow. The result also calculates the maximum permissible value." },
+
+      { id: "actualCurrent", label: "Actual continuous load current", type: "number", defaultValue: 20, unit: "A", min: 0 },
+      { id: "allowedCurrent", label: "Datasheet allowable current at actual temperature", type: "number", defaultValue: 25, unit: "A", min: 0, help: "Read this from the exact SSR derating curve for the installed heatsink, spacing, airflow, and ambient temperature." },
+      { id: "actualVoltage", label: "Maximum applied load voltage", type: "number", defaultValue: 230, unit: "V", min: 0 },
+      { id: "ratedVoltage", label: "SSR rated load voltage", type: "number", defaultValue: 280, unit: "V", min: 0 },
+      { id: "inrushCurrent", label: "Peak load inrush current", type: "number", defaultValue: 80, unit: "A peak", min: 0 },
+      { id: "surgeRating", label: "SSR surge-current rating for same duration", type: "number", defaultValue: 250, unit: "A peak", min: 0 },
+      { id: "pulseDuration", label: "Inrush pulse duration", type: "number", defaultValue: 10, unit: "ms", min: 0 },
+      { id: "ssrI2t", label: "SSR non-repetitive I²t rating", type: "number", defaultValue: 300, unit: "A²s", min: 0 },
+      { id: "fuseI2t", label: "Upstream fuse total clearing I²t", type: "number", defaultValue: 150, unit: "A²s", min: 0 },
+      { id: "offLeakage", label: "Maximum SSR off-state leakage", type: "number", defaultValue: 5, unit: "mA", min: 0 },
+      { id: "minimumLoad", label: "SSR minimum load current", type: "number", defaultValue: 150, unit: "mA", min: 0 },
+      { id: "actualMinimumLoad", label: "Smallest expected load current", type: "number", defaultValue: 500, unit: "mA", min: 0 }
+    ],
+    formula: "Iload = P/(V × pf × η) or P/(√3V × pf × η); Ploss = VONI or I²RDS(on); RθSA,max = [TJ,max − TA − Ppole(RθJC + RθCS)]/Ptotal.",
+    assumptions: ["Steady RMS or DC current for continuous thermal calculations", "User-entered datasheet derating and thermal parameters", "One common heatsink temperature for modules sharing a heatsink", "Rectangular I²t estimate is shown only as a waveform-sensitive screen"],
+    warnings: [standardWarning, "Final selection must use the exact SSR load category, derating curve, repetitive and non-repetitive surge data, thermal interface, mounting instructions, and coordinated semiconductor fuse.", "An SSR can fail shorted, has off-state leakage, and is not a safe isolation device. Provide a suitable disconnect and protection architecture."],
+    faqs: [
+      { question: "Should I select an SSR by multiplying load current by two?", answer: "Not as a universal rule. Use the exact manufacturer's allowable-current curve at the real ambient, heatsink, mounting orientation, spacing, and load type. The utilization input makes that datasheet decision explicit." },
+      { question: "Can an AC SSR switch a DC load?", answer: "A TRIAC or SCR AC-output SSR normally relies on AC current zero crossing to turn off and is not suitable for DC. Use a correctly rated DC-output MOSFET or transistor SSR." },
+      { question: "When should I use zero-cross switching?", answer: "Zero-cross switching is commonly preferred for simple resistive heating to reduce switching EMI. Random or instantaneous turn-on is used for phase-angle control and some inductive applications, but transformer and motor inrush require exact application data." },
+      { question: "Does an SSR provide electrical isolation when it is off?", answer: "No. Off-state leakage remains, and common failure mode can be short circuit. Use a mechanical disconnect or other required isolation means for safe maintenance." },
+      { question: "Is the calculated heatsink resistance a part number?", answer: "No. It is the maximum sink-to-air thermal resistance under the entered simplified model. Select a heatsink from manufacturer curves for orientation, enclosure temperature, airflow, nearby devices, and mounting interface." }
+    ],
+    relatedTools: ["panel-heat-loss-calculator", "enclosure-temperature-rise-calculator", "fuse-sizing-calculator"],
+    relatedProducts: [{ label: "VIOX solid state relay engineering guide", href: "https://viox.com/understanding-solid-state-relays/" }, { label: "VIOX relay and control products", href: "https://viox.com/products/" }],
+    keywords: ["solid state relay calculator", "SSR sizing calculator", "solid state relay selection", "SSR heatsink calculator", "SSR heat dissipation calculator", "SSR current rating calculator", "SSR I2t fuse calculator", "zero cross SSR selection"]
   }
 ];

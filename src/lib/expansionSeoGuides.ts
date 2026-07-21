@@ -53,6 +53,51 @@ export const expansionSeoGuides = Object.fromEntries(expansionTools.map((tool) =
   ]
 } satisfies SeoGuide])) as Record<string, SeoGuide>;
 
+expansionSeoGuides["solid-state-relay-calculator"] = {
+  sections: [
+    {
+      title: "How to use the solid state relay calculator",
+      paragraphs: ["Choose the workflow that matches the information available. Select an SSR converts load power or current into an electrical rating screen. Size a heatsink calculates conduction loss and the required thermal path. Check an existing SSR compares one candidate with current, voltage, surge, I²t, fuse, leakage, and minimum-load data entered from its datasheet."],
+      steps: ["Choose SSR selection, heatsink sizing, or existing SSR verification.", "Identify AC or DC output and the real load type.", "Use measured load and inrush current whenever available.", "Enter worst-case datasheet values rather than typical values.", "Review every thermal and protection metric, not only the primary result.", "Verify the result against the exact VIOX or manufacturer datasheet before ordering."]
+    },
+    {
+      title: "AC SSR, DC SSR, and load compatibility",
+      paragraphs: ["An AC-output SSR commonly uses a TRIAC or antiparallel thyristors and depends on AC current passing through zero to turn off. A DC-output SSR commonly uses a transistor or MOSFET. The output technology must match the load circuit; an ordinary AC TRIAC SSR is not a substitute for a DC-output SSR."],
+      table: { headers: ["Application", "Starting output choice", "Switching consideration"], rows: [["Resistive heater", "AC TRIAC/SCR SSR", "Zero-cross is commonly preferred for simple on/off temperature control"], ["DC heater or valve", "DC MOSFET/transistor SSR", "Check polarity, RDS(on), and inductive suppression"], ["Motor or compressor", "Motor-rated AC or DC SSR", "Starting current, cycling, stall, phase loss, and bypass may govern"], ["Transformer", "Transformer-load-rated SSR", "Asymmetric magnetizing inrush and turn-on point require special review"], ["Incandescent or infrared lamp", "Load-compatible SSR", "Cold-filament inrush can greatly exceed steady current"], ["LED driver or capacitive input", "Load-compatible SSR", "Short charging pulses, minimum load, and leakage can govern"]] }
+    },
+    {
+      title: "SSR current rating and temperature derating",
+      paragraphs: ["The current printed on an SSR is conditional. Allowable continuous current depends on ambient or case temperature, heatsink, mounting orientation, spacing, airflow, thermal interface, and load category. The calculator therefore asks for an allowed datasheet current utilization instead of applying a universal two-times or six-times multiplier."],
+      callouts: ["Use the allowable-current curve at the real ambient temperature", "Headline current is not automatically the installed current", "Adjacent SSRs and enclosed panels can require additional derating"]
+    },
+    {
+      title: "SSR power loss and heatsink calculation",
+      paragraphs: ["For an AC TRIAC or SCR output, a first thermal estimate uses on-state voltage multiplied by RMS load current. For a DC MOSFET output, conduction loss is current squared multiplied by maximum on resistance at operating temperature. The junction-to-case, interface, and heatsink thermal resistances then consume the available temperature rise from local air to maximum junction temperature."],
+      table: { headers: ["Thermal term", "Meaning", "Selection note"], rows: [["RθJC", "Junction to SSR case", "Use the exact datasheet maximum"], ["RθCS", "Case through pad or compound to heatsink", "Depends on interface material, flatness, pressure, and mounting"], ["RθSA", "Heatsink to surrounding air", "Depends on heatsink, orientation, airflow, altitude, and enclosure"], ["TJ,max", "Maximum permitted semiconductor junction temperature", "A design target may need margin below absolute maximum"], ["TA", "Air immediately around the heatsink", "Use internal panel temperature when mounted in an enclosure"]] }
+    },
+    {
+      title: "SSR surge current and I²t verification",
+      paragraphs: ["Motors, transformers, lamps, solenoids, and capacitive power supplies can have inrush far above continuous current. Compare the actual peak and duration with the SSR's non-repetitive and repetitive surge curves. I²t values are comparable only when waveform, duration, line frequency, repetition, and initial junction temperature use the same basis."],
+      bullets: ["Use measured inrush or load-manufacturer data when possible.", "Do not treat a one-cycle surge rating as a repetitive cycling rating.", "A rectangular I²t estimate is not identical to a half-sine datasheet test.", "Check commutating dv/dt and transient-voltage suppression for inductive loads.", "Verify the permitted switching frequency and thermal cycling duty."]
+    },
+    {
+      title: "Semiconductor fuse and short-circuit coordination",
+      paragraphs: ["An upstream breaker or general-purpose fuse may protect wiring without protecting an SSR semiconductor junction. The fuse total-clearing I²t must be coordinated with the SSR withstand using the manufacturer's approved table, voltage, prospective fault current, and safety margin. A simple fuse-I²t-below-SSR-I²t comparison is only an early screen."],
+      links: [{ label: "Continue with the fuse sizing calculator", href: "/fuse-sizing-calculator/" }]
+    },
+    {
+      title: "Off-state leakage, minimum load, and safe isolation",
+      paragraphs: ["An SSR is not an open mechanical contact. Off-state leakage can cause LED lamps to glow, sensitive loads to move or remain energized, and hazardous voltage to appear at the output. Many AC SSRs also require a minimum holding or load current. Most SSR failures are short-circuit failures, so the control system must define a safe response and provide mechanical isolation where required."],
+      bullets: ["Do not use an SSR as the sole maintenance disconnect.", "Check leakage at maximum load voltage and temperature.", "Confirm the smallest connected load exceeds the specified minimum current.", "Use manufacturer-approved snubbers or bleeders when needed.", "Design diagnostics and shutdown behavior for a shorted SSR output."]
+    },
+    {
+      title: "Control panel thermal workflow",
+      paragraphs: ["The SSR heatsink result supplies the heat released into the cabinet. Add that value to breakers, power supplies, drives, transformers, and other losses, then check enclosure temperature and cooling. The heatsink air temperature may be substantially higher than the room temperature."],
+      links: [{ label: "Add SSR loss to panel heat", href: "/panel-heat-loss-calculator/" }, { label: "Calculate enclosure cooling", href: "/enclosure-temperature-rise-calculator/" }, { label: "Compare mechanical contactor sizing", href: "/contactor-selection-calculator/" }]
+    }
+  ]
+};
+
 expansionSeoGuides["enclosure-temperature-rise-calculator"] = {
   sections: [
     {

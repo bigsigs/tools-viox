@@ -990,5 +990,45 @@
   {
     "source": "__V0__ W cooling",
     "target": "__V0__ W de refrigeración"
+  },
+  {
+    "source": "≥ __V0__ A SSR screen",
+    "target": "Selección SSR ≥ __V0__ A"
+  },
+  {
+    "source": "The entered load requires __V0__ A per conducting pole. At __V1__% of datasheet rating, the continuous-current screen is at least __V2__ A.",
+    "target": "La carga introducida requiere __V0__ A por polo conductor. Con un __V1__% de utilización de la corriente de ficha, la selección de corriente continua es de al menos __V2__ A."
+  },
+  {
+    "source": "RθSA ≤ __V0__ °C/W",
+    "target": "RθSA ≤ __V0__ °C/W"
+  },
+  {
+    "source": "The common heatsink must provide __V0__ °C/W or lower under the entered orientation and airflow. The entered __V1__ °C/W heatsink predicts approximately __V2__°C junction temperature.",
+    "target": "El disipador común debe ofrecer __V0__ °C/W o menos con la orientación y el caudal introducidos. El disipador de __V1__ °C/W predice una temperatura de unión aproximada de __V2__°C."
+  },
+  {
+    "source": "__V0__/__V1__ entered checks pass",
+    "target": "Se cumplen __V0__ de __V1__ comprobaciones"
+  },
+  {
+    "source": "The candidate __V0__ the entered numerical screens. This does not replace the exact manufacturer load, surge, thermal, and protection coordination tables.",
+    "target": "El candidato obtiene «__V0__» en las comprobaciones numéricas introducidas. Esto no sustituye las tablas exactas del fabricante sobre carga, sobrecorriente, comportamiento térmico y coordinación de protecciones."
+  },
+  {
+    "source": "Input range must contain __V0__ V",
+    "target": "El rango de entrada debe incluir __V0__ V"
+  },
+  {
+    "source": "__V0__ × entered peak",
+    "target": "__V0__ × el pico introducido"
+  },
+  {
+    "source": "Enter __V0__ W in the panel heat-loss or enclosure cooling calculation, together with other cabinet losses.",
+    "target": "Introduzca __V0__ W en el cálculo de pérdidas térmicas del cuadro o de refrigeración del armario, junto con las demás pérdidas del gabinete."
+  },
+  {
+    "source": "__V0__ A peak",
+    "target": "__V0__ A pico"
   }
 ]

@@ -498,4 +498,40 @@ describe("20-calculator expansion reference cases", () => {
   it("calculates panel utilization before and after added load", () => {
     expect(Number.parseFloat(metric("electrical-panel-load-spare-capacity-calculator", "Utilization after addition")!)).toBeGreaterThan(Number.parseFloat(metric("electrical-panel-load-spare-capacity-calculator", "Current utilization")!));
   });
+
+  it("screens SSR current from load and explicit datasheet utilization", () => {
+    const result = calculateTool("solid-state-relay-calculator", defaults("solid-state-relay-calculator"));
+    expect(result.primary).toBe("≥ 31.06 A SSR screen");
+    expect(result.metrics.find((item) => item.label === "Calculated load current")?.value).toBe("21.74 A");
+    expect(result.metrics.find((item) => item.label === "Switching method direction")?.value).toBe("Zero-cross starting preference");
+  });
+
+  it("calculates SSR common-heatsink thermal resistance and junction temperature", () => {
+    const result = calculateTool("solid-state-relay-calculator", { ...defaults("solid-state-relay-calculator"), mode: "thermal" });
+    expect(result.primary).toBe("RθSA ≤ 1.833 °C/W");
+    expect(result.metrics.find((item) => item.label === "Conduction loss per pole")?.value).toBe("30.00 W");
+    expect(result.metrics.find((item) => item.label === "Estimated junction temperature")?.value).toBe("115.0°C");
+  });
+
+  it("checks existing SSR current voltage surge I2t fuse and minimum load independently", () => {
+    const result = calculateTool("solid-state-relay-calculator", { ...defaults("solid-state-relay-calculator"), mode: "verify" });
+    expect(result.primary).toBe("6/6 entered checks pass");
+    expect(result.metrics.find((item) => item.label === "Rectangular pulse I²t estimate")?.value).toBe("64.00 A²s");
+    expect(result.metrics.find((item) => item.label === "Fuse total-clearing I²t screen")?.value).toBe("Pass");
+  });
+
+  it("flags an SSR that exceeds the entered temperature-derated current", () => {
+    const result = calculateTool("solid-state-relay-calculator", { ...defaults("solid-state-relay-calculator"), mode: "verify", actualCurrent: 30, allowedCurrent: 25 });
+    expect(result.primary).toBe("5/6 entered checks pass");
+    expect(result.metrics.find((item) => item.label === "Continuous-current check")?.value).toBe("Fail");
+  });
+
+  it("localizes SSR selection results for the Spanish route", () => {
+    const result = localizeClientResult(calculateTool("solid-state-relay-calculator", defaults("solid-state-relay-calculator")), "es");
+    expect(result.primary).toBe("Selección SSR ≥ 31.06 A");
+    expect(result.metrics.find((item) => item.label === "Corriente de carga calculada")?.value).toBe("21.74 A");
+    expect(result.metrics.find((item) => item.label === "Pico de arranque que debe verificarse")?.value).toBe("25.00 A pico");
+    expect(result.metrics.find((item) => item.label === "Aplicación de carga")?.value).toBe("Calefactor");
+    expect(result.summary).toContain("La carga introducida requiere 21.74 A");
+  });
 });

@@ -1728,6 +1728,7 @@ select {
 .three-phase-power-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .three-phase-secondary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .energy-task-tabs button { min-width: 0; padding-inline: 8px; line-height: 1.25; }
+.ssr-mode-tabs button { min-width: 0; line-height: 1.25; }
 .energy-relationship-note { display: grid; gap: 3px; padding: 13px 14px; border-left: 3px solid var(--red); background: #f8fafc; }
 .energy-relationship-note strong { font-size: 13px; }
 .energy-relationship-note span { color: var(--muted); font-size: 12px; line-height: 1.5; }
@@ -2910,6 +2911,7 @@ select {
   .gland-estimate-fields { grid-template-columns: 1fr; }
   .gland-family-field { grid-column: auto; }
   .energy-task-tabs { grid-template-columns: 1fr; }
+  .ssr-mode-tabs { grid-template-columns: 1fr; }
   .three-phase-power-tabs, .three-phase-secondary-grid { grid-template-columns: 1fr; }
   .rating-visual { flex-wrap: wrap; }
 }
