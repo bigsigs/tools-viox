@@ -4,6 +4,7 @@ import { site } from "../lib/seo";
 import { categories } from "../lib/categories";
 import { englishPath, localePath, localizeRecord, t, type Locale } from "../lib/i18n";
 import CategoryIcon from "./CategoryIcon.astro";
+import { Check, ChevronRight, Globe, X } from "@lucide/astro";
 
 type Props = {
   title: string;
@@ -18,9 +19,12 @@ const currentPath = Astro.url.pathname;
 const baseEnglishPath = englishPath(currentPath);
 const englishUrl = `${site.origin}${baseEnglishPath}`;
 const spanishUrl = `${site.origin}${localePath("es", baseEnglishPath)}`;
-const targetLanguage = locale === "es"
-  ? { code: "EN", name: "English", flag: "🇺🇸", url: englishUrl }
-  : { code: "ES", name: "Español", flag: "🇪🇸", url: spanishUrl };
+const languages = [
+  { code: "EN", name: "English", flag: "🇬🇧", locale: "en", url: baseEnglishPath },
+  { code: "ES", name: "Español", flag: "🇪🇸", locale: "es", url: localePath("es", baseEnglishPath) }
+] as const;
+const languageLabel = locale === "es" ? "Seleccionar idioma" : "Select language";
+const languageHelp = locale === "es" ? "Elige el idioma de las herramientas." : "Choose the language for the tools.";
 const categoryNav = [
   { slug: "electrical-fundamentals", label: "Fundamentals" },
   { slug: "power-distribution", label: "Power Distribution" },
@@ -95,17 +99,15 @@ const categoryNav = [
         </div>
         <a href="https://viox.com/products/">{t(locale, "Products")}</a>
         <a href="https://viox.com/contact">{t(locale, "Contact")}</a>
-        <a class="language-switch" href={targetLanguage.url} lang={locale === "es" ? "en" : "es"} aria-label={`Switch to ${targetLanguage.name}`} title={targetLanguage.name}>
-          <span class="language-flag" aria-hidden="true">{targetLanguage.flag}</span>
-          <span>{targetLanguage.code}</span>
-        </a>
+        <button class="language-trigger" type="button" data-language-trigger aria-haspopup="dialog" aria-controls="language-dialog" aria-label={languageLabel} title={languageLabel}>
+          <Globe size={19} stroke-width={2.2} aria-hidden="true" />
+        </button>
       </nav>
       <div class="mobile-header-actions">
         <a class="header-icon header-search" href={`${localePath(locale, "/")}#calculator-search`} aria-label={t(locale, "Search calculators...")} title={t(locale, "Search calculators...")}></a>
-        <a class="mobile-language-switch" href={targetLanguage.url} lang={locale === "es" ? "en" : "es"} aria-label={`Switch to ${targetLanguage.name}`} title={targetLanguage.name}>
-          <span class="language-flag" aria-hidden="true">{targetLanguage.flag}</span>
-          <span>{targetLanguage.code}</span>
-        </a>
+        <button class="language-trigger mobile-language-trigger" type="button" data-language-trigger aria-haspopup="dialog" aria-controls="language-dialog" aria-label={languageLabel} title={languageLabel}>
+          <Globe size={19} stroke-width={2.2} aria-hidden="true" />
+        </button>
         <details class="mobile-menu">
           <summary class="header-icon header-menu" aria-label="Open navigation" title="Menu"><span></span></summary>
           <nav aria-label="Mobile navigation">
@@ -113,11 +115,40 @@ const categoryNav = [
             {categoryNav.map((item) => <a href={localePath(locale, `/category/${item.slug}/`)}><i><CategoryIcon category={item.slug} size={19} /></i><span>{locale === "es" ? localizeRecord(categories[item.slug], locale).title : item.label}</span></a>)}
             <a href="https://viox.com/products/"><i aria-hidden="true">V</i><span>{t(locale, "VIOX Products")}</span></a>
             <a href="https://viox.com/contact"><i aria-hidden="true">@</i><span>{t(locale, "Contact")}</span></a>
-            <a href={targetLanguage.url} lang={locale === "es" ? "en" : "es"}><i class="menu-language-flag" aria-hidden="true">{targetLanguage.flag}</i><span>{targetLanguage.name}</span></a>
           </nav>
         </details>
       </div>
     </header>
+    <dialog class="language-dialog" id="language-dialog" aria-labelledby="language-dialog-title">
+      <div class="language-dialog-panel">
+        <header class="language-dialog-header">
+          <span class="language-dialog-icon" aria-hidden="true"><Globe size={21} stroke-width={2.1} /></span>
+          <div>
+            <h2 id="language-dialog-title">{languageLabel}</h2>
+            <p>{languageHelp}</p>
+          </div>
+          <form method="dialog">
+            <button class="language-dialog-close" type="submit" aria-label={locale === "es" ? "Cerrar" : "Close"} title={locale === "es" ? "Cerrar" : "Close"}>
+              <X size={21} stroke-width={2.2} aria-hidden="true" />
+            </button>
+          </form>
+        </header>
+        <nav class="language-list" aria-label={languageLabel}>
+          {languages.map((language) => {
+            const isCurrent = language.locale === locale;
+            return (
+              <a class:list={["language-option", { current: isCurrent }]} href={language.url} lang={language.locale} aria-current={isCurrent ? "page" : undefined}>
+                <span class="language-option-flag" aria-hidden="true">{language.flag}</span>
+                <span class="language-option-name"><strong>{language.name}</strong><small>{language.code}</small></span>
+                <span class="language-option-status" aria-hidden="true">
+                  {isCurrent ? <Check size={20} stroke-width={2.4} /> : <ChevronRight size={21} stroke-width={2.2} />}
+                </span>
+              </a>
+            );
+          })}
+        </nav>
+      </div>
+    </dialog>
     <slot />
     <footer class="site-footer">
       <div class="footer-simple">
@@ -149,5 +180,27 @@ const categoryNav = [
         </nav>
       </div>
     </footer>
+    <script is:inline>
+      (() => {
+        const dialog = document.getElementById("language-dialog");
+        if (!(dialog instanceof HTMLDialogElement)) return;
+
+        let opener = null;
+        document.querySelectorAll("[data-language-trigger]").forEach((trigger) => {
+          trigger.addEventListener("click", () => {
+            opener = trigger;
+            dialog.showModal();
+          });
+        });
+
+        dialog.addEventListener("click", (event) => {
+          if (event.target === dialog) dialog.close();
+        });
+
+        dialog.addEventListener("close", () => {
+          if (opener instanceof HTMLElement) opener.focus();
+        });
+      })();
+    </script>
   </body>
 </html>
