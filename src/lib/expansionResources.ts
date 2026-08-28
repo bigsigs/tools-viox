@@ -36,6 +36,7 @@ export const expansionResources: Resources = {
   "battery-charging-time-calculator": resource("Battery power and energy unit guide", "https://viox.com/kwh-vs-mwh-vs-mw-battery-energy-storage/", "VIOX DC circuit breakers", "https://viox.com/dc-mcb/"),
   "resistor-series-parallel-calculator": resource("Low-voltage electrical formulas guide", "https://viox.com/electrical-formulas-low-voltage-panel-design-maintenance/", "VIOX terminal block products", "https://viox.com/terminal-block/"),
   "electrical-unit-converter": resource("kW and kWh difference explained", "https://viox.com/kw-vs-kwh-difference/", "VIOX electrical protection products", "https://viox.com/products/"),
+  "kw-to-hp-calculator": resource("How to select contactors and breakers from motor power", "https://viox.com/how-to-select-contactors-and-circuit-breakers-based-on-motor-power/", "VIOX motor control products", "https://viox.com/products/"),
   "contactor-selection-calculator": resource("Motor contactor selection guide", "https://viox.com/how-to-select-contactors-and-circuit-breakers-based-on-motor-power/", "VIOX AC contactor products", "https://viox.com/ac-contactor/"),
   "breaker-selectivity-calculator": resource("Circuit breaker selection guide", "https://viox.com/standard-breaker-sizes/", "VIOX MCB and MCCB products", "https://viox.com/mccb/"),
   "lightning-risk-assessment-calculator": resource("SPD Type 1, Type 2 and Type 3 guide", "https://viox.com/surge-protective-device-type-1-vs-type-2-vs-type-3/", "VIOX surge protective devices", "https://viox.com/spd/"),

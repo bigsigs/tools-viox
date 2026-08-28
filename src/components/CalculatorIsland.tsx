@@ -666,6 +666,16 @@ export default function CalculatorIsland({ slug, locale = "en", localizedTool }:
             </div>
             <div className="gland-distinction"><strong>Two checks, one selection</strong><span>The sealing range must fit the cable OD. The entry thread must independently fit the enclosure opening.</span></div>
           </>
+        ) : slug === "kw-to-hp-calculator" ? (
+          <>
+            <div className="converter-tabs kw-hp-tabs" role="tablist" aria-label="Kilowatt and horsepower conversion direction">
+              <button type="button" role="tab" aria-selected={String(values.direction) === "kw-to-hp"} className={String(values.direction) === "kw-to-hp" ? "active" : ""} onClick={() => update("direction", "kw-to-hp")}>kW → HP</button>
+              <button type="button" role="tab" aria-selected={String(values.direction) === "hp-to-kw"} className={String(values.direction) === "hp-to-kw" ? "active" : ""} onClick={() => update("direction", "hp-to-kw")}>HP → kW</button>
+            </div>
+            <label className="field"><span>{String(values.direction) === "kw-to-hp" ? "Power in kilowatts" : "Power in horsepower"}</span><div className="unit-input"><input type="number" inputMode="decimal" min="0" step="0.01" value={String(values.power)} onChange={(event) => update("power", event.target.value)} /><span className="unit-addon">{String(values.direction) === "kw-to-hp" ? "kW" : String(values.horsepowerType) === "metric" ? "PS" : String(values.horsepowerType) === "electrical" ? "hp(E)" : "hp"}</span></div></label>
+            <label className="field"><span>Horsepower standard</span><select value={String(values.horsepowerType)} onChange={(event) => update("horsepowerType", event.target.value)}><option value="mechanical">Mechanical horsepower (hp)</option><option value="metric">Metric horsepower (PS / CV)</option><option value="electrical">Electrical horsepower (hp(E))</option></select><small>Mechanical hp is the usual default for motors unless the source explicitly states PS, CV, or hp(E).</small></label>
+            <div className="kw-hp-reference"><strong>{String(values.horsepowerType) === "metric" ? "1 PS = 0.73549875 kW" : String(values.horsepowerType) === "electrical" ? "1 hp(E) = 0.746 kW" : "1 hp = 0.7456998716 kW"}</strong><span>This converts power units only. Motor electrical input also depends on efficiency and power factor.</span></div>
+          </>
         ) : slug === "electrical-unit-converter" ? (
           <>
             <div className="converter-tabs" role="tablist" aria-label="Conversion mode">

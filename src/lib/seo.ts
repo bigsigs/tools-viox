@@ -3,7 +3,7 @@ import type { ToolDefinition } from "./types";
 export const site = {
   name: "VIOX Electrical Tools",
   origin: "https://tools.viox.com",
-  description: "Use 57 free electrical calculators for voltage, cable, enclosures, lighting, MCB, MCCB, SPD, motors, VFDs, solar, batteries, EV charging, and panel design.",
+  description: "Use 85 free electrical calculators for voltage, cable, enclosures, lighting, MCB, MCCB, SPD, motors, VFDs, solar, batteries, EV charging, and panel design.",
   logo: "https://viox.com/wp-content/uploads/2021/05/VIOX-NEW-LOGO.png"
 };
 
@@ -35,6 +35,10 @@ const toolSeoMeta: Record<string, { title: string; description: string }> = {
   "mm2-to-awg-converter": {
     title: "Free mm² to AWG and AWG to mm² Converter + Chart | VIOX",
     description: "Free mm² to AWG and AWG to mm² converter with a full chart. Compare exact area, nearest gauge, not-smaller size, diameter, and conversion error."
+  },
+  "kw-to-hp-calculator": {
+    title: "kW to HP Calculator & HP to kW Converter | VIOX",
+    description: "Convert kW to HP or HP to kW instantly. Compare mechanical horsepower, metric PS/CV, and electrical horsepower with formulas and a conversion chart."
   },
   "circuit-breaker-size-calculator": {
     title: "Circuit Breaker Size Calculator | VIOX",

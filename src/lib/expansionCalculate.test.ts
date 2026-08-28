@@ -185,6 +185,13 @@ describe("20-calculator expansion reference cases", () => {
     expect(calculateTool("electrical-unit-converter", defaults("electrical-unit-converter")).primary).toBe("1.341 hp");
   });
 
+  it("converts kW and hp in both directions with explicit horsepower standards", () => {
+    expect(calculateTool("kw-to-hp-calculator", defaults("kw-to-hp-calculator")).primary).toBe("1.341 hp");
+    expect(calculateTool("kw-to-hp-calculator", { ...defaults("kw-to-hp-calculator"), direction: "hp-to-kw", power: 10 }).primary).toBe("7.457 kW");
+    expect(calculateTool("kw-to-hp-calculator", { ...defaults("kw-to-hp-calculator"), horsepowerType: "metric" }).primary).toBe("1.360 PS");
+    expect(metric("kw-to-hp-calculator", "Electrical horsepower", { horsepowerType: "mechanical" })).toBe("1.340 hp(E)");
+  });
+
   it("converts energy in both directions", () => {
     expect(calculateTool("electrical-unit-converter", { ...defaults("electrical-unit-converter"), quantity: "energy", fromUnit: "kwh", toUnit: "mj", leftValue: 1, inputSide: "left" }).primary).toBe("3.600 MJ");
     expect(calculateTool("electrical-unit-converter", { ...defaults("electrical-unit-converter"), quantity: "energy", fromUnit: "kwh", toUnit: "mj", rightValue: 7.2, inputSide: "right" }).primary).toBe("2.000 kWh");

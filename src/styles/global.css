@@ -1866,6 +1866,10 @@ select {
 .gland-distinction strong { font-size: 13px; }
 .gland-distinction span { color: var(--muted); font-size: 12px; line-height: 1.5; }
 .awg-mode-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.kw-hp-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.kw-hp-reference { display: grid; gap: 3px; padding: 13px 14px; border-left: 3px solid var(--red); background: #f8fafc; }
+.kw-hp-reference strong { color: var(--ink); font-size: 13px; }
+.kw-hp-reference span { color: var(--muted); font-size: 12px; line-height: 1.5; }
 .awg-input-note { display: grid; gap: 3px; padding: 13px 14px; border: 1px solid var(--line); background: #f8fafc; }
 .awg-input-note strong { font-size: 13px; }
 .awg-input-note span { color: var(--muted); font-size: 12px; line-height: 1.5; }

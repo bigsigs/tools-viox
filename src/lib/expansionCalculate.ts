@@ -40,6 +40,7 @@ export function calculateExpansionTool(slug: string, v: Values): CalculationResu
     case "battery-charging-time-calculator": return batteryCharge(v);
     case "resistor-series-parallel-calculator": return resistors(v);
     case "electrical-unit-converter": return units(v);
+    case "kw-to-hp-calculator": return kwHorsepower(v);
     case "contactor-selection-calculator": return contactor(v);
     case "breaker-selectivity-calculator": return selectivity(v);
     case "lightning-risk-assessment-calculator": return lightning(v);
@@ -433,6 +434,31 @@ function units(v: Values): CalculationResult {
   const sourceUnit = inputSide === "right" ? to : from, targetUnit = inputSide === "right" ? from : to;
   const converted = source * table[sourceUnit] / table[targetUnit];
   return result(`${f(converted)} ${toLabel(targetUnit)}`, "ok", `${f(source)} ${toLabel(sourceUnit)} equals ${f(converted)} ${toLabel(targetUnit)}.`, [["Base-unit value", `${f(source * table[sourceUnit])} ${quantity === "power" ? "W" : "J"}`], ["Conversion factor", f(table[sourceUnit] / table[targetUnit])]], ["Power and energy are different quantities; converting between them requires a duration."]);
+}
+
+const horsepowerKw: Record<string, number> = { mechanical: 0.7456998715822702, metric: 0.73549875, electrical: 0.746 };
+const horsepowerLabels: Record<string, { short: string; name: string }> = {
+  mechanical: { short: "hp", name: "Mechanical horsepower" },
+  metric: { short: "PS", name: "Metric horsepower" },
+  electrical: { short: "hp(E)", name: "Electrical horsepower" }
+};
+
+function kwHorsepower(v: Values): CalculationResult {
+  const direction = s(v.direction), type = s(v.horsepowerType), input = nonneg(v.power, "Power");
+  const factor = horsepowerKw[type], label = horsepowerLabels[type];
+  if (!factor || !label) throw new Error("Choose a valid horsepower standard.");
+  if (!(["kw-to-hp", "hp-to-kw"].includes(direction))) throw new Error("Choose a valid conversion direction.");
+
+  const kw = direction === "kw-to-hp" ? input : input * factor;
+  const hp = direction === "kw-to-hp" ? input / factor : input;
+  const mechanical = kw / horsepowerKw.mechanical;
+  const metric = kw / horsepowerKw.metric;
+  const electrical = kw / horsepowerKw.electrical;
+  const primary = direction === "kw-to-hp" ? `${f(hp)} ${label.short}` : `${f(kw)} kW`;
+  const source = direction === "kw-to-hp" ? `${f(input)} kW` : `${f(input)} ${label.short}`;
+  const target = direction === "kw-to-hp" ? `${f(hp)} ${label.short}` : `${f(kw)} kW`;
+
+  return result(primary, "ok", `${source} equals ${target} using the ${label.name.toLowerCase()} definition.`, [["Selected horsepower standard", label.name], ["Kilowatt value", `${f(kw)} kW`], ["Watt value", `${f(kw * 1000)} W`], ["Mechanical horsepower", `${f(mechanical)} hp`], ["Metric horsepower", `${f(metric)} PS / CV`], ["Electrical horsepower", `${f(electrical)} hp(E)`], ["Selected conversion factor", `1 ${label.short} = ${factor.toFixed(type === "electrical" ? 3 : 10).replace(/0+$/, "").replace(/\.$/, "")} kW`]], ["Use mechanical horsepower unless the source explicitly specifies metric PS/CV or electrical hp(E).", "For motor current or electrical input power, continue with motor efficiency, power factor, voltage, and phase information.", "Keep converted shaft power separate from motor electrical input and service-factor loading."]);
 }
 
 function contactor(v: Values): CalculationResult {

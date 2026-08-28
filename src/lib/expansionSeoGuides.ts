@@ -187,3 +187,34 @@ expansionSeoGuides["nema-ip-rating-converter"] = {
     { title: "NEMA and IP selection examples", paragraphs: ["A clean indoor control panel may begin with Type 1. An indoor machining area with dripping oil may point toward Type 12, while spraying coolant may point toward Type 13. Outdoor rain without windblown dust may point toward Type 3R. A corrosive food-processing washdown area may begin with Type 4X, subject to exact chemical and sanitation requirements."], callouts: ["IP66 does not automatically mean NEMA 4X", "NEMA Type 3R cross-reference is not the same as Type 3", "IPX8 depth and duration must be confirmed"] }
   ]
 };
+
+expansionSeoGuides["kw-to-hp-calculator"] = {
+  sections: [
+    {
+      title: "How to convert kW to HP or HP to kW",
+      paragraphs: ["Choose the conversion direction, enter the known power, and select the horsepower definition used by the source. Mechanical horsepower is the normal default for motors and industrial equipment unless the nameplate or document explicitly uses metric PS, CV, or electrical hp(E)."],
+      steps: ["Choose kW to HP or HP to kW.", "Enter the known power value.", "Select mechanical, metric, or electrical horsepower.", "Read the main result and compare the other horsepower definitions.", "For motor current, continue with voltage, phase, efficiency, and power factor."]
+    },
+    {
+      title: "kW to mechanical horsepower formula",
+      paragraphs: ["Mechanical horsepower is based on 550 foot-pounds per second and equals exactly 745.69987158227022 watts. Because one kilowatt is 1000 watts, divide kW by 0.7456998716 to obtain mechanical horsepower. To convert mechanical horsepower back to kilowatts, multiply by the same factor."],
+      callouts: ["1 kW = 1.34102209 mechanical hp", "1 mechanical hp = 0.7456998716 kW", "10 kW = 13.4102 mechanical hp"]
+    },
+    {
+      title: "Mechanical hp, metric PS, and electrical hp",
+      paragraphs: ["Horsepower is not one universal unit. Mechanical horsepower is common on US and international motor references. Metric horsepower is commonly marked PS, CV, pk, or ch depending on language and market. Electrical horsepower is defined as 746 watts and should only be selected when the source explicitly uses that definition."],
+      table: { headers: ["Horsepower definition", "Watts per hp", "Kilowatts per hp", "1 kW equals"], rows: [["Mechanical hp", "745.6998716 W", "0.7456998716 kW", "1.341022 hp"], ["Metric PS / CV", "735.49875 W", "0.73549875 kW", "1.359622 PS"], ["Electrical hp(E)", "746 W", "0.746 kW", "1.340483 hp(E)"]] }
+    },
+    {
+      title: "kW to HP conversion chart",
+      paragraphs: ["The following reference values use mechanical horsepower. The calculator should be used when another horsepower definition or more precision is required."],
+      table: { headers: ["Kilowatts", "Mechanical horsepower"], rows: [["1 kW", "1.341 hp"], ["2.2 kW", "2.950 hp"], ["5.5 kW", "7.376 hp"], ["7.5 kW", "10.058 hp"], ["11 kW", "14.751 hp"], ["15 kW", "20.115 hp"], ["18.5 kW", "24.808 hp"], ["22 kW", "29.503 hp"], ["30 kW", "40.231 hp"], ["37 kW", "49.617 hp"], ["45 kW", "60.346 hp"], ["55 kW", "73.756 hp"], ["75 kW", "100.577 hp"], ["90 kW", "120.692 hp"], ["110 kW", "147.512 hp"]] }
+    },
+    {
+      title: "Motor kW, horsepower, efficiency, and current",
+      paragraphs: ["A motor nameplate power in kW or hp usually identifies rated mechanical shaft output. It is not the same as electrical input power. Input kW is shaft-output kW divided by efficiency, while AC current also depends on supply voltage, phase arrangement, and power factor. A unit conversion alone cannot size a circuit breaker, contactor, cable, overload relay, or VFD."],
+      bullets: ["Use the motor nameplate current when available.", "Do not apply efficiency twice when the entered kW is already electrical input.", "Service factor and overload capability do not change the unit conversion.", "Equipment selection must use the exact manufacturer rating table and operating duty."],
+      links: [{ label: "Calculate motor current from kW or hp", href: "/motor-current-calculator/" }, { label: "Convert motor power and speed to torque", href: "/motor-torque-calculator/" }, { label: "Convert kW, kVA, and amps", href: "/kw-kva-amp-calculator/" }]
+    }
+  ]
+};
