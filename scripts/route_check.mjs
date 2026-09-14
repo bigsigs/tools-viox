@@ -11,7 +11,7 @@ if (!existsSync(join(dist, "index.html")) || !existsSync(join(dist, "robots.txt"
 }
 
 const directories = readdirSync(dist, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-const nonRouteDirectories = new Set(["category", "embed", "images"]);
+const nonRouteDirectories = new Set(["category", "embed", "images", "es"]);
 const toolSlugs = directories.filter((name) => !name.startsWith("_") && !nonRouteDirectories.has(name));
 const categorySlugs = readdirSync(join(dist, "category"), { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
 const embedSlugs = readdirSync(join(dist, "embed"), { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name);

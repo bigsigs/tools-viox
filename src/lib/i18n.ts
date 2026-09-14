@@ -89,6 +89,7 @@ export function localizeEquation(equation: ToolEquation | undefined, locale: Loc
     intro: t(locale, equation.intro),
     equations: equation.equations.map((item) => ({
       ...item,
+      expression: t(locale, item.expression),
       label: item.label ? t(locale, item.label) : undefined,
       note: item.note ? t(locale, item.note) : undefined
     })),

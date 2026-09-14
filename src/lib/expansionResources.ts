@@ -58,5 +58,12 @@ export const expansionResources: Resources = {
   "stationary-battery-sizing-calculator": resource("BESS DC, AC and signal surge protection guide", "https://viox.com/bess-surge-protection-dc-ac-signal-spd-selection-guide/", "VIOX DC circuit breakers", "https://viox.com/dc-mcb/"),
   "residential-electrical-load-calculator": resource("Circuit breaker load and wire sizing guide", "https://viox.com/homeowners-guide-to-circuit-breaker-sizing-and-load-calculation/", "VIOX residential RCBOs", "https://viox.com/rcbo/"),
   "nema-ip-rating-converter": resource("IP rating selection guide", "https://viox.com/ip-rating-chart/", "VIOX electrical enclosures", "https://viox.com/enclosures/"),
-  "solid-state-relay-calculator": resource("Understanding solid state relays", "https://viox.com/understanding-solid-state-relays/", "VIOX relay and control products", "https://viox.com/products/")
+  "solid-state-relay-calculator": resource("Understanding solid state relays", "https://viox.com/understanding-solid-state-relays/", "VIOX relay and control products", "https://viox.com/products/"),
+  "afdd-selection-calculator": resource("Understanding IEC 62606 AFDD protection", "https://viox.com/understanding-afdd-iec-62606-arc-fault-protection/", "VIOX AFDD products", "https://viox.com/affd/"),
+  "dc-breaker-sizing-calculator": resource("Solar and energy-storage application guide", "https://viox.com/applications/solar-energy-storage/", "VIOX DC circuit breakers", "https://viox.com/dc-mcb/"),
+  "pv-dc-isolator-sizing-calculator": resource("Solar and energy-storage application guide", "https://viox.com/applications/solar-energy-storage/", "VIOX solar DC protection products", "https://viox.com/products/"),
+  "acb-lsig-setting-calculator": resource("Short-circuit current calculation guide", "https://viox.com/how-to-calculate-short-circuit-current-for-mcb/", "VIOX circuit protection products", "https://viox.com/products/"),
+  "ct-ratio-burden-calculator": resource("Single-phase and three-phase power guide", "https://viox.com/the-technical-nuances-of-single-phase-and-three-phase-power-systems/", "VIOX metering products", "https://viox.com/products/"),
+  "breaker-accessory-power-calculator": resource("Circuit breaker selection guide", "https://viox.com/standard-breaker-sizes/", "VIOX breaker accessories", "https://viox.com/products/"),
+  "pv-dc-ats-calculator": resource("Solar and energy-storage application guide", "https://viox.com/applications/solar-energy-storage/", "VIOX transfer switching products", "https://viox.com/products/")
 };

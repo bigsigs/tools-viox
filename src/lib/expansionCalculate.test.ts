@@ -192,6 +192,56 @@ describe("20-calculator expansion reference cases", () => {
     expect(metric("kw-to-hp-calculator", "Electrical horsepower", { horsepowerType: "mechanical" })).toBe("1.340 hp(E)");
   });
 
+  it("screens an entered VIOX AFDD configuration without claiming a universal code requirement", () => {
+    const result = calculateTool("afdd-selection-calculator", defaults("afdd-selection-calculator"));
+    expect(result.primary).toBe("VAF1-40 / VAF3-40M candidate");
+    expect(result.metrics.find((item) => item.label === "Product envelope")?.value).toBe("Passes entered ratings");
+    expect(result.metrics.find((item) => item.label === "Requirement status")?.value).toBe("Review local rules");
+  });
+
+  it("sizes and checks a DC breaker independently of AC breaker assumptions", () => {
+    const result = calculateTool("dc-breaker-sizing-calculator", defaults("dc-breaker-sizing-calculator"));
+    expect(result.primary).toBe("40 A DC breaker");
+    expect(result.metrics.find((item) => item.label === "Required design current")?.value).toBe("40.00 A");
+    expect(result.metrics.find((item) => item.label === "Combined rating check")?.value).toBe("Passes entered ratings");
+  });
+
+  it("uses cold corrected PV string voltage and array current for isolator screening", () => {
+    const result = calculateTool("pv-dc-isolator-sizing-calculator", defaults("pv-dc-isolator-sizing-calculator"));
+    expect(result.primary).toBe("40 A / >= 978.3 V DC");
+    expect(result.metrics.find((item) => item.label === "Cold array Voc")?.value).toBe("978.3 V");
+    expect(result.metrics.find((item) => item.label === "Candidate check")?.value).toBe("Passes entered ratings");
+  });
+
+  it("builds an ACB frame and LSIG worksheet from load, cable and fault inputs", () => {
+    const result = calculateTool("acb-lsig-setting-calculator", defaults("acb-lsig-setting-calculator"));
+    expect(result.primary).toBe("1000 A frame");
+    expect(result.metrics.find((item) => item.label === "Long-time pickup Ir")?.value).toBe("880 A");
+    expect(result.metrics.find((item) => item.label === "Breaking-capacity check")?.value).toBe("Passes entered fault current");
+  });
+
+  it("includes CT secondary lead resistance in the burden calculation", () => {
+    const result = calculateTool("ct-ratio-burden-calculator", defaults("ct-ratio-burden-calculator"));
+    expect(result.primary).toBe("500/5 A");
+    expect(result.metrics.find((item) => item.label === "Lead burden")?.value).toBe("7.000 VA");
+    expect(result.metrics.find((item) => item.label === "Total connected burden")?.value).toBe("10.50 VA");
+  });
+
+  it("separates breaker accessory peak VA from continuous VA", () => {
+    const result = calculateTool("breaker-accessory-power-calculator", defaults("breaker-accessory-power-calculator"));
+    expect(result.primary).toBe(">= 375 VA supply");
+    expect(result.metrics.find((item) => item.label === "Peak operating demand")?.value).toBe("300.0 VA");
+    expect(result.metrics.find((item) => item.label === "Continuous demand")?.value).toBe("15.00 VA");
+  });
+
+  it("sizes a DC ATS from power and screens current and voltage ratings", () => {
+    const result = calculateTool("pv-dc-ats-calculator", defaults("pv-dc-ats-calculator"));
+    expect(result.primary).toBe("50 A DC ATS");
+    expect(result.metrics.find((item) => item.label === "DC source arrangement")?.value).toBe("Battery / PV sources");
+    expect(result.metrics.find((item) => item.label === "Required design current")?.value).toBe("50.00 A");
+    expect(result.metrics.find((item) => item.label === "Candidate check")?.value).toBe("Passes entered ratings");
+  });
+
   it("converts energy in both directions", () => {
     expect(calculateTool("electrical-unit-converter", { ...defaults("electrical-unit-converter"), quantity: "energy", fromUnit: "kwh", toUnit: "mj", leftValue: 1, inputSide: "left" }).primary).toBe("3.600 MJ");
     expect(calculateTool("electrical-unit-converter", { ...defaults("electrical-unit-converter"), quantity: "energy", fromUnit: "kwh", toUnit: "mj", rightValue: 7.2, inputSide: "right" }).primary).toBe("2.000 kWh");

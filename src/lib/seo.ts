@@ -3,7 +3,7 @@ import type { ToolDefinition } from "./types";
 export const site = {
   name: "VIOX Electrical Tools",
   origin: "https://tools.viox.com",
-  description: "Use 85 free electrical calculators for voltage, cable, enclosures, lighting, MCB, MCCB, SPD, motors, VFDs, solar, batteries, EV charging, and panel design.",
+  description: "Use 92 free electrical calculators for voltage, cable, enclosures, lighting, MCB, MCCB, SPD, motors, VFDs, solar, batteries, EV charging, and panel design.",
   logo: "https://viox.com/wp-content/uploads/2021/05/VIOX-NEW-LOGO.png"
 };
 
@@ -39,6 +39,34 @@ const toolSeoMeta: Record<string, { title: string; description: string }> = {
   "kw-to-hp-calculator": {
     title: "kW to HP Calculator & HP to kW Converter | VIOX",
     description: "Convert kW to HP or HP to kW instantly. Compare mechanical horsepower, metric PS/CV, and electrical horsepower with formulas and a conversion chart."
+  },
+  "afdd-selection-calculator": {
+    title: "AFDD Selection Calculator & Requirement Check | VIOX",
+    description: "Check a preliminary AFDD or AFDD-RCBO specification by circuit, current, B/C curve, Type A sensitivity, voltage, and prospective fault current."
+  },
+  "dc-breaker-sizing-calculator": {
+    title: "DC Circuit Breaker Sizing Calculator | VIOX",
+    description: "Size a DC MCB or MCCB and check design current, cable ampacity, maximum DC voltage, pole arrangement, fault current, and breaking capacity."
+  },
+  "pv-dc-isolator-sizing-calculator": {
+    title: "PV DC Isolator Sizing Calculator | VIOX",
+    description: "Calculate cold PV array Voc and design current, then check a solar DC isolator voltage, current, DC-PV duty, and pole arrangement."
+  },
+  "acb-lsig-setting-calculator": {
+    title: "ACB LSIG Setting & Frame Size Calculator | VIOX",
+    description: "Build a preliminary ACB frame and LSIG worksheet for Ir, Isd, Ii, and Ig using feeder current, cable ampacity, fault level, and pickup multiples."
+  },
+  "ct-ratio-burden-calculator": {
+    title: "CT Ratio & Burden Calculator: 1A or 5A | VIOX",
+    description: "Select a current transformer ratio and calculate copper lead, meter, relay, and total VA burden for 1 A or 5 A CT secondary circuits."
+  },
+  "breaker-accessory-power-calculator": {
+    title: "Breaker Accessory Power & Control VA Calculator | VIOX",
+    description: "Calculate peak and continuous control-supply VA for breaker shunt trips, undervoltage releases, motor operators, and auxiliary loads."
+  },
+  "pv-dc-ats-calculator": {
+    title: "PV DC ATS & Transfer Switch Sizing Calculator | VIOX",
+    description: "Size a PV or battery DC transfer switch and check current, maximum voltage, transition method, conductor arrangement, and switched poles."
   },
   "circuit-breaker-size-calculator": {
     title: "Circuit Breaker Size Calculator | VIOX",

@@ -1030,5 +1030,61 @@
   {
     "source": "__V0__ A peak",
     "target": "__V0__ A pico"
+  },
+  {
+    "source": "The operating current is __V0__ A and the entered design factor produces __V1__ A. The next standard current reference is __V2__ A.",
+    "target": "La corriente operativa es __V0__ A y el factor de diseño introducido produce __V1__ A. La siguiente referencia de corriente estándar es __V2__ A."
+  },
+  {
+    "source": "The cold-corrected array open-circuit voltage is __V0__ V and the design current is __V1__ A.",
+    "target": "El voltaje en vacío de la cadena corregido por frío es __V0__ V y la corriente de diseño es __V1__ A."
+  },
+  {
+    "source": "The preliminary frame reference is __V0__ A and the entered long-time margin produces an Ir starting point of __V1__ A.",
+    "target": "La referencia preliminar del marco es __V0__ A y la margen de tiempo prolongado introducida produce un punto inicial Ir de __V1__ A."
+  },
+  {
+    "source": "The maximum transferred load is __V0__ A and the entered continuous factor produces a __V1__ A operational-current requirement.",
+    "target": "La carga transferida máxima es __V0__ A y el factor continuo introducido produce una exigencia operacional de corriente de __V1__ A."
+  },
+  {
+    "source": "The reference ratio is __V0__/__V1__ A. The complete secondary circuit presents __V2__ VA burden at rated secondary current.",
+    "target": "La relación de referencia es __V0__/__V1__ A. El circuito secundario completo presenta __V2__ VA de carga a la corriente secundaria nominal."
+  },
+  {
+    "source": "The entered accessories require __V0__ VA during the governing operating event and __V1__ VA continuously before design margin.",
+    "target": "Los accesorios introducidos requieren __V0__ VA durante el evento operativo de referencia y __V1__ VA continuamente antes de aplicar el margen de diseño."
+  },
+  {
+    "source": "__V0__ A DC breaker",
+    "target": "Disyuntor CC de __V0__ A"
+  },
+  {
+    "source": "__V0__ A / >= __V1__ V DC",
+    "target": "__V0__ A / >= __V1__ V CC"
+  },
+  {
+    "source": "__V0__ A frame",
+    "target": "Bastidor de __V0__ A"
+  },
+  {
+    "source": ">= __V0__ VA supply",
+    "target": "Suministro >= __V0__ VA"
+  },
+  {
+    "source": "__V0__ A DC ATS",
+    "target": "ATS CC de __V0__ A"
+  },
+  {
+    "source": "__V0__ pole",
+    "target": "__V0__ polo"
+  },
+  {
+    "source": "__V0__ poles",
+    "target": "__V0__ polos"
+  },
+  {
+    "source": "The entered __V0__ A __V1__-curve configuration fits the published VIOX AFDD rating envelope. Applicability still depends on the rules adopted for the project.",
+    "target": "La configuración introducida de __V0__ A con curva __V1__ encaja en la envolvente de clasificación AFDD publicada por VIOX. La aplicabilidad sigue dependiendo de las normas adoptadas para el proyecto."
   }
 ]

@@ -608,5 +608,132 @@ export const expansionTools: ToolDefinition[] = [
     relatedTools: ["panel-heat-loss-calculator", "enclosure-temperature-rise-calculator", "fuse-sizing-calculator"],
     relatedProducts: [{ label: "VIOX solid state relay engineering guide", href: "https://viox.com/understanding-solid-state-relays/" }, { label: "VIOX relay and control products", href: "https://viox.com/products/" }],
     keywords: ["solid state relay calculator", "SSR sizing calculator", "solid state relay selection", "SSR heatsink calculator", "SSR heat dissipation calculator", "SSR current rating calculator", "SSR I2t fuse calculator", "zero cross SSR selection"]
+  },
+  {
+    slug: "afdd-selection-calculator", title: "AFDD Requirement & Selection Calculator", shortTitle: "AFDD Selection", category: "circuit-protection",
+    description: "Screen an AFDD or AFDD-RCBO requirement and check a preliminary VIOX configuration by circuit, current, curve, residual sensitivity, and fault level.", intent: "Turn an arc-fault protection requirement into a reviewable product specification without claiming that one rule applies in every market.",
+    fields: [
+      { id: "market", label: "Region / rules basis", type: "select", defaultValue: "iec", options: [{ value: "iec", label: "IEC / EN project" }, { value: "uk", label: "United Kingdom" }, { value: "eu", label: "European Union / local adoption" }, { value: "other", label: "Other – verify local rules" }] },
+      { id: "premises", label: "Premises / risk context", type: "select", defaultValue: "residential", options: [{ value: "residential", label: "Residential dwelling" }, { value: "sleeping", label: "Sleeping accommodation" }, { value: "fire-risk", label: "Fire-risk or combustible location" }, { value: "commercial", label: "Commercial final circuit" }, { value: "industrial", label: "Industrial circuit" }] },
+      { id: "circuit", label: "Final-circuit use", type: "select", defaultValue: "socket", options: [{ value: "socket", label: "Socket-outlet circuit" }, { value: "lighting", label: "Lighting circuit" }, { value: "fixed", label: "Fixed appliance" }, { value: "motor", label: "Motor / inductive load" }] },
+      { id: "voltage", label: "Circuit voltage", type: "number", defaultValue: 230, unit: "V AC", min: 0 },
+      { id: "designCurrent", label: "Design current", type: "number", defaultValue: 24, unit: "A", min: 0 },
+      { id: "candidateCurrent", label: "Candidate rated current", type: "select", defaultValue: "32", options: ["6", "10", "13", "16", "20", "25", "32", "40"].map(value => ({ value, label: `${value} A` })) },
+      { id: "curve", label: "Overcurrent characteristic", type: "select", defaultValue: "c", options: [{ value: "b", label: "B curve" }, { value: "c", label: "C curve" }] },
+      { id: "residualSensitivity", label: "Type A residual sensitivity", type: "select", defaultValue: "30", options: [{ value: "10", label: "10 mA" }, { value: "30", label: "30 mA" }] },
+      { id: "faultCurrent", label: "Prospective short-circuit current", type: "number", defaultValue: 4.5, unit: "kA", min: 0 }
+    ],
+    formula: "Check Ib <= In, voltage compatibility, Type A residual sensitivity, B/C characteristic, poles, and rated short-circuit capacity; AFDD applicability remains a local-rules decision.",
+    assumptions: ["VIOX VAF1-40 and VAF3-40M published envelope: 240 V AC, 1P+N, 6-40 A, B/C, Type A 10/30 mA, 6 kA", "Final circuit supplied line-to-neutral", "Entered prospective fault current applies at the installation point"],
+    warnings: [standardWarning, "The calculator does not declare that an AFDD is legally required. Confirm the current local wiring rules, adopted edition, exceptions, and project specification.", "AFDD, residual-current, overload, and short-circuit functions must all be verified for the exact ordered model."],
+    faqs: [{ question: "Does every final circuit require an AFDD?", answer: "No universal answer applies. Requirements and recommendations depend on the jurisdiction, premises, circuit, adopted standard edition, risk assessment, and local amendments." }, { question: "Can an AFDD replace an RCD or breaker?", answer: "Only when the exact product integrates the required residual-current and overcurrent functions and is approved for that application. Verify every marked function and standard." }],
+    relatedTools: ["circuit-breaker-size-calculator", "rcd-rcbo-selector", "short-circuit-current-calculator"], relatedProducts: [{ label: "VIOX AFDD products", href: "https://viox.com/affd/" }, { label: "IEC 62606 AFDD guide", href: "https://viox.com/understanding-afdd-iec-62606-arc-fault-protection/" }], keywords: ["AFDD calculator", "AFDD selection calculator", "arc fault detection device selection", "AFDD RCBO", "IEC 62606 calculator"]
+  },
+  {
+    slug: "dc-breaker-sizing-calculator", title: "DC Circuit Breaker Sizing Calculator", shortTitle: "DC Breaker Size", category: "circuit-protection",
+    description: "Calculate DC design current and screen a DC MCB or MCCB for current, voltage, cable ampacity, poles, and breaking capacity.", intent: "Keep DC voltage and interruption requirements explicit instead of applying an AC breaker result to PV, battery, or control circuits.",
+    fields: [
+      { id: "source", label: "DC application", type: "select", defaultValue: "battery", options: [{ value: "battery", label: "Battery / DC distribution" }, { value: "pv", label: "Solar PV output circuit" }, { value: "control", label: "DC control circuit" }] },
+      { id: "inputMode", label: "Known load value", type: "select", defaultValue: "current", options: [{ value: "current", label: "Load current" }, { value: "power", label: "Load power" }] },
+      { id: "loadCurrent", label: "Maximum operating current", type: "number", defaultValue: 32, unit: "A", min: 0, showWhen: { field: "inputMode", values: ["current"] } },
+      { id: "loadPower", label: "Maximum operating power", type: "number", defaultValue: 16, unit: "kW", min: 0, showWhen: { field: "inputMode", values: ["power"] } },
+      { id: "systemVoltage", label: "Maximum circuit voltage", type: "number", defaultValue: 500, unit: "V DC", min: 0 },
+      { id: "designFactor", label: "Continuous / design factor", type: "number", defaultValue: 125, unit: "%", min: 100, max: 200 },
+      { id: "cableAmpacity", label: "Corrected cable ampacity", type: "number", defaultValue: 50, unit: "A", min: 0 },
+      { id: "candidateCurrent", label: "Candidate breaker current", type: "number", defaultValue: 40, unit: "A", min: 0 },
+      { id: "candidateVoltage", label: "Candidate DC voltage rating", type: "number", defaultValue: 500, unit: "V DC", min: 0 },
+      { id: "poles", label: "Candidate pole arrangement", type: "select", defaultValue: "2", options: [{ value: "1", label: "1 pole" }, { value: "2", label: "2 poles" }, { value: "4", label: "4 poles" }] },
+      { id: "faultCurrent", label: "Prospective DC fault current", type: "number", defaultValue: 6, unit: "kA", min: 0 },
+      { id: "breakingCapacity", label: "Candidate DC breaking capacity", type: "number", defaultValue: 10, unit: "kA", min: 0 }
+    ],
+    formula: "Idesign = Iload x design factor, or P/(V) x design factor; require Ib <= In <= Iz, Ue,DC >= Umax, and Icu/Icn,DC >= prospective DC fault current.", assumptions: ["Steady DC load", "Maximum system voltage and fault current are entered for the installation point", "Standard current rounding is a preliminary reference"], warnings: [standardWarning, "Never substitute an AC interrupting rating for the required DC rating.", "Required pole count and series-pole wiring must follow the exact breaker documentation, earthing, polarity, and system voltage."], faqs: faq("DC circuit breaker sizing"), relatedTools: ["circuit-breaker-size-calculator", "pv-combiner-box-sizing-calculator", "cable-size-calculator"], relatedProducts: [{ label: "VIOX DC circuit breakers", href: "https://viox.com/dc-mcb/" }, { label: "VIOX solar protection", href: "https://viox.com/applications/solar-energy-storage/" }], keywords: ["DC breaker sizing calculator", "DC MCB calculator", "DC MCCB sizing", "solar DC circuit breaker size", "battery breaker calculator"]
+  },
+  {
+    slug: "pv-dc-isolator-sizing-calculator", title: "PV DC Isolator Sizing Calculator", shortTitle: "PV DC Isolator", category: "solar-storage",
+    description: "Calculate cold-condition PV array voltage and design current, then screen a DC isolator voltage, current, utilization category, and pole arrangement.", intent: "Create an auditable isolator requirement from module and string data before choosing a PV switch-disconnector.",
+    fields: [
+      { id: "moduleVoc", label: "Module Voc at STC", type: "number", defaultValue: 49.5, unit: "V", min: 0 },
+      { id: "vocCoefficient", label: "Voc temperature coefficient", type: "number", defaultValue: -0.28, unit: "%/°C", max: 0 },
+      { id: "minimumTemperature", label: "Minimum cell temperature", type: "number", defaultValue: -10, unit: "°C" },
+      { id: "seriesModules", label: "Modules in series", type: "number", defaultValue: 18, min: 1, step: 1 },
+      { id: "moduleIsc", label: "Module short-circuit current", type: "number", defaultValue: 13.7, unit: "A", min: 0 },
+      { id: "parallelStrings", label: "Parallel strings through isolator", type: "number", defaultValue: 2, min: 1, step: 1 },
+      { id: "currentFactor", label: "Current design factor", type: "number", defaultValue: 125, unit: "%", min: 100, max: 200 },
+      { id: "duty", label: "Switching duty", type: "select", defaultValue: "load", options: [{ value: "load", label: "Operational switching under load" }, { value: "isolation", label: "Isolation only after current removal" }] },
+      { id: "topology", label: "PV conductor arrangement", type: "select", defaultValue: "floating", options: [{ value: "floating", label: "Unearthed / floating array" }, { value: "grounded", label: "One conductor intentionally earthed" }] },
+      { id: "candidateVoltage", label: "Candidate DC voltage rating", type: "number", defaultValue: 1000, unit: "V DC", min: 0 },
+      { id: "candidateCurrent", label: "Candidate operational current", type: "number", defaultValue: 40, unit: "A", min: 0 },
+      { id: "poles", label: "Candidate pole arrangement", type: "select", defaultValue: "2", options: [{ value: "1", label: "1 pole" }, { value: "2", label: "2 poles" }, { value: "4", label: "4 poles" }] }
+    ],
+    formula: "Voc,cold = N x Voc,STC x [1 + betaVoc(Tmin - 25°C)]; Idesign = Isc x parallel strings x current factor.", assumptions: ["Linear module Voc temperature coefficient around STC", "Entered minimum cell temperature is suitable for the site", "All parallel strings can contribute current through the isolator"], warnings: [standardWarning, "Use the exact IEC 60947-3 DC-PV utilization category and manufacturer wiring diagram for the intended switching duty.", "PV switching voltage can depend on poles connected in series; do not infer voltage capacity from pole count alone."], faqs: faq("PV DC isolator sizing"), relatedTools: ["pv-string-sizing-calculator", "pv-combiner-box-sizing-calculator", "dc-breaker-sizing-calculator"], relatedProducts: [{ label: "VIOX DC isolator switches", href: "https://viox.com/dc-isolator-switch/" }, { label: "VIOX PV protection", href: "https://viox.com/applications/solar-energy-storage/" }], keywords: ["PV DC isolator sizing calculator", "solar isolator size", "DC switch disconnector calculator", "DC-PV2 isolator", "solar array isolator rating"]
+  },
+  {
+    slug: "acb-lsig-setting-calculator", title: "ACB Frame & LSIG Setting Calculator", shortTitle: "ACB LSIG", category: "circuit-protection",
+    description: "Build a preliminary ACB frame and LSIG worksheet from design current, cable capacity, fault level, downstream rating, and entered pickup multiples.", intent: "Organize ACB setting inputs for coordination review without pretending generic multiples replace a manufacturer time-current study.",
+    fields: [
+      { id: "designCurrent", label: "Feeder design current Ib", type: "number", defaultValue: 800, unit: "A", min: 0 },
+      { id: "cableAmpacity", label: "Protected conductor ampacity Iz", type: "number", defaultValue: 1000, unit: "A", min: 0 },
+      { id: "longTimeMargin", label: "Long-time pickup margin", type: "number", defaultValue: 110, unit: "% of Ib", min: 100, max: 150 },
+      { id: "shortTimeMultiple", label: "Short-time pickup Isd", type: "number", defaultValue: 6, unit: "x Ir", min: 1, max: 15 },
+      { id: "instantaneousMultiple", label: "Instantaneous pickup Ii", type: "number", defaultValue: 10, unit: "x Ir", min: 1, max: 20 },
+      { id: "groundFaultFraction", label: "Ground-fault pickup Ig", type: "number", defaultValue: 40, unit: "% of frame", min: 10, max: 100 },
+      { id: "downstreamRating", label: "Largest downstream breaker", type: "number", defaultValue: 400, unit: "A", min: 0 },
+      { id: "faultCurrent", label: "Prospective short-circuit current", type: "number", defaultValue: 35, unit: "kA", min: 0 },
+      { id: "candidateBreaking", label: "Candidate ACB breaking capacity", type: "number", defaultValue: 50, unit: "kA", min: 0 }
+    ],
+    formula: "Choose In/frame >= Ib; preliminary Ir = min(Ib x margin, Iz, frame); Isd and Ii are entered multiples of Ir; require breaking capacity >= prospective fault current.", assumptions: ["Entered current and ampacity are already corrected design values", "LSIG numbers are pickup starting points only", "Ground-fault protection is applicable to the selected system"], warnings: [standardWarning, "Final Ir, tr, Isd, tsd, I2t, Ii, Ig, and tg settings require the exact trip-unit ranges, manufacturer curves, conductor damage curves, source data, and selectivity study.", "Do not energize equipment using generic LSIG settings from this worksheet."], faqs: faq("ACB LSIG worksheet"), relatedTools: ["short-circuit-current-calculator", "breaker-selectivity-calculator", "cable-short-circuit-thermal-calculator"], relatedProducts: [{ label: "VIOX air circuit breakers", href: "https://viox.com/products/" }, { label: "VIOX switchgear support", href: "https://viox.com/contact" }], keywords: ["ACB LSIG setting calculator", "air circuit breaker setting", "Ir Isd Ii Ig calculator", "ACB frame size", "LSIG coordination worksheet"]
+  },
+  {
+    slug: "ct-ratio-burden-calculator", title: "CT Ratio & Burden Calculator", shortTitle: "CT Ratio & Burden", category: "power-distribution",
+    description: "Select a reference current-transformer ratio and calculate secondary lead, meter, relay, and total connected burden for 1 A or 5 A CT circuits.", intent: "Expose the often-missed I-squared lead burden before selecting a metering or protection CT.",
+    fields: [
+      { id: "primaryCurrent", label: "Maximum primary current", type: "number", defaultValue: 360, unit: "A", min: 0 },
+      { id: "ratioMargin", label: "Primary ratio margin", type: "number", defaultValue: 125, unit: "%", min: 100, max: 200 },
+      { id: "secondaryCurrent", label: "CT secondary rating", type: "select", defaultValue: "5", options: [{ value: "1", label: "1 A" }, { value: "5", label: "5 A" }] },
+      { id: "leadLength", label: "One-way lead length", type: "number", defaultValue: 20, unit: "m", min: 0 },
+      { id: "leadArea", label: "Copper lead cross-section", type: "number", defaultValue: 2.5, unit: "mm²", min: 0 },
+      { id: "meterBurden", label: "Meters total burden", type: "number", defaultValue: 2, unit: "VA", min: 0 },
+      { id: "relayBurden", label: "Protection relays burden", type: "number", defaultValue: 1, unit: "VA", min: 0 },
+      { id: "otherBurden", label: "Other connected burden", type: "number", defaultValue: 0.5, unit: "VA", min: 0 },
+      { id: "ratedBurden", label: "Candidate CT rated burden", type: "number", defaultValue: 15, unit: "VA", min: 0 },
+      { id: "use", label: "CT duty", type: "select", defaultValue: "metering", options: [{ value: "metering", label: "Metering" }, { value: "protection", label: "Protection" }] }
+    ],
+    formula: "Rlead = 2 x rho x L/A; VAlead = Isecondary^2 x Rlead; VAtotal = VAlead + VAmeter + VArelay + VAother.", assumptions: ["Copper leads at approximately 20°C with resistivity 0.0175 ohm mm²/m", "Lead length is one way and the calculation includes the complete outgoing-and-return loop", "Connected devices are represented by their stated burden at rated secondary current"], warnings: [standardWarning, "Ratio and VA burden do not establish accuracy class, instrument security factor, knee-point voltage, saturation, ALF, transient performance, or protection suitability.", "Never open-circuit an energized CT secondary."], faqs: [{ question: "Why can a 5 A CT have much more lead burden than a 1 A CT?", answer: "Lead burden follows I²R. For the same loop resistance, a 5 A secondary creates 25 times the lead burden of a 1 A secondary." }, { question: "Does a burden pass prove protection CT performance?", answer: "No. Protection accuracy also depends on class, ALF or knee point, winding resistance, fault current, X/R ratio, and relay requirements." }], relatedTools: ["current-shunt-calculator", "transformer-sizing-calculator", "three-phase-current-calculator"], relatedProducts: [{ label: "VIOX current transformers", href: "https://viox.com/products/" }, { label: "VIOX metering support", href: "https://viox.com/contact" }], keywords: ["CT ratio calculator", "CT burden calculator", "current transformer VA burden", "1A vs 5A CT", "CT lead burden"]
+  },
+  {
+    slug: "breaker-accessory-power-calculator", title: "Circuit Breaker Accessory Power Calculator", shortTitle: "Breaker Accessory VA", category: "circuit-protection",
+    description: "Calculate peak and continuous control-supply demand for shunt trips, undervoltage releases, motor operators, and other breaker accessories.", intent: "Separate short operating VA from continuous holding VA before sizing a control transformer or DC supply.",
+    fields: [
+      { id: "supplyVoltage", label: "Control supply voltage", type: "number", defaultValue: 24, unit: "V AC/DC", min: 0 },
+      { id: "operationMode", label: "Operating coincidence", type: "select", defaultValue: "largest", options: [{ value: "largest", label: "Largest credible operating event" }, { value: "simultaneous", label: "All accessories may operate together" }] },
+      { id: "shuntQuantity", label: "Shunt-trip quantity", type: "number", defaultValue: 1, min: 0, step: 1 },
+      { id: "shuntPickupVa", label: "Shunt-trip operating demand", type: "number", defaultValue: 120, unit: "VA each", min: 0 },
+      { id: "uvrQuantity", label: "Undervoltage-release quantity", type: "number", defaultValue: 1, min: 0, step: 1 },
+      { id: "uvrPickupVa", label: "UV release pickup demand", type: "number", defaultValue: 80, unit: "VA each", min: 0 },
+      { id: "uvrHoldVa", label: "UV release holding demand", type: "number", defaultValue: 10, unit: "VA each", min: 0 },
+      { id: "motorQuantity", label: "Motor-operator quantity", type: "number", defaultValue: 1, min: 0, step: 1 },
+      { id: "motorOperatingVa", label: "Motor-operator demand", type: "number", defaultValue: 300, unit: "VA each", min: 0 },
+      { id: "otherContinuousVa", label: "Other continuous control load", type: "number", defaultValue: 5, unit: "VA", min: 0 },
+      { id: "designMargin", label: "Supply design margin", type: "number", defaultValue: 125, unit: "%", min: 100, max: 200 }
+    ],
+    formula: "Peak VA is either the largest credible event or the simultaneous sum; continuous VA includes holding and other continuous loads; supply VA >= max(peak, continuous) x margin.", assumptions: ["Entered VA values come from exact accessory datasheets at the selected control voltage", "Largest-event mode assumes motor operation does not coincide with the combined trip/release event", "Power-supply transient capability is represented by VA only as a first screen"], warnings: [standardWarning, "Check AC/DC type, voltage tolerance, pickup duration, inrush waveform, duty cycle, wiring voltage drop, fuse protection, and power-supply overload curve.", "Every accessory must match the exact breaker series, frame, mechanism, mounting, and terminal arrangement."], faqs: faq("breaker accessory control-power calculation"), relatedTools: ["panel-heat-loss-calculator", "transformer-sizing-calculator", "acb-lsig-setting-calculator"], relatedProducts: [{ label: "VIOX breaker accessories", href: "https://viox.com/products/" }, { label: "VIOX technical support", href: "https://viox.com/contact" }], keywords: ["breaker accessory power calculator", "shunt trip VA", "undervoltage release power", "breaker motor operator VA", "control transformer sizing"]
+  },
+  {
+    slug: "pv-dc-ats-calculator", title: "PV DC ATS Sizing Calculator", shortTitle: "PV DC ATS", category: "solar-storage",
+    description: "Calculate DC design current and organize voltage, source, transition, pole, and candidate-rating checks for a PV or battery DC transfer switch.", intent: "Keep DC transfer switching requirements distinct from familiar AC ATS assumptions.",
+    fields: [
+      { id: "sourceType", label: "DC source application", type: "select", defaultValue: "battery-pv", options: [{ value: "battery-pv", label: "Battery / PV DC sources" }, { value: "dual-battery", label: "Dual battery banks" }, { value: "dual-pv", label: "Dual PV inputs" }] },
+      { id: "inputMode", label: "Known load value", type: "select", defaultValue: "power", options: [{ value: "power", label: "Transferred DC power" }, { value: "current", label: "Transferred DC current" }] },
+      { id: "loadPower", label: "Maximum transferred power", type: "number", defaultValue: 20, unit: "kW", min: 0, showWhen: { field: "inputMode", values: ["power"] } },
+      { id: "loadCurrent", label: "Maximum transferred current", type: "number", defaultValue: 40, unit: "A", min: 0, showWhen: { field: "inputMode", values: ["current"] } },
+      { id: "systemVoltage", label: "Maximum DC system voltage", type: "number", defaultValue: 500, unit: "V DC", min: 0 },
+      { id: "designFactor", label: "Continuous-current factor", type: "number", defaultValue: 125, unit: "%", min: 100, max: 200 },
+      { id: "transition", label: "Transfer transition", type: "select", defaultValue: "open", options: [{ value: "open", label: "Open transition / break-before-make" }, { value: "closed", label: "Closed transition – engineered interconnection only" }] },
+      { id: "topology", label: "Conductor arrangement", type: "select", defaultValue: "floating", options: [{ value: "floating", label: "Unearthed / floating DC" }, { value: "grounded", label: "One conductor intentionally earthed" }] },
+      { id: "candidateCurrent", label: "Candidate operational current", type: "number", defaultValue: 63, unit: "A", min: 0 },
+      { id: "candidateVoltage", label: "Candidate operational voltage", type: "number", defaultValue: 600, unit: "V DC", min: 0 },
+      { id: "poles", label: "Candidate switched poles", type: "select", defaultValue: "2", options: [{ value: "1", label: "1 pole" }, { value: "2", label: "2 poles" }, { value: "4", label: "4 poles" }] }
+    ],
+    formula: "Iload = P/V or entered current; Idesign = Iload x continuous factor; require Ie,DC >= Idesign and Ue,DC >= maximum source voltage.", assumptions: ["Steady DC transfer load", "Entered voltage is the highest voltage that can appear from either source", "Current rounding is a product-family starting point"], warnings: [standardWarning, "Use only equipment explicitly rated for DC transfer duty at the actual voltage, current, polarity, utilization category, and pole wiring.", "Closed-transition or source paralleling can create uncontrolled circulating current and requires a purpose-designed interconnection system."], faqs: faq("PV DC ATS sizing"), relatedTools: ["ats-selection-calculator", "dc-breaker-sizing-calculator", "pv-dc-isolator-sizing-calculator"], relatedProducts: [{ label: "VIOX transfer switching products", href: "https://viox.com/automatic-transfer-switch/" }, { label: "VIOX solar DC products", href: "https://viox.com/applications/solar-energy-storage/" }], keywords: ["PV DC ATS calculator", "DC transfer switch sizing", "battery DC ATS", "solar automatic transfer switch", "DC changeover switch sizing"]
   }
 ];
