@@ -25,7 +25,14 @@ const schema = [
   },
   breadcrumbSchema([{ name: "Herramientas eléctricas", url: canonical }])
 ];
-const searchableTools = localizedTools.map(({ slug, title, shortTitle, description, keywords }) => ({ slug, title, shortTitle, description, keywords }));
+const searchableTools = localizedTools.map(({ slug, title, shortTitle, description, keywords, category }) => ({
+  slug,
+  title,
+  shortTitle,
+  description,
+  keywords,
+  categoryTitle: localizeRecord(categories[category], locale).title
+}));
 ---
 
 <Layout locale={locale} title="Calculadoras eléctricas gratuitas para diseño de baja tensión | VIOX" description={description} canonical={canonical} schema={schema}>

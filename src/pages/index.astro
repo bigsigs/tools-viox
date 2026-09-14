@@ -23,7 +23,14 @@ const schema = [
   },
   breadcrumbSchema([{ name: "Electrical Tools", url: site.origin }])
 ];
-const searchableTools = tools.map(({ slug, title, shortTitle, description, keywords }) => ({ slug, title, shortTitle, description, keywords }));
+const searchableTools = tools.map(({ slug, title, shortTitle, description, keywords, category }) => ({
+  slug,
+  title,
+  shortTitle,
+  description,
+  keywords,
+  categoryTitle: categories[category].title
+}));
 ---
 
 <Layout title="Free Electrical Calculators for Low-Voltage Design | VIOX" description={site.description} canonical={`${site.origin}/`} schema={schema}>

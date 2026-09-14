@@ -958,8 +958,7 @@ select {
 }
 
 .tool-search-control {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 58px;
+  display: flex;
   min-height: 60px;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
@@ -974,6 +973,7 @@ select {
 }
 
 .tool-search-control input {
+  flex: 1 1 auto;
   min-width: 0;
   border: 0;
   outline: 0;
@@ -987,12 +987,17 @@ select {
   color: #8a949f;
 }
 
+.tool-search-control input::-webkit-search-cancel-button {
+  display: none;
+  appearance: none;
+}
+
 .tool-search-control button {
   position: relative;
+  flex: 0 0 54px;
+  width: 54px;
   border: 0;
-  border-left: 1px solid var(--line);
-  border-radius: 0 var(--radius) var(--radius) 0;
-  background: var(--soft);
+  background: transparent;
   cursor: pointer;
 }
 
@@ -1000,7 +1005,23 @@ select {
   background: rgba(215, 25, 32, 0.08);
 }
 
-.tool-search-control button span {
+.tool-search-clear {
+  color: var(--muted);
+  font-size: 25px;
+}
+
+.tool-search-clear span {
+  display: block;
+  line-height: 1;
+}
+
+.tool-search-submit {
+  border-left: 1px solid var(--line) !important;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--soft) !important;
+}
+
+.tool-search-submit span {
   position: absolute;
   top: 18px;
   left: 18px;
@@ -1010,7 +1031,7 @@ select {
   border-radius: 50%;
 }
 
-.tool-search-control button span::after {
+.tool-search-submit span::after {
   content: "";
   position: absolute;
   right: -8px;
@@ -1027,7 +1048,9 @@ select {
   top: calc(100% + 8px);
   right: 0;
   left: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: min(454px, 62vh);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
   background: #fff;
@@ -1035,10 +1058,10 @@ select {
 }
 
 .tool-search-results > button {
-  display: flex;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 20px;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  gap: 13px;
   width: 100%;
   border: 0;
   border-bottom: 1px solid var(--line);
@@ -1053,9 +1076,29 @@ select {
 }
 
 .tool-search-results > button:hover,
-.tool-search-results > button:focus-visible {
+.tool-search-results > button:focus-visible,
+.tool-search-results > button.is-active {
   outline: 0;
   background: var(--soft);
+}
+
+.tool-search-results > button.is-active {
+  box-shadow: inset 3px 0 0 var(--red);
+}
+
+.tool-search-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(215, 25, 32, 0.22);
+  border-radius: 4px;
+  color: var(--red-dark);
+  background: rgba(215, 25, 32, 0.055);
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .tool-search-results button span {
@@ -1070,6 +1113,11 @@ select {
   font-size: 14px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.tool-search-results mark {
+  color: var(--red-dark);
+  background: transparent;
 }
 
 .tool-search-results small {

@@ -1,16 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from "react";
+import { Fragment, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type SyntheticEvent } from "react";
 import { clientLocalePath, clientT, type ClientLocale } from "../lib/i18n-client";
-
-type SearchTool = {
-  slug: string;
-  title: string;
-  shortTitle?: string;
-  description: string;
-  keywords: string[];
-};
+import { toolIcon } from "../lib/toolIcons";
+import { searchTools, type SearchableTool } from "../lib/toolSearch";
 
 type Props = {
-  tools: SearchTool[];
+  tools: SearchableTool[];
   locale?: ClientLocale;
 };
 
@@ -20,8 +14,11 @@ export default function ToolDiscovery({ tools, locale = "en" }: Props) {
   const tr = (text: string) => clientT(locale, text);
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
   const [recentSlugs, setRecentSlugs] = useState<string[]>([]);
   const shellRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const optionId = useId().replace(/:/g, "");
 
   useEffect(() => {
     try {
@@ -40,18 +37,32 @@ export default function ToolDiscovery({ tools, locale = "en" }: Props) {
     return () => document.removeEventListener("mousedown", closeResults);
   }, []);
 
+  useEffect(() => {
+    function focusSearch() {
+      if (window.location.hash !== "#calculator-search") return;
+      window.requestAnimationFrame(() => {
+        inputRef.current?.focus();
+        setOpen(true);
+      });
+    }
+    function handleSearchLink(event: MouseEvent) {
+      const link = (event.target as Element | null)?.closest<HTMLAnchorElement>('a[href$="#calculator-search"]');
+      if (link) window.setTimeout(focusSearch, 0);
+    }
+    focusSearch();
+    window.addEventListener("hashchange", focusSearch);
+    document.addEventListener("click", handleSearchLink);
+    return () => {
+      window.removeEventListener("hashchange", focusSearch);
+      document.removeEventListener("click", handleSearchLink);
+    };
+  }, []);
+
   const matches = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    if (!normalized) return tools.slice(0, 7);
-    return tools.filter((tool) => [tool.title, tool.shortTitle, tool.description, ...tool.keywords]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase()
-      .includes(normalized))
-      .slice(0, 7);
+    return searchTools(tools, query);
   }, [query, tools]);
 
-  const recentTools = recentSlugs.map((slug) => tools.find((tool) => tool.slug === slug)).filter((tool): tool is SearchTool => Boolean(tool));
+  const recentTools = recentSlugs.map((slug) => tools.find((tool) => tool.slug === slug)).filter((tool): tool is SearchableTool => Boolean(tool));
 
   function remember(slug: string) {
     const next = [slug, ...recentSlugs.filter((item) => item !== slug)].slice(0, 3);
@@ -59,14 +70,39 @@ export default function ToolDiscovery({ tools, locale = "en" }: Props) {
     localStorage.setItem(storageKey, JSON.stringify(next));
   }
 
-  function openTool(tool: SearchTool) {
+  function openTool(tool: SearchableTool) {
     remember(tool.slug);
     window.location.assign(clientLocalePath(locale, `/${tool.slug}/`));
   }
 
   function submit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (matches[0]) openTool(matches[0]);
+    if (matches[activeIndex]) openTool(matches[activeIndex]);
+  }
+
+  function handleKeys(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setOpen(true);
+      setActiveIndex((index) => matches.length ? (index + 1) % matches.length : 0);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setOpen(true);
+      setActiveIndex((index) => matches.length ? (index - 1 + matches.length) % matches.length : 0);
+    } else if (event.key === "Escape") {
+      setOpen(false);
+    }
+  }
+
+  function highlighted(text: string) {
+    const tokens = query.trim().split(/\s+/).filter((token) => token.length > 1);
+    if (!tokens.length) return text;
+    const expression = new RegExp(`(${tokens.map((token) => token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "gi");
+    return text.split(expression).map((part, index) =>
+      tokens.some((token) => part.toLowerCase() === token.toLowerCase())
+        ? <mark key={`${part}-${index}`}>{part}</mark>
+        : <Fragment key={`${part}-${index}`}>{part}</Fragment>
+    );
   }
 
   return (
@@ -82,6 +118,7 @@ export default function ToolDiscovery({ tools, locale = "en" }: Props) {
             <div className="tool-search-control">
               <input
                 id="calculator-search"
+                ref={inputRef}
                 type="search"
                 value={query}
                 placeholder={tr("Search calculators...")}
@@ -89,22 +126,43 @@ export default function ToolDiscovery({ tools, locale = "en" }: Props) {
                 onFocus={() => setOpen(true)}
                 onChange={(event) => {
                   setQuery(event.target.value);
+                  setActiveIndex(0);
                   setOpen(true);
                 }}
+                onKeyDown={handleKeys}
                 aria-expanded={open}
                 aria-controls="calculator-search-results"
+                aria-activedescendant={open && matches[activeIndex] ? `${optionId}-${activeIndex}` : undefined}
               />
-              <button type="submit" aria-label={tr("Open first matching calculator")}><span aria-hidden="true"></span></button>
+              {query ? (
+                <button className="tool-search-clear" type="button" aria-label={tr("Clear search")} title={tr("Clear search")} onClick={() => {
+                  setQuery("");
+                  setActiveIndex(0);
+                  setOpen(true);
+                  inputRef.current?.focus();
+                }}><span aria-hidden="true">×</span></button>
+              ) : null}
+              <button className="tool-search-submit" type="submit" aria-label={tr("Open first matching calculator")}><span aria-hidden="true"></span></button>
             </div>
           </form>
           {open ? (
-            <div className="tool-search-results" id="calculator-search-results" role="listbox">
-              {matches.length ? matches.map((tool) => (
-                <button type="button" role="option" key={tool.slug} onClick={() => openTool(tool)}>
-                  <span><strong>{tool.title}</strong><small>{tool.description}</small></span>
+            <div className="tool-search-results" id="calculator-search-results" role="listbox" aria-label={tr("Search calculators...")}>
+              {matches.length ? matches.map((tool, index) => (
+                <button
+                  type="button"
+                  role="option"
+                  id={`${optionId}-${index}`}
+                  aria-selected={index === activeIndex}
+                  className={index === activeIndex ? "is-active" : undefined}
+                  key={tool.slug}
+                  onMouseEnter={() => setActiveIndex(index)}
+                  onClick={() => openTool(tool)}
+                >
+                  <b className="tool-search-badge" aria-hidden="true">{toolIcon(tool.slug)}</b>
+                  <span><strong>{highlighted(tool.title)}</strong><small>{tool.categoryTitle}</small></span>
                   <i aria-hidden="true">→</i>
                 </button>
-              )) : <p>{tr("No calculator matches")} “{query}”.</p>}
+              )) : <p aria-live="polite">{tr("No calculator matches")} “{query}”.</p>}
             </div>
           ) : null}
         </div>
